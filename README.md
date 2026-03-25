@@ -1,2 +1,4 @@
 # OATI-Merida-Sistema-CSI
-Centro de Soporte Informático  Sistema CSI - OATI - DAR Merida
+Direccion Administrativa Regional DAR - Merida
+Oficina de Apoyo Tecnico Informatico OATI
+Centro de Soporte Informático  Sistema CSI 
