@@ -1,0 +1,22 @@
+# Habilitar rewrite engine
+RewriteEngine On
+
+# Prevenir acceso directo a archivos sensibles
+<FilesMatch "\.(env|log|ini|conf|sql)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Proteger directorios
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Configuraciones PHP seguras
+php_flag display_errors off
+php_value error_reporting E_ALL & ~E_DEPRECATED & ~E_STRICT
+
+# IMPORTANTE: NO usar redirecciones automáticas aquí
+# Las redirecciones deben manejarse en PHP, no en .htaccess

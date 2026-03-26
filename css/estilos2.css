@@ -1,0 +1,636 @@
+/* ===========================================
+   SISTEMA CSI - ESTILOS2.CSS
+   Versión super compacta personalizada
+   =========================================== */
+
+/* ESTILOS SUPER COMPACTOS PERSONALIZADOS */
+:root {
+    --compact-spacing: 4px;
+    --compact-radius: 4px;
+    --compact-font: 12px;
+}
+
+body {
+    font-size: var(--compact-font) !important;
+    line-height: 1.3 !important;
+    overflow-x: hidden;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* HEADER PERSONALIZADO CON LOGO OATI */
+.top-header {
+    height: 50px !important;
+    padding: 5px 15px !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%) !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+
+/* LOGO OATI A LA IZQUIERDA */
+.logo-oati {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-oati-img {
+    height: 40px;
+    width: auto;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+}
+
+.system-titles-custom {
+    display: flex;
+    flex-direction: column;
+    color: white;
+    line-height: 1.2;
+}
+
+.system-name-custom {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    letter-spacing: 0.5px;
+}
+
+.system-sub-custom {
+    font-size: 11px !important;
+    margin: 0 !important;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+/* USUARIO Y BOTÓN SALIR CON IMAGEN */
+.user-header-info-custom {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-details-custom {
+    background: rgba(255,255,255,0.15);
+    padding: 5px 12px !important;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.user-name-custom {
+    font-size: 12px !important;
+    font-weight: 600;
+    color: white;
+}
+
+.user-role-custom {
+    font-size: 10px !important;
+    padding: 2px 8px !important;
+    background: #ff9800;
+    color: white;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+/* BOTÓN SALIR CON IMAGEN */
+.logout-btn-custom {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    border: none !important;
+    padding: 6px 12px !important;
+    border-radius: 5px !important;
+    text-decoration: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s !important;
+    cursor: pointer !important;
+}
+
+.logout-btn-custom:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-1px);
+}
+
+.logout-img {
+    height: 16px;
+    width: auto;
+    filter: brightness(0) invert(1);
+}
+
+.logout-text {
+    display: inline-block;
+}
+
+/* LAYOUT PRINCIPAL */
+.main-wrapper {
+    margin-top: 50px !important;
+    min-height: calc(100vh - 50px) !important;
+    display: flex;
+}
+
+/* SIDEBAR CON IMÁGENES PERSONALIZADAS - SIN FILTRO DE BRILLO */
+.sidebar-menu-custom {
+    width: 190px !important;
+    height: 400px;
+    padding: 10px 0 !important;
+    position: fixed;
+    top: 50px;
+    bottom: 0;
+    overflow-y: auto;
+    z-index: 999;
+    background: #ffffff !important;
+    border-right: 1px solid #e0e0e0;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+}
+
+.menu-header-custom {
+    padding: 0 15px 10px !important;
+    margin-bottom: 10px !important;
+    border-bottom: 1px solid #eee;
+}
+
+.menu-header-custom h3 {
+    font-size: 13px !important;
+    color: #1a2980;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.menu-list-custom {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu-list-custom li {
+    margin: 2px 0;
+}
+
+.menu-list-custom li a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 15px !important;
+    color: #555 !important;
+    text-decoration: none !important;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+    font-size: 12px !important;
+    font-weight: 500;
+}
+
+.menu-list-custom li a:hover {
+    background: #f0f7ff !important;
+    color: #1a2980 !important;
+    border-left-color: #1a2980;
+}
+
+.menu-list-custom li a.active {
+    background: #e8f4fc !important;
+    color: #1a2980 !important;
+    border-left-color: #1a2980;
+    font-weight: 600;
+}
+
+/* IMÁGENES DEL MENÚ - SIN FILTRO DE BRILLO */
+.menu-img {
+    height: 18px;
+    width: 18px;
+    object-fit: contain;
+    /* FILTRO DE BRILLO ELIMINADO - se mantienen colores originales */
+}
+
+.menu-list-custom li a:hover .menu-img,
+.menu-list-custom li a.active .menu-img {
+    /* Solo se oscurece ligeramente al hacer hover/active */
+    opacity: 0.8;
+}
+
+/* CONTENIDO PRINCIPAL COMPACTO */
+.main-content-custom {
+    margin-left: 190px !important;
+    padding: 10px !important;
+    width: calc(100% - 190px);
+    max-height: calc(100vh - 50px);
+    overflow-y: auto;
+    background: #f8fafc;
+}
+
+/* SECCIÓN DE BIENVENIDA */
+.welcome-mini-custom {
+    background: white;
+    padding: 12px 15px;
+    border-radius: var(--compact-radius);
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    border: 1px solid #eef2f7;
+}
+
+.welcome-mini-custom h2 {
+    font-size: 15px !important;
+    margin: 0 !important;
+    color: #1a2980;
+    font-weight: 600;
+}
+
+.welcome-mini-custom p {
+    font-size: 11px !important;
+    margin: 3px 0 0 0 !important;
+    color: #666;
+}
+
+.current-time-mini-custom {
+    font-size: 11px !important;
+    background: #f0f7ff;
+    padding: 4px 10px;
+    border-radius: 15px;
+    color: #1a2980;
+    font-weight: 500;
+}
+
+/* ESTADÍSTICAS COMPACTAS */
+.stats-grid-custom {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.stat-card-custom {
+    background: white;
+    border-radius: var(--compact-radius);
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border: 1px solid #eef2f7;
+    transition: transform 0.2s;
+}
+
+.stat-card-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+}
+
+.stat-number-custom {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a2980;
+    line-height: 1;
+    margin: 6px 0;
+}
+
+.stat-label-custom {
+    font-size: 10px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+/* ACCIONES RÁPIDAS */
+.quick-actions-row-custom {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.action-btn-custom {
+    flex: 1;
+    min-width: 120px;
+    padding: 8px 12px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: var(--compact-radius);
+    font-size: 12px;
+    text-align: center;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s;
+    font-weight: 600;
+}
+
+.action-btn-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+.action-btn-custom.success { background: #2ecc71; }
+.action-btn-custom.success:hover { box-shadow: 0 4px 8px rgba(46, 204, 113, 0.3); }
+
+.action-btn-custom.warning { background: #f39c12; }
+.action-btn-custom.warning:hover { box-shadow: 0 4px 8px rgba(243, 156, 18, 0.3); }
+
+.action-btn-custom.info { background: #9b59b6; }
+.action-btn-custom.info:hover { box-shadow: 0 4px 8px rgba(155, 89, 182, 0.3); }
+
+/* TABLA COMPACTA */
+.table-container-custom {
+    background: white;
+    border-radius: var(--compact-radius);
+    overflow: hidden;
+    margin-bottom: 12px;
+    border: 1px solid #eef2f7;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.table-header-custom {
+    background: #f8f9fa;
+    padding: 10px 12px;
+    border-bottom: 1px solid #eef2f7;
+    font-weight: 600;
+    font-size: 12px;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.table-custom {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.table-custom th {
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+    padding: 8px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.table-custom td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.table-custom tr:hover {
+    background: #f8fafc;
+}
+
+/* BADGES COMPACTOS */
+.badge-custom {
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+/* FOOTER COMPACTO */
+.footer-custom {
+    text-align: center;
+    padding: 10px;
+    color: #666;
+    font-size: 10px;
+    border-top: 1px solid #eee;
+    margin-top: 15px;
+    background: white;
+    border-radius: var(--compact-radius);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .sidebar-menu-custom {
+        width: 100% !important;
+        position: static;
+        height: auto;
+        max-height: 220px;
+    }
+    
+    .main-content-custom {
+        margin-left: 0 !important;
+        width: 100%;
+        padding: 8px !important;
+    }
+    
+    .stats-grid-custom {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .action-btn-custom {
+        width: 100%;
+    }
+    
+    .system-name-custom {
+        font-size: 14px !important;
+    }
+    
+    .logout-text {
+        display: none;
+    }
+    
+    .logout-btn-custom {
+        padding: 6px !important;
+        width: 32px;
+        height: 32px;
+        justify-content: center;
+    }
+}
+
+/* ANIMACIONES */
+.fade-in-custom {
+    animation: fadeInCustom 0.3s ease-in;
+}
+
+@keyframes fadeInCustom {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ESTILOS ESPECÍFICOS PARA ESTADOS */
+.estado-nuevo { background: #e3f2fd !important; color: #1976d2 !important; }
+.estado-asignado { background: #fff3e0 !important; color: #f57c00 !important; }
+.estado-cerrado { background: #e8f5e9 !important; color: #388e3c !important; }
+
+.prioridad-baja { background: #d4edda !important; color: #155724 !important; }
+.prioridad-media { background: #fff3cd !important; color: #856404 !important; }
+.prioridad-alta { background: #ffe5d0 !important; color: #994d00 !important; }
+.prioridad-urgente { background: #f8d7da !important; color: #721c24 !important; }
+
+/* ESTILOS PARA IMÁGENES FALTANTES */
+.img-fallback {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    text-align: center;
+    line-height: 18px;
+    color: #1a2980;
+}
+
+/* ESTILOS PARA BOTONES DE ACCIÓN PEQUEÑOS */
+.btn-action-small {
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+    min-width: auto !important;
+    display: inline-flex !important;
+}
+/* ESTILOS ADICIONALES PARA TABLA MÁS COMPACTA */
+
+/* Reducir aún más los tamaños de fuente */
+.table-tickets {
+    font-size: 10px !important;
+}
+
+.table-tickets th {
+    padding: 6px 8px !important;
+    font-size: 10px !important;
+}
+
+.table-tickets td {
+    padding: 5px 6px !important;
+}
+
+/* Ajustar ancho de columnas específicas */
+.table-tickets th:nth-child(1), /* Asunto */
+.table-tickets td:nth-child(1) {
+    max-width: 200px;
+    min-width: 150px;
+}
+
+.table-tickets th:nth-child(2), /* Usuario */
+.table-tickets td:nth-child(2),
+.table-tickets th:nth-child(3), /* Dependencia */
+.table-tickets td:nth-child(3) {
+    max-width: 120px;
+    min-width: 90px;
+}
+
+.table-tickets th:nth-child(4), /* Área */
+.table-tickets td:nth-child(4),
+.table-tickets th:nth-child(5), /* Técnico */
+.table-tickets td:nth-child(5) {
+    max-width: 100px;
+    min-width: 80px;
+}
+
+.table-tickets th:nth-child(6), /* Estado */
+.table-tickets td:nth-child(6) {
+    max-width: 110px;
+    min-width: 90px;
+}
+
+.table-tickets th:nth-child(7), /* Prioridad */
+.table-tickets td:nth-child(7) {
+    max-width: 50px;
+    min-width: 40px;
+    text-align: center;
+}
+
+.table-tickets th:nth-child(8), /* Fecha */
+.table-tickets td:nth-child(8) {
+    max-width: 80px;
+    min-width: 70px;
+}
+
+.table-tickets th:nth-child(9), /* Acciones */
+.table-tickets td:nth-child(9) {
+    max-width: 90px;
+    min-width: 80px;
+    text-align: center;
+}
+
+/* Mejorar visualización de texto largo con elipsis */
+.table-tickets td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Para la columna de asunto, permitir 2 líneas */
+.table-tickets td:nth-child(1) {
+    white-space: normal;
+    line-height: 1.2;
+    max-height: 36px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* Número de ticket más pequeño dentro del asunto */
+.ticket-number-inline {
+    font-size: 8px !important;
+    color: #666;
+    margin-top: 2px;
+    display: block;
+}
+
+/* Badge de estado más compacto */
+.badge-estado-ticket {
+    padding: 2px 6px !important;
+    font-size: 9px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 70px;
+}
+
+/* Prioridad más pequeña */
+.priority-indicator {
+    width: 16px !important;
+    height: 16px !important;
+    line-height: 16px !important;
+    font-size: 8px !important;
+}
+
+/* Botones de acción más pequeños */
+.btn-accion-ticket {
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 9px !important;
+}
+
+/* Ocultar horas en pantallas pequeñas */
+@media (max-width: 1200px) {
+    .badge-estado-ticket span[title] {
+        display: none;
+    }
+}
+
+/* Para pantallas muy pequeñas */
+@media (max-width: 768px) {
+    .table-tickets {
+        font-size: 9px !important;
+    }
+    
+    .table-tickets th,
+    .table-tickets td {
+        padding: 4px 5px !important;
+    }
+    
+    .badge-estado-ticket {
+        min-width: 60px;
+        font-size: 8px !important;
+    }
+    
+    .table-tickets td:nth-child(1) {
+        max-width: 150px;
+        min-width: 120px;
+    }
+}

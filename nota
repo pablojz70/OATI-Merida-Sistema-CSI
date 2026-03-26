@@ -1,0 +1,9 @@
+En cada página que tenga menú lateral, modifica el <body>:
+php
+
+<body class="has-sidebar">
+
+En páginas sin menú (como index.php):
+php
+
+<body class="no-sidebar">

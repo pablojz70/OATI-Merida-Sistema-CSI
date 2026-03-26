@@ -1,0 +1,624 @@
+<?php
+// ============================================
+// DASHBOARD PRINCIPAL - VERSIÓN CENTRALIZADA
+// ============================================
+
+// 1. INCLUIR CONFIGURACIÓN CENTRAL
+require_once 'config/config.php';
+
+// 2. VERIFICAR AUTENTICACIÓN (todos los usuarios pueden ver el dashboard)
+verificarAutenticacion();
+
+// 3. OBTENER DATOS DEL USUARIO ACTUAL
+$usuario = usuarioActual();
+$id_usuario = $usuario['id'];
+$usuario_nombre = $usuario['nombre'];
+$privilegio = $usuario['privilegio'];
+
+// 4. CONEXIÓN YA DISPONIBLE VIA config.php
+global $conn;
+
+// 5. CARGAR FUNCIONES AUXILIARES SI EXISTEN
+if (file_exists('includes/functions.php')) {
+    require_once 'includes/functions.php';
+} else {
+    // Funciones básicas si no existe functions.php
+    function getUserIdFromSession() {
+        return $_SESSION['usuario_id'] ?? $_SESSION['id_usuario'] ?? null;
+    }
+    
+    function getAdminStats($conn) {
+        try {
+            $stats = [];
+            
+            // Usuarios totales
+            $stmt = $conn->query("SELECT COUNT(*) as total FROM Usuarios WHERE activo = 1");
+            $stats['total_usuarios'] = $stmt->fetchColumn();
+            
+            // Tickets totales
+            $stmt = $conn->query("SELECT COUNT(*) as total FROM Tickets");
+            $stats['total_tickets'] = $stmt->fetchColumn();
+            
+            // Tickets nuevos
+            $stmt = $conn->query("SELECT COUNT(*) as total FROM Tickets WHERE estado = 'Nuevo'");
+            $stats['tickets_nuevos'] = $stmt->fetchColumn();
+            
+            // Tickets asignados o en proceso
+            $stmt = $conn->query("SELECT COUNT(*) as total FROM Tickets WHERE estado IN ('Asignado', 'En Proceso')");
+            $stats['tickets_asignados'] = $stmt->fetchColumn();
+            
+            // Tickets cerrados
+            $stmt = $conn->query("SELECT COUNT(*) as total FROM Tickets WHERE estado LIKE 'Cerrado%'");
+            $stats['tickets_cerrados'] = $stmt->fetchColumn();
+            
+            return $stats;
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+    
+    function getTecnicoStats($conn, $tecnico_id) {
+        try {
+            $stats = [];
+            
+            // Tickets asignados a este técnico
+            $stmt = $conn->prepare("SELECT COUNT(*) as total FROM Tickets WHERE tecnico_asignado = ? AND estado IN ('Asignado', 'En Proceso')");
+            $stmt->execute([$tecnico_id]);
+            $stats['tickets_asignados'] = $stmt->fetchColumn();
+            
+            // Tickets resueltos por este técnico
+            $stmt = $conn->prepare("SELECT COUNT(*) as total FROM Tickets WHERE tecnico_asignado = ? AND estado = 'Cerrado Exitosamente'");
+            $stmt->execute([$tecnico_id]);
+            $stats['tickets_resueltos'] = $stmt->fetchColumn();
+            
+            return $stats;
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+    
+    function getUsuarioStats($conn, $usuario_id) {
+        try {
+            $stats = [];
+            
+            // Total de tickets del usuario
+            $stmt = $conn->prepare("SELECT COUNT(*) as total FROM Tickets WHERE usuario_id = ?");
+            $stmt->execute([$usuario_id]);
+            $stats['mis_tickets'] = $stmt->fetchColumn();
+            
+            // Tickets abiertos del usuario
+            $stmt = $conn->prepare("SELECT COUNT(*) as total FROM Tickets WHERE usuario_id = ? AND estado NOT LIKE 'Cerrado%'");
+            $stmt->execute([$usuario_id]);
+            $stats['tickets_abiertos'] = $stmt->fetchColumn();
+            
+            return $stats;
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+    
+    function getRecentTickets($conn, $user_id, $privilegio, $limit = 8) {
+        try {
+            if ($privilegio == 'admin') {
+                $sql = "SELECT t.*, 
+                               u.nombre as usuario_nombre,
+                               d.nombre as dependencia_nombre,
+                               d.nombre_corto as dependencia_corto
+                        FROM Tickets t 
+                        LEFT JOIN Usuarios u ON t.usuario_id = u.id 
+                        LEFT JOIN Dependencias d ON t.dependencia_id = d.id
+                        ORDER BY t.fecha_creacion DESC 
+                        LIMIT ?";
+                $stmt = $conn->prepare($sql);
+                $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+                $stmt->execute();
+            } elseif ($privilegio == 'tecnico') {
+                $sql = "SELECT t.*, 
+                               u.nombre as usuario_nombre,
+                               d.nombre as dependencia_nombre,
+                               d.nombre_corto as dependencia_corto
+                        FROM Tickets t 
+                        LEFT JOIN Usuarios u ON t.usuario_id = u.id 
+                        LEFT JOIN Dependencias d ON t.dependencia_id = d.id
+                        WHERE t.tecnico_asignado = ? 
+                        ORDER BY t.fecha_creacion DESC 
+                        LIMIT ?";
+                $stmt = $conn->prepare($sql);
+                $stmt->bindValue(1, $user_id, PDO::PARAM_INT);
+                $stmt->bindValue(2, $limit, PDO::PARAM_INT);
+                $stmt->execute();
+            } else {
+                $sql = "SELECT t.*, 
+                               u.nombre as usuario_nombre,
+                               d.nombre as dependencia_nombre,
+                               d.nombre_corto as dependencia_corto
+                        FROM Tickets t 
+                        LEFT JOIN Usuarios u ON t.usuario_id = u.id 
+                        LEFT JOIN Dependencias d ON t.dependencia_id = d.id
+                        WHERE t.usuario_id = ? 
+                        ORDER BY t.fecha_creacion DESC 
+                        LIMIT ?";
+                $stmt = $conn->prepare($sql);
+                $stmt->bindValue(1, $user_id, PDO::PARAM_INT);
+                $stmt->bindValue(2, $limit, PDO::PARAM_INT);
+                $stmt->execute();
+            }
+            
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Error getRecentTickets: " . $e->getMessage());
+            return [];
+        }
+    }
+}
+
+// 6. OBTENER ESTADÍSTICAS
+try {
+    if ($privilegio == 'admin') {
+        $stats = getAdminStats($conn);
+        $stats = array_merge([
+            'total_usuarios' => '0',
+            'total_tickets' => '0',
+            'tickets_nuevos' => '0',
+            'tickets_asignados' => '0',
+            'tickets_cerrados' => '0'
+        ], $stats);
+    } elseif ($privilegio == 'tecnico') {
+        $stats = getTecnicoStats($conn, $id_usuario);
+        $stats = array_merge([
+            'tickets_asignados' => '0',
+            'tickets_resueltos' => '0'
+        ], $stats);
+    } else {
+        $stats = getUsuarioStats($conn, $id_usuario);
+        $stats = array_merge([
+            'mis_tickets' => '0',
+            'tickets_abiertos' => '0'
+        ], $stats);
+    }
+} catch (Exception $e) {
+    $stats = [];
+}
+
+// 7. OBTENER TICKETS RECIENTES
+try {
+    $recent_tickets = getRecentTickets($conn, $id_usuario, $privilegio, 8);
+} catch (Exception $e) {
+    $recent_tickets = [];
+}
+
+// 8. ESTABLECER TÍTULO PARA LA CABECERA
+$titulo_pagina = "Dashboard - Sistema CSI";
+
+// 9. INCLUIR CABECERA (config/config.php ya incluye database.php)
+include 'includes/header.php';
+
+// 10. DETERMINAR QUÉ MENÚ INCLUIR
+$menu_archivo = "includes/menu_$privilegio.php";
+if (!file_exists($menu_archivo)) {
+    $menu_archivo = "includes/menu_usuario.php";
+}
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CSI - Centro de Soporte Informático</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <link rel="stylesheet" href="css/estilos2.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+    /* Estilos adicionales para consistencia */
+    .session-warning {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        color: #856404;
+        margin-left: 10px;
+    }
+    
+    .debug-info {
+        display: none; /* Ocultar en producción */
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 5px;
+        font-size: 10px;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+    </style>
+</head>
+<body>
+    <!-- DEBUG: Información de sesión (solo visible si DEBUG_MODE = true) -->
+    <?php if (defined('DEBUG_MODE') && DEBUG_MODE): ?>
+    <div style="position: fixed; top: 0; left: 0; background: #333; color: white; padding: 5px; font-size: 10px; z-index: 99;">
+        User ID: <?php echo $id_usuario; ?> | Role: <?php echo $privilegio; ?>
+    </div>
+    <?php endif; ?>
+    
+    <!-- HEADER PERSONALIZADO CON LOGO OATI -->
+    <header class="top-header">
+        <!-- LOGO OATI Y TÍTULO -->
+        <div class="logo-oati">
+            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img" 
+                 onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI1IiBmaWxsPSIjMWExYjk3Ii8+PHBhdGggZD0iTTEwIDE1SDMwTTEwIDIwSDI1TTEwIDI1SDIwIiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+';">
+            <div class="system-titles-custom">
+                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
+                <p class="system-sub-custom">Sistema CSI</p>
+            </div>
+        </div>
+        
+        <!-- USUARIO Y BOTÓN SALIR -->
+        <div class="user-header-info-custom">
+            <div class="user-details-custom">
+                <span class="user-name-custom"><?php echo htmlspecialchars($usuario_nombre); ?></span>
+                <span class="user-role-custom"><?php echo htmlspecialchars(ucfirst($privilegio)); ?></span>
+            </div>
+            <a href="logout.php" class="logout-btn-custom" title="Cerrar sesión">
+                <img src="imagen/Salir.png" alt="Salir" class="logout-img" 
+                     onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMTFMMTUgOEwxMiA1TTE1IDhIN00xMCAyVjFDMTAgMC40NDcgOS41NTMgMCA5IDBIMUMwLjQ0NyAwIDAgMC40NDcgMCAxVjE1QzAgMTUuNTUzIDAuNDQ3IDE2IDEgMTZIOUM5LjU1MyAxNiAxMCAxNS41NTMgMTAgMTVWMTQiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+';">
+                <span class="logout-text">Salir</span>
+            </a>
+        </div>
+    </header>
+    
+    <div class="main-wrapper">
+        <!-- INCLUIR MENÚ SEGÚN PRIVILEGIO -->
+        <?php include $menu_archivo; ?>
+        
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="main-content-custom">
+            <!-- BIENVENIDA -->
+            <div class="welcome-mini-custom fade-in-custom">
+                <div>
+                    <h2>Bienvenido, <?php echo htmlspecialchars($usuario_nombre); ?></h2>
+                    <p>Sistema de Gestión de Tickets - Centro de Soporte Informático</p>
+                </div>
+                <div id="current-time-custom" class="current-time-mini-custom">
+                    <!-- Hora actual se actualizará con JS -->
+                </div>
+            </div>
+            
+            <!-- ESTADÍSTICAS -->
+            <div class="stats-grid-custom fade-in-custom">
+                <?php if ($privilegio == 'admin'): ?>
+                    <div class="stat-card-custom">
+                        <div class="stat-number-custom"><?php echo $stats['total_usuarios'] ?? '0'; ?></div>
+                        <div class="stat-label-custom">Usuarios Totales</div>
+                    </div>
+                    <div class="stat-card-custom">
+                        <div class="stat-number-custom"><?php echo $stats['total_tickets'] ?? '0'; ?></div>
+                        <div class="stat-label-custom">Tickets Totales</div>
+                    </div>
+                    <div class="stat-card-custom">
+                        <div class="stat-number-custom" style="color: #3498db;"><?php echo $stats['tickets_nuevos'] ?? '0'; ?></div>
+                        <div class="stat-label-custom">Tickets Nuevos</div>
+                    </div>
+                    <div class="stat-card-custom">
+                        <div class="stat-number-custom" style="color: #f39c12;"><?php echo $stats['tickets_asignados'] ?? '0'; ?></div>
+                        <div class="stat-label-custom">Tickets Asignados</div>
+                    </div>
+                    <div class="stat-card-custom">
+                        <div class="stat-number-custom" style="color: #27ae60;"><?php echo $stats['tickets_cerrados'] ?? '0'; ?></div>
+                        <div class="stat-label-custom">Tickets Cerrados</div>
+                    </div>
+                
+                <?php elseif ($privilegio == 'tecnico'): ?>
+                    <div class="stat-card-custom">
+                        <div class="stat-number-custom" style="color: #f39c12;"><?php echo $stats['tickets_asignados'] ?? '0'; ?></div>
+                        <div class="stat-label-custom">Asignados a Mí</div>
+                    </div>
+                    <div class="stat-card-custom">
+                        <div class="stat-number-custom" style="color: #27ae60;"><?php echo $stats['tickets_resueltos'] ?? '0'; ?></div>
+                        <div class="stat-label-custom">Resueltos por Mí</div>
+                    </div>
+                    <div class="stat-card-custom">
+                        <div class="stat-number-custom" style="color: #3498db;">
+                            <?php 
+                            try {
+                                $stmt = $conn->query("SELECT COUNT(*) as count FROM Tickets WHERE estado = 'Nuevo' AND tecnico_asignado IS NULL");
+                                $new = $stmt->fetch(PDO::FETCH_ASSOC);
+                                echo $new['count'] ?? '0';
+                            } catch (Exception $e) {
+                                echo '0';
+                            }
+                            ?>
+                        </div>
+                        <div class="stat-label-custom">Disponibles</div>
+                    </div>
+                
+                <?php else: ?>
+                    <div class="stat-card-custom">
+                        <div class="stat-number-custom"><?php echo $stats['mis_tickets'] ?? '0'; ?></div>
+                        <div class="stat-label-custom">Mis Tickets</div>
+                    </div>
+                    <div class="stat-card-custom">
+                        <div class="stat-number-custom" style="color: #f39c12;"><?php echo $stats['tickets_abiertos'] ?? '0'; ?></div>
+                        <div class="stat-label-custom">Tickets Abiertos</div>
+                    </div>
+                    <div class="stat-card-custom">
+                        <div class="stat-number-custom" style="color: #27ae60;">
+                            <?php 
+                            try {
+                                $stmt = $conn->prepare("SELECT COUNT(*) as count FROM Tickets WHERE usuario_id = ? AND estado LIKE 'Cerrado%'");
+                                $stmt->execute([$id_usuario]);
+                                $closed = $stmt->fetch(PDO::FETCH_ASSOC);
+                                echo $closed['count'] ?? '0';
+                            } catch (Exception $e) {
+                                echo '0';
+                            }
+                            ?>
+                        </div>
+                        <div class="stat-label-custom">Resueltos</div>
+                    </div>
+                <?php endif; ?>
+            </div>
+            
+            <!-- ACCIONES RÁPIDAS -->
+            <div class="quick-actions-row-custom fade-in-custom">
+                <?php if ($privilegio == 'admin'): ?>
+                    <a href="todos_tickets.php" class="action-btn-custom">
+                        <i class="fas fa-ticket-alt"></i> Ver Todos los Tickets
+                    </a>
+                    <a href="crear_ticket.php" class="action-btn-custom success">
+                        <i class="fas fa-plus-circle"></i> Crear Nuevo Ticket
+                    </a>
+                    <a href="admin_reportes.php" class="action-btn-custom warning">
+                        <i class="fas fa-chart-bar"></i> Generar Reportes
+                    </a>
+                
+                <?php elseif ($privilegio == 'tecnico'): ?>
+                    <a href="tickets_asignados.php" class="action-btn-custom">
+                        <i class="fas fa-tasks"></i> Mis Tickets Asignados
+                    </a>
+                    <a href="crear_ticket.php" class="action-btn-custom success">
+                        <i class="fas fa-hand-circle"></i> Crear Nuevo Ticket
+                    </a>
+                    <a href="perfil.php" class="action-btn-custom warning">
+                        <i class="fas fa-edit"></i> Editar Mi Perfil
+                    </a>
+                
+                <?php else: ?>
+                    <a href="crear_ticket.php" class="action-btn-custom success">
+                        <i class="fas fa-plus-circle"></i> Crear Nuevo Ticket
+                    </a>
+                    <a href="mis_tickets.php" class="action-btn-custom">
+                        <i class="fas fa-history"></i> Ver Mis Tickets
+                    </a>
+                    <a href="perfil.php" class="action-btn-custom info">
+                        <i class="fas fa-user-edit"></i> Editar Mi Perfil
+                    </a>
+                <?php endif; ?>
+            </div>
+            
+            <!-- TICKETS RECIENTES -->
+            <div class="table-container-custom fade-in-custom">
+                <div class="table-header-custom">
+                    <div>
+                        <i class="fas fa-clock"></i> Actividad Reciente
+                    </div>
+                    <div style="font-weight: normal; color: #666; font-size: 11px;">
+                        <?php echo count($recent_tickets); ?> registros
+                    </div>
+                </div>
+                
+                <?php if (!empty($recent_tickets)): ?>
+                <div style="overflow-x: auto;">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Ticket #</th>
+                                <th>Dependencia</th>
+                                <th>Asunto</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($recent_tickets as $ticket): ?>
+                            <?php 
+                                // Obtener solo los últimos 5 caracteres/números del ticket
+                                $numero_ticket_completo = $ticket['numero_ticket'] ?? 'TICK-' . $ticket['id'];
+                                $numero_ticket_corto = substr($numero_ticket_completo, -5);
+                                $dependencia_corto = $ticket['dependencia_corto'] ?? $ticket['dependencia_nombre'] ?? 'N/A';
+                            ?>
+                            <tr>
+                                <td nowrap style="font-weight: 600; font-size: 11px;">
+                                    <span title="<?php echo htmlspecialchars($numero_ticket_completo); ?>">
+                                        <i class="fas fa-hashtag" style="color: #3498db;"></i> <?php echo htmlspecialchars($numero_ticket_corto); ?>
+                                    </span>
+                                </td>
+                                <td nowrap>
+                                    <span class="badge-custom" style="background: #e8f4fd; color: #1976d2; font-size: 10px; padding: 3px 8px;">
+                                        <i class="fas fa-building"></i> <?php echo htmlspecialchars(substr($dependencia_corto, 0, 15)); ?>
+                                        <?php if (strlen($dependencia_corto) > 15): ?>...<?php endif; ?>
+                                    </span>
+                                </td>
+                                <td style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <?php echo htmlspecialchars($ticket['asunto']); ?>
+                                </td>
+                                <td>
+                                    <span class="badge-custom estado-<?php echo strtolower(str_replace(' ', '-', $ticket['estado'])); ?>">
+                                        <?php echo htmlspecialchars($ticket['estado']); ?>
+                                    </span>
+                                </td>
+                                <td nowrap style="font-size: 11px; color: #666;">
+                                    <?php echo date('d/m H:i', strtotime($ticket['fecha_creacion'])); ?>
+                                </td>
+                                <td>
+                                    <a href="ver_ticket.php?id=<?php echo $ticket['id']; ?>" 
+                                       class="action-btn-custom btn-action-small">
+                                        <i class="fas fa-eye"></i> Ver
+                                    </a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php else: ?>
+                <div style="text-align: center; padding: 30px 10px; color: #666;">
+                    <i class="fas fa-inbox" style="font-size: 32px; opacity: 0.3; margin-bottom: 10px;"></i>
+                    <p>No hay actividad reciente</p>
+                    <?php if ($privilegio == 'usuario'): ?>
+                    <a href="crear_ticket.php" class="action-btn-custom success" style="margin-top: 10px; display: inline-block;">
+                        <i class="fas fa-plus-circle"></i> Crear mi primer ticket
+                    </a>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+            </div>
+            
+            <!-- FOOTER -->
+            <div class="footer-custom">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        Centro de Soporte Informático CSI • 
+                        <span id="session-timer-custom">Sesión: 00:00</span>
+                    </div>
+                    <div id="system-status" style="font-size: 9px; color: #27ae60;">
+                        <i class="fas fa-circle" style="font-size: 6px;"></i> Sistema en línea
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+    // Actualizar hora en tiempo real
+    function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
+        const dateString = now.toLocaleDateString('es-ES', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+        
+        const timeElement = document.getElementById('current-time-custom');
+        if (timeElement) {
+            timeElement.textContent = `${dateString} • ${timeString}`;
+        }
+    }
+    
+    updateTime();
+    setInterval(updateTime, 1000);
+    
+    // Contador de tiempo de sesión
+    let sessionSeconds = 0;
+    function updateSessionTimer() {
+        sessionSeconds++;
+        const hours = Math.floor(sessionSeconds / 3600);
+        const minutes = Math.floor((sessionSeconds % 3600) / 60);
+        const seconds = sessionSeconds % 60;
+        
+        const timerElement = document.getElementById('session-timer-custom');
+        if (timerElement) {
+            if (hours > 0) {
+                timerElement.textContent = `Sesión: ${hours}h ${minutes}m`;
+            } else {
+                timerElement.textContent = `Sesión: ${minutes}m ${seconds}s`;
+            }
+        }
+    }
+    
+    setInterval(updateSessionTimer, 1000);
+    
+    // Verificar estado del sistema
+    function checkSystemStatus() {
+        fetch('check_session.php')
+            .then(response => {
+                const statusElement = document.getElementById('system-status');
+                if (response.ok) {
+                    statusElement.innerHTML = '<i class="fas fa-circle" style="font-size: 6px; color: #27ae60;"></i> Sistema en línea';
+                    statusElement.style.color = '#27ae60';
+                } else {
+                    statusElement.innerHTML = '<i class="fas fa-circle" style="font-size: 6px; color: #e74c3c;"></i> Conexión inestable';
+                    statusElement.style.color = '#e74c3c';
+                }
+            })
+            .catch(() => {
+                const statusElement = document.getElementById('system-status');
+                statusElement.innerHTML = '<i class="fas fa-circle" style="font-size: 6px; color: #e74c3c;"></i> Sin conexión';
+                statusElement.style.color = '#e74c3c';
+            });
+    }
+    
+    // Verificar estado cada 30 segundos
+    setInterval(checkSystemStatus, 30000);
+    checkSystemStatus();
+    
+    // Auto-refresh de datos cada 3 minutos
+    setTimeout(() => {
+        window.location.reload();
+    }, 180000);
+    
+    // Smooth scroll para tablas
+    document.addEventListener('DOMContentLoaded', function() {
+        const tables = document.querySelectorAll('.table-custom');
+        tables.forEach(table => {
+            if (table.scrollWidth > table.clientWidth) {
+                table.parentElement.style.overflowX = 'auto';
+                table.parentElement.style.WebkitOverflowScrolling = 'touch';
+            }
+        });
+        
+        // Ajustar altura dinámica del contenido
+        function adjustContentHeight() {
+            const mainContent = document.querySelector('.main-content-custom');
+            const windowHeight = window.innerHeight;
+            const headerHeight = 50;
+            
+            if (mainContent) {
+                mainContent.style.maxHeight = (windowHeight - headerHeight) + 'px';
+            }
+        }
+        
+        window.addEventListener('resize', adjustContentHeight);
+        adjustContentHeight();
+        
+        // Efecto hover en las tarjetas de estadísticas
+        document.querySelectorAll('.stat-card-custom').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px)';
+                this.style.boxShadow = '0 6px 12px rgba(0,0,0,0.1)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+            });
+        });
+    });
+    
+    // Tooltips para botones sin texto en móviles
+    if (window.innerWidth <= 768) {
+        document.querySelectorAll('.logout-btn-custom').forEach(btn => {
+            btn.setAttribute('title', 'Cerrar sesión');
+        });
+    }
+    
+    // Mostrar mensajes de sesión si existen
+    <?php if (isset($_SESSION['mensaje_exito'])): ?>
+        alert('<?php echo addslashes($_SESSION['mensaje_exito']); ?>');
+        <?php unset($_SESSION['mensaje_exito']); ?>
+    <?php endif; ?>
+    
+    <?php if (isset($_SESSION['mensaje_error'])): ?>
+        alert('Error: <?php echo addslashes($_SESSION['mensaje_error']); ?>');
+        <?php unset($_SESSION['mensaje_error']); ?>
+    <?php endif; ?>
+    </script>
+</body>
+</html>

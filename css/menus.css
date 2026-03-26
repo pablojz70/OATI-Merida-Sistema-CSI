@@ -1,0 +1,177 @@
+/* css/menus.css - ESTILOS GENERALES PARA TODOS LOS MENÚS */
+
+/* VARIABLES DE COLOR POR ROL */
+:root {
+    /* Usuario normal - Azul */
+    --color-usuario: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+    --color-usuario-hover: #4fc3f7;
+    --color-usuario-active: #29b6f6;
+    
+    /* Técnico - Naranja */
+    --color-tecnico: linear-gradient(135deg, #ff6f00 0%, #ff8f00 100%);
+    --color-tecnico-hover: #ffd54f;
+    --color-tecnico-active: #ffb300;
+    
+    /* Administrador - Rojo */
+    --color-admin: linear-gradient(135deg, #151515 0%, #909ae3 100%);
+    --color-admin-hover: #4fc3f7;
+    --color-admin-active: #29b6f6;
+    
+    /* Colores generales */
+    --color-texto: rgba(255,255,255,0.9);
+    --color-texto-hover: white;
+    --color-logout: #ff8a80;
+}
+
+/* ESTRUCTURA BASE DEL MENÚ */
+.sidebar {
+    width: 250px;
+    background: var(--color-menu);
+    color: white;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.sidebar-header {
+    padding: 25px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 20px 0;
+    margin: 0;
+}
+
+.sidebar-menu li {
+    margin: 0;
+}
+
+.sidebar-menu li a {
+    display: flex;
+    align-items: center;
+    padding: 15px 25px;
+    color: var(--color-texto);
+    text-decoration: none;
+    transition: all 0.3s;
+    border-left: 4px solid transparent;
+}
+
+.sidebar-menu li a:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--color-texto-hover);
+    border-left-color: var(--color-hover);
+}
+
+.sidebar-menu li.active a {
+    background: rgba(255,255,255,0.15);
+    color: var(--color-texto-hover);
+    border-left-color: var(--color-active);
+}
+
+/* ICONOS PERSONALIZADOS */
+.menu-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    filter: var(--filter-iconos);
+    transition: filter 0.3s, transform 0.3s;
+}
+
+.sidebar-menu li a:hover .custom-icon {
+    transform: scale(1.1);
+}
+
+.menu-text {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* ITEM DE CERRAR SESIÓN */
+.logout-item {
+    margin-top: 30px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 15px;
+}
+
+.logout-item a {
+    color: var(--color-logout) !important;
+}
+
+.logout-item a:hover {
+    background: rgba(244, 67, 54, 0.1) !important;
+}
+
+.logout-item .custom-icon {
+    filter: brightness(0) invert(0.8) sepia(1) saturate(5) hue-rotate(330deg);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 70px;
+    }
+    
+    .sidebar-header h3 {
+        font-size: 0;
+    }
+    
+    .sidebar-header h3 i {
+        font-size: 20px;
+    }
+    
+    .menu-text {
+        display: none;
+    }
+    
+    .menu-icon {
+        margin-right: 0;
+        margin: 0 auto;
+    }
+}
+
+/* CLASES ESPECÍFICAS POR ROL */
+.menu-usuario {
+    --color-menu: var(--color-usuario);
+    --color-hover: var(--color-usuario-hover);
+    --color-active: var(--color-usuario-active);
+}
+
+.menu-tecnico {
+    --color-menu: var(--color-tecnico);
+    --color-hover: var(--color-tecnico-hover);
+    --color-active: var(--color-tecnico-active);
+
+}
+
+.menu-admin {
+    --color-menu: var(--color-admin);
+    --color-hover: var(--color-admin-hover);
+    --color-active: var(--color-admin-active);
+}

@@ -1,0 +1,174 @@
+<?php
+// config/funciones.php - Funciones utilitarias del sistema
+
+require_once 'database.php';
+
+// FUNCIONES PARA DATOS
+function obtenerDependencias() {
+    $sql = "SELECT id, nombre FROM Dependencias WHERE activa = 1 ORDER BY nombre";
+    return obtenerTodasFilas($sql);
+}
+
+function obtenerAreasSoporte() {
+    $sql = "SELECT id, nombre, descripcion FROM AreasSoporte WHERE activa = 1 ORDER BY orden";
+    return obtenerTodasFilas($sql);
+}
+
+function obtenerServiciosPorArea($area_id) {
+    $sql = "SELECT id, nombre, descripcion FROM Servicios WHERE area_id = ? AND activo = 1 ORDER BY nombre";
+    return obtenerTodasFilas($sql, [$area_id]);
+}
+
+function obtenerTecnicos() {
+    $sql = "SELECT id, nombre, usuario FROM Usuarios WHERE privilegio = 'tecnico' AND activo = 1 ORDER BY nombre";
+    return obtenerTodasFilas($sql);
+}
+
+// FUNCIONES PARA TICKETS
+function generarNumeroTicket() {
+    $prefijo = 'CSI';
+    $fecha = date('Ymd');
+    $random = str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+    return $prefijo . '-' . $fecha . '-' . $random;
+}
+
+function obtenerNombreDependencia($id) {
+    $sql = "SELECT nombre FROM Dependencias WHERE id = ?";
+    $result = obtenerFila($sql, [$id]);
+    return $result ? $result['nombre'] : 'Desconocida';
+}
+
+function obtenerNombreArea($id) {
+    $sql = "SELECT nombre FROM AreasSoporte WHERE id = ?";
+    $result = obtenerFila($sql, [$id]);
+    return $result ? $result['nombre'] : 'Desconocida';
+}
+
+function obtenerNombreServicio($id) {
+    $sql = "SELECT nombre FROM Servicios WHERE id = ?";
+    $result = obtenerFila($sql, [$id]);
+    return $result ? $result['nombre'] : 'Desconocido';
+}
+
+function obtenerTecnicoAsignado($id) {
+    $sql = "SELECT nombre FROM Usuarios WHERE id = ?";
+    $result = obtenerFila($sql, [$id]);
+    return $result ? $result['nombre'] : null;
+}
+
+// FUNCIONES DE HISTORIAL
+function registrarHistorial($ticket_id, $accion, $descripcion = '') {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    
+    $usuario_id = $_SESSION['usuario_id'] ?? 0;
+    $sql = "INSERT INTO HistorialTickets (ticket_id, usuario_id, accion, descripcion) VALUES (?, ?, ?, ?)";
+    ejecutarConsulta($sql, [
+        $ticket_id,
+        $usuario_id,
+        $accion,
+        $descripcion
+    ]);
+}
+
+// FUNCIONES DE ESTADÍSTICAS
+function obtenerEstadisticasTickets($usuario_id = null) {
+    $estadisticas = [];
+    
+    // Total tickets
+    if ($usuario_id) {
+        $sql = "SELECT COUNT(*) as total FROM Tickets WHERE usuario_id = ?";
+        $result = obtenerFila($sql, [$usuario_id]);
+        $estadisticas['total'] = $result['total'];
+        
+        // Por estado
+        $sql = "SELECT estado, COUNT(*) as cantidad FROM Tickets WHERE usuario_id = ? GROUP BY estado";
+        $estados = obtenerTodasFilas($sql, [$usuario_id]);
+    } else {
+        $sql = "SELECT COUNT(*) as total FROM Tickets";
+        $result = obtenerFila($sql);
+        $estadisticas['total'] = $result['total'];
+        
+        // Por estado
+        $sql = "SELECT estado, COUNT(*) as cantidad FROM Tickets GROUP BY estado";
+        $estados = obtenerTodasFilas($sql);
+    }
+    
+    // Organizar por estado
+    $estadisticas['estados'] = [];
+    foreach ($estados as $estado) {
+        $estadisticas['estados'][$estado['estado']] = $estado['cantidad'];
+    }
+    
+    return $estadisticas;
+}
+
+function obtenerTicketsPorUsuario($usuario_id, $limit = 10) {
+    $sql = "SELECT t.*, a.nombre as area_nombre, s.nombre as servicio_nombre 
+            FROM Tickets t
+            JOIN AreasSoporte a ON t.area_id = a.id
+            JOIN Servicios s ON t.servicio_id = s.id
+            WHERE t.usuario_id = ?
+            ORDER BY t.fecha_creacion DESC
+            LIMIT ?";
+    return obtenerTodasFilas($sql, [$usuario_id, $limit]);
+}
+
+// FUNCIONES DE VALIDACIÓN
+function validarEmail($email) {
+    return filter_var($email, FILTER_VALIDATE_EMAIL);
+}
+
+function sanitizarTexto($texto) {
+    return htmlspecialchars(trim($texto), ENT_QUOTES, 'UTF-8');
+}
+
+function validarLongitud($texto, $min = 1, $max = 255) {
+    $longitud = strlen(trim($texto));
+    return $longitud >= $min && $longitud <= $max;
+}
+
+// FUNCIONES DE FORMATO
+function formatoFecha($fecha, $formato = 'd/m/Y H:i:s') {
+    if (!$fecha) return '';
+    return date($formato, strtotime($fecha));
+}
+
+function formatoTiempo($segundos) {
+    $horas = floor($segundos / 3600);
+    $minutos = floor(($segundos % 3600) / 60);
+    $segundos = $segundos % 60;
+    
+    return sprintf('%02d:%02d:%02d', $horas, $minutos, $segundos);
+}
+
+// FUNCIONES DE ARCHIVOS
+function extensionPermitida($nombre_archivo) {
+    $extensiones = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'txt'];
+    $extension = strtolower(pathinfo($nombre_archivo, PATHINFO_EXTENSION));
+    return in_array($extension, $extensiones);
+}
+
+function tamañoValido($tamaño) {
+    $max_tamaño = 10 * 1024 * 1024; // 10MB
+    return $tamaño <= $max_tamaño;
+}
+
+// FUNCIONES DE MENSAJES
+function mensajeExito($mensaje) {
+    return "<div class='alert alert-success' role='alert'>{$mensaje}</div>";
+}
+
+function mensajeError($mensaje) {
+    return "<div class='alert alert-danger' role='alert'>{$mensaje}</div>";
+}
+
+function mensajeAdvertencia($mensaje) {
+    return "<div class='alert alert-warning' role='alert'>{$mensaje}</div>";
+}
+
+function mensajeInfo($mensaje) {
+    return "<div class='alert alert-info' role='alert'>{$mensaje}</div>";
+}
+?>

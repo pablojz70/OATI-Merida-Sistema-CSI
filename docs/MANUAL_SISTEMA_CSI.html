@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual del Sistema CSI - Centro de Soporte Informático</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+        }
+        
+        /* PORTADA */
+        .portada {
+            text-align: center;
+            padding: 60px 20px;
+            page-break-after: always;
+        }
+        
+        .portada .logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 30px;
+        }
+        
+        .portada h1 {
+            font-size: 28pt;
+            color: #1a2980;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .portada h2 {
+            font-size: 18pt;
+            color: #26d0ce;
+            margin-bottom: 30px;
+        }
+        
+        .portada .subtitulo {
+            font-size: 14pt;
+            color: #666;
+            margin-top: 40px;
+        }
+        
+        .portada .version {
+            font-size: 10pt;
+            color: #999;
+            margin-top: 60px;
+        }
+        
+        /* ENCABEZADOS */
+        h1 {
+            font-size: 18pt;
+            color: #1a2980;
+            border-bottom: 3px solid #26d0ce;
+            padding-bottom: 10px;
+            margin: 30px 0 20px;
+            page-break-after: avoid;
+        }
+        
+        h2 {
+            font-size: 14pt;
+            color: #1a2980;
+            margin: 25px 0 15px;
+            page-break-after: avoid;
+        }
+        
+        h3 {
+            font-size: 12pt;
+            color: #333;
+            margin: 20px 0 10px;
+            page-break-after: avoid;
+        }
+        
+        /* PÁRRAFOS */
+        p {
+            margin-bottom: 10px;
+            text-align: justify;
+        }
+        
+        /* LISTAS */
+        ul, ol {
+            margin: 10px 0 10px 30px;
+        }
+        
+        li {
+            margin-bottom: 5px;
+        }
+        
+        /* CAJAS DE CAPTURA */
+        .captura {
+            border: 2px dashed #3498db;
+            background: #f0f8ff;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+        
+        .captura .titulo {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        
+        .captura .descripcion {
+            font-size: 10pt;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .captura .indicaciones {
+            font-size: 9pt;
+            color: #e74c3c;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        /* NOTAS IMPORTANTES */
+        .nota-importante {
+            background: #fff3cd;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            margin: 15px 0;
+            page-break-inside: avoid;
+        }
+        
+        .nota-importante strong {
+            color: #856404;
+        }
+        
+        .nota-info {
+            background: #d1ecf1;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 15px 0;
+            page-break-inside: avoid;
+        }
+        
+        .nota-info strong {
+            color: #0c5460;
+        }
+        
+        .nota-exito {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            page-break-inside: avoid;
+        }
+        
+        .nota-exito strong {
+            color: #155724;
+        }
+        
+        /* TABLAS */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            page-break-inside: avoid;
+        }
+        
+        th {
+            background: #1a2980;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-size: 10pt;
+        }
+        
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
+            font-size: 10pt;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        /* SECCIONES */
+        .seccion {
+            page-break-inside: avoid;
+        }
+        
+        /* TABLA DE CONTENIDO */
+        .toc {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+        }
+        
+        .toc h2 {
+            margin-top: 0;
+        }
+        
+        .toc-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        
+        .toc-item a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        /* FLUJO */
+        .flujo {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            page-break-inside: avoid;
+        }
+        
+        /* FOOTER */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+        }
+        
+        /* IMPRIMIR */
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .portada {
+                page-break-after: always;
+            }
+            
+            h1 {
+                page-break-after: avoid;
+            }
+            
+            .captura {
+                border: 1px solid #3498db;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==================== PORTADA ==================== -->
+<div class="portada">
+    <img src="oati.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+    <h1>Manual del Sistema CSI</h1>
+    <h2>Centro de Soporte Informático</h2>
+    <p class="subtitulo">Guía Completa de Usuario</p>
+    <p class="version">
+        <strong>Versión 1.0</strong><br>
+        Marzo 2026
+    </p>
+</div>
+
+<!-- ==================== TABLA DE CONTENIDO ==================== -->
+<div class="toc">
+    <h2>Tabla de Contenidos</h2>
+    
+    <div class="toc-item">
+        <a href="#seccion1">1. MANUAL PARA ADMINISTRADOR</a>
+        <span>3</span>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#admin-login">1.1 Inicio de Sesión</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#admin-tickets">1.2 Gestión de Tickets</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#admin-usuarios">1.3 Gestión de Usuarios</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#admin-dependencias">1.4 Gestión de Dependencias</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#admin-reportes">1.5 Reportes y Estadísticas</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#admin-backup">1.6 Backup</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#admin-logs">1.7 Logs del Sistema</a>
+    </div>
+    
+    <div class="toc-item">
+        <a href="#seccion2">2. MANUAL PARA TÉCNICO</a>
+        <span>12</span>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#tecnico-login">2.1 Inicio de Sesión</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#tecnico-tickets">2.2 Ver Tickets Asignados</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#tecnico-estado">2.3 Cambiar Estado del Ticket</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#tecnico-cerrar">2.4 Cerrar un Ticket</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#tecnico-crear">2.5 Crear Tickets Propios</a>
+    </div>
+    
+    <div class="toc-item">
+        <a href="#seccion3">3. MANUAL PARA USUARIO</a>
+        <span>16</span>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#usuario-login">3.1 Inicio de Sesión</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#usuario-crear">3.2 Crear un Ticket</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#usuario-seguir">3.3 Seguimiento de Tickets</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#usuario-perfil">3.4 Editar Perfil</a>
+    </div>
+    
+    <div class="toc-item">
+        <a href="#seccion4">4. REFERENCIAS GENERALES</a>
+        <span>18</span>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#estados">4.1 Estados de Tickets</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#prioridades">4.2 Prioridades</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#privilegios">4.3 Privilegios de Usuario</a>
+    </div>
+    <div class="toc-item" style="margin-left: 20px;">
+        <a href="#consejos">4.4 Consejos Útiles</a>
+    </div>
+</div>
+
+<!-- ==================== SECCIÓN 1: ADMINISTRADOR ==================== -->
+<h1 id="seccion1">1. MANUAL PARA ADMINISTRADOR</h1>
+
+<p>El administrador tiene acceso completo al sistema, incluyendo gestión de usuarios, tickets, dependencias, reportes, backups y logs de auditoría.</p>
+
+<!-- 1.1 Inicio de Sesión -->
+<h2 id="admin-login">1.1 Inicio de Sesión</h2>
+
+<div class="seccion">
+    <h3>1.1.1 Acceder al Sistema</h3>
+    <ol>
+        <li>Abra su navegador web (Chrome, Firefox, Edge, Safari)</li>
+        <li>Diríjase a la dirección del sistema CSI</li>
+        <li>Ingrese su <strong>usuario</strong> y <strong>contraseña</strong></li>
+        <li>Haga clic en <strong>"Iniciar Sesión"</strong></li>
+    </ol>
+    
+    <div class="captura">
+        <div class="titulo">CAPTURA DE PANTALLA 1: Pantalla de Login</div>
+        <div class="descripcion">[Pegar captura de la pantalla de inicio de sesión del sistema]</div>
+        <div class="indicaciones"> Indicación: Capturar la pantalla de login donde se ven los campos de usuario y contraseña</div>
+    </div>
+    
+    <div class="nota-importante">
+        <strong>Importante:</strong> Sus credenciales son personales y no debe compartirlas con terceros. Si olvida su contraseña, contacte al administrador del sistema.
+    </div>
+</div>
+
+<h3 id="admin-menu">1.1.2 Menú del Administrador</h3>
+
+<p>Al iniciar sesión, el administrador verá las siguientes opciones en el menú lateral:</p>
+
+<table>
+    <tr>
+        <th>Módulo</th>
+        <th>Descripción</th>
+    </tr>
+    <tr>
+        <td>Inicio</td>
+        <td>Dashboard principal con estadísticas generales</td>
+    </tr>
+    <tr>
+        <td>Usuarios</td>
+        <td>Gestión de usuarios del sistema</td>
+    </tr>
+    <tr>
+        <td>Todos los Tickets</td>
+        <td>Vista completa de todos los tickets</td>
+    </tr>
+    <tr>
+        <td>Mis Tickets</td>
+        <td>Tickets propios del administrador</td>
+    </tr>
+    <tr>
+        <td>Nuevo Ticket</td>
+        <td>Crear un nuevo ticket</td>
+    </tr>
+    <tr>
+        <td>Reportes</td>
+        <td>Estadísticas y reportes</td>
+    </tr>
+    <tr>
+        <td>Dependencias</td>
+        <td>Gestión de dependencias</td>
+    </tr>
+    <tr>
+        <td>Backup</td>
+        <td>Copias de seguridad</td>
+    </tr>
+    <tr>
+        <td>Logs</td>
+        <td>Registro de auditoría</td>
+    </tr>
+    <tr>
+        <td>Mi Perfil</td>
+        <td>Configuración de cuenta</td>
+    </tr>
+</table>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 2: Menú del Administrador</div>
+    <div class="descripcion">[Pegar captura del menú lateral del administrador]</div>
+    <div class="indicaciones"> Indicación: Capturar el menú lateral izquierdo mostrando todas las opciones disponibles</div>
+</div>
+
+<!-- 1.2 Gestión de Tickets -->
+<h2 id="admin-tickets">1.2 Gestión de Tickets</h2>
+
+<h3>1.2.1 Crear un Ticket</h3>
+
+<ol>
+    <li>Haga clic en <strong>"Nuevo Ticket"</strong> en el menú lateral</li>
+    <li>Complete los campos obligatorios:
+        <ul>
+            <li><strong>Dependencia donde se presenta la falla:</strong> Seleccione la ubicación física del problema</li>
+            <li><strong>Lugar/Área:</strong> Especifique el lugar exacto (número de oficina, sala, etc.)</li>
+            <li><strong>Área de Soporte:</strong> Seleccione el tipo de soporte necesario</li>
+            <li><strong>Servicio Específico:</strong> Seleccione el servicio</li>
+            <li><strong>Asunto:</strong> Título breve del problema</li>
+            <li><strong>Descripción:</strong> Detalle completo del problema</li>
+        </ul>
+    </li>
+    <li>Si desea, adjunte archivos (imágenes, documentos)</li>
+    <li>Configure la <strong>prioridad</strong> (Baja, Media, Alta, Urgente)</li>
+    <li>Opcionalmente, active <strong>"Asignar técnico inmediatamente"</strong> para asignar desde la creación</li>
+    <li>Haga clic en <strong>"Crear Ticket"</strong></li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 3: Formulario de Crear Ticket</div>
+    <div class="descripcion">[Pegar captura del formulario de nuevo ticket con todos los campos]</div>
+    <div class="indicaciones"> Indicación: Capturar el formulario completo mostrando todos los campos a填写</div>
+</div>
+
+<h3>1.2.2 Ver Todos los Tickets</h3>
+
+<ol>
+    <li>Haga clic en <strong>"Todos los Tickets"</strong> en el menú</li>
+    <li>Podrá ver una lista completa de todos los tickets del sistema</li>
+    <li>Use los <strong>filtros</strong> para buscar por:
+        <ul>
+            <li>Estado (Nuevo, Asignado, En Proceso, Cerrado)</li>
+            <li>Prioridad (Urgente, Alta, Media, Baja)</li>
+            <li>Dependencia</li>
+            <li>Técnico asignado</li>
+            <li>Rango de fechas</li>
+        </ul>
+    </li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 4: Lista de Todos los Tickets</div>
+    <div class="descripcion">[Pegar captura de la lista de tickets con filtros]</div>
+    <div class="indicaciones"> Indicación: Capturar la vista de lista de tickets mostrando los filtros disponibles</div>
+</div>
+
+<h3>1.2.3 Asignar un Ticket</h3>
+
+<ol>
+    <li>En <strong>"Todos los Tickets"</strong>, localice el ticket sin asignar</li>
+    <li>Haga clic en el botón de <strong>"Asignar"</strong> (icono de usuario +)</li>
+    <li>Se abrirá un modal donde podrá:
+        <ul>
+            <li>Seleccionar el <strong>técnico</strong> o <strong>administrador</strong></li>
+            <li>Configurar la <strong>prioridad</strong></li>
+        </ul>
+    </li>
+    <li>Haga clic en <strong>"Asignar"</strong></li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 5: Modal de Asignación</div>
+    <div class="descripcion">[Pegar captura del modal para asignar técnico]</div>
+    <div class="indicaciones"> Indicación: Capturar el modal que aparece al hacer clic en asignar</div>
+</div>
+
+<h3>1.2.4 Cerrar un Ticket</h3>
+
+<ol>
+    <li>Abra el ticket que desea cerrar</li>
+    <li>Haga clic en el botón <strong>"Cerrar"</strong></li>
+    <li>Seleccione el tipo de cierre:
+        <ul>
+            <li><strong>Cerrado Exitosamente:</strong> El problema fue resuelto</li>
+            <li><strong>Cerrado No Exitoso:</strong> No se pudo resolver</li>
+        </ul>
+    </li>
+    <li>Ingrese la <strong>solución</strong> aplicada</li>
+    <li>Si desea, adjunte archivos de evidencia</li>
+    <li>Haga clic en <strong>"Cerrar Ticket"</strong></li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 6: Cerrar Ticket</div>
+    <div class="descripcion">[Pegar captura del formulario de cierre de ticket]</div>
+    <div class="indicaciones"> Indicación: Capturar la pantalla de cierre con las opciones de estado y solución</div>
+</div>
+
+<h3>1.2.5 Eliminar un Ticket</h3>
+
+<ol>
+    <li>Abra el ticket que desea eliminar</li>
+    <li>Haga clic en el botón <strong>rojo "Eliminar"</strong></li>
+    <li>Confirme la eliminación en el mensaje de confirmación</li>
+</ol>
+
+<div class="nota-importante">
+    <strong>⚠️ Advertencia:</strong> La eliminación de un ticket es irreversible. Todos los datos, incluyendo historial y archivos adjuntos, se perderán permanentemente. Utilice esta opción solo en casos estrictamente necesarios.
+</div>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTARLLA 7: Confirmación de Eliminación</div>
+    <div class="descripcion">[Pegar captura del mensaje de confirmación de eliminación]</div>
+    <div class="indicaciones"> Indicación: Capturar el mensaje de confirmación antes de eliminar</div>
+</div>
+
+<!-- 1.3 Gestión de Usuarios -->
+<h2 id="admin-usuarios">1.3 Gestión de Usuarios</h2>
+
+<h3>1.3.1 Crear un Nuevo Usuario</h3>
+
+<ol>
+    <li>Haga clic en <strong>"Usuarios"</strong> en el menú</li>
+    <li>Haga clic en <strong>"Agregar Usuario"</strong> o <strong>"Nuevo Usuario"</strong></li>
+    <li>Complete los datos:
+        <ul>
+            <li><strong>Usuario:</strong> Nombre de inicio de sesión</li>
+            <li><strong>Nombre completo:</strong> Nombre y apellido</li>
+            <li><strong>Correo electrónico:</strong> Email del usuario</li>
+            <li><strong>Contraseña:</strong> Contraseña inicial</li>
+            <li><strong>Privilegio:</strong> Usuario, Técnico o Administrador</li>
+            <li><strong>Dependencia:</strong> Seleccione la dependencia</li>
+        </ul>
+    </li>
+    <li>Haga clic en <strong>"Crear Usuario"</strong></li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 8: Formulario de Crear Usuario</div>
+    <div class="descripcion">[Pegar captura del formulario para crear nuevo usuario]</div>
+    <div class="indicaciones"> Indicación: Capturar el formulario con todos los campos a completar</div>
+</div>
+
+<h3>1.3.2 Editar un Usuario</h3>
+
+<ol>
+    <li>En la lista de usuarios, localice el usuario</li>
+    <li>Haga clic en <strong>"Editar"</strong> o en el nombre del usuario</li>
+    <li>Modifique los campos necesarios</li>
+    <li>Si desea cambiar la contraseña, ingrésela en los campos correspondientes</li>
+    <li>Haga clic en <strong>"Actualizar"</strong></li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 9: Editar Usuario</div>
+    <div class="descripcion">[Pegar captura de la pantalla de edición de usuario]</div>
+    <div class="indicaciones"> Indicación: Capturar el formulario de edición con los datos del usuario</div>
+</div>
+
+<h3>1.3.3 Desactivar/Activar un Usuario</h3>
+
+<ol>
+    <li>En la edición del usuario, busque la opción <strong>"Activo"</strong></li>
+    <li>Desmarque para <strong>desactivar</strong> o marque para <strong>activar</strong></li>
+    <li>Guarde los cambios</li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 10: Checkbox de Usuario Activo</div>
+    <div class="descripcion">[Pegar captura mostrando la opción de activar/desactivar]</div>
+    <div class="indicaciones"> Indicación: Capturar la sección donde aparece el checkbox de estado activo</div>
+</div>
+
+<!-- 1.4 Gestión de Dependencias -->
+<h2 id="admin-dependencias">1.4 Gestión de Dependencias</h2>
+
+<h3>1.4.1 Crear una Dependencia</h3>
+
+<ol>
+    <li>Haga clic en <strong>"Dependencias"</strong> en el menú</li>
+    <li>Haga clic en <strong>"Nueva Dependencia"</strong></li>
+    <li>Complete:
+        <ul>
+            <li><strong>Nombre:</strong> Nombre completo</li>
+            <li><strong>Nombre corto:</strong> Código o abreviatura</li>
+            <li><strong>Responsable:</strong> Nombre del responsable</li>
+            <li><strong>Email:</strong> Correo del responsable</li>
+        </ul>
+    </li>
+    <li>Active la dependencia</li>
+    <li>Guarde</li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 11: Formulario de Dependencia</div>
+    <div class="descripcion">[Pegar captura del formulario de nueva dependencia]</div>
+    <div class="indicaciones"> Indicación: Capturar el formulario para crear/editar dependencias</div>
+</div>
+
+<h3>1.4.2 Modificar una Dependencia</h3>
+
+<ol>
+    <li>En la lista de dependencias, haga clic en <strong>"Editar"</strong></li>
+    <li>Modifique los campos necesarios</li>
+    <li>Guarde los cambios</li>
+</ol>
+
+<!-- 1.5 Reportes -->
+<h2 id="admin-reportes">1.5 Reportes y Estadísticas</h2>
+
+<h3>1.5.1 Ver Dashboard</h3>
+
+<ol>
+    <li>Haga clic en <strong>"Inicio"</strong> o <strong>"Dashboard"</strong></li>
+    <li>Podrá ver:
+        <ul>
+            <li>Total de tickets</li>
+            <li>Tickets activos</li>
+            <li>Tickets cerrados</li>
+            <li>Tickets sin asignar</li>
+            <li>Distribución por estado</li>
+            <li>Tickets recientes</li>
+        </ul>
+    </li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 12: Dashboard Principal</div>
+    <div class="descripcion">[Pegar captura del dashboard con estadísticas]</div>
+    <div class="indicaciones"> Indicación: Capturar la pantalla principal del dashboard</div>
+</div>
+
+<h3>1.5.2 Generar Reportes</h3>
+
+<ol>
+    <li>Haga clic en <strong>"Reportes"</strong> en el menú</li>
+    <li>Seleccione el tipo de reporte:
+        <ul>
+            <li>Por período de tiempo</li>
+            <li>Por dependencia</li>
+            <li>Por técnico</li>
+            <li>Por área de soporte</li>
+        </ul>
+    </li>
+    <li>Configure el rango de fechas</li>
+    <li>Aplique filtros adicionales</li>
+    <li>Genere el reporte</li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 13: Reportes</div>
+    <div class="descripcion">[Pegar captura de la sección de reportes]</div>
+    <div class="indicaciones"> Indicación: Capturar la interfaz de generación de reportes</div>
+</div>
+
+<!-- 1.6 Backup -->
+<h2 id="admin-backup">1.6 Backup (Copias de Seguridad)</h2>
+
+<h3>1.6.1 Crear Backup Manual</h3>
+
+<ol>
+    <li>Haga clic en <strong>"Backup"</strong> en el menú</li>
+    <li>Seleccione el <strong>tipo de backup</strong>:
+        <ul>
+            <li><strong>Completo:</strong> Incluye datos y estructura</li>
+            <li><strong>Solo Estructura:</strong> Solo el esquema de la base de datos</li>
+        </ul>
+    </li>
+    <li>Opcional: Marque <strong>"Incluir archivos adjuntos"</strong></li>
+    <li>Haga clic en <strong>"Crear Backup Ahora"</strong></li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 14: Panel de Backup</div>
+    <div class="descripcion">[Pegar captura del panel de backup]</div>
+    <div class="indicaciones"> Indicación: Capturar la sección de creación de backup manual</div>
+</div>
+
+<h3>1.6.2 Descargar un Backup</h3>
+
+<ol>
+    <li>En la lista de backups, localice el archivo</li>
+    <li>Haga clic en <strong>"Descargar"</strong></li>
+    <li>Guarde el archivo en su computadora</li>
+</ol>
+
+<h3>1.6.3 Configurar Backup Automático</h3>
+
+<ol>
+    <li>En la sección de configuración, marque <strong>"Habilitar backup automático"</strong></li>
+    <li>Seleccione la <strong>frecuencia</strong> (diaria, semanal, mensual)</li>
+    <li>Configure la <strong>hora de ejecución</strong></li>
+    <li>Ajuste los <strong>días de retención</strong></li>
+    <li>Guarde la configuración</li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 15: Configuración de Backup Automático</div>
+    <div class="descripcion">[Pegar captura de las opciones de configuración automática]</div>
+    <div class="indicaciones"> Indicación: Capturar la sección de configuración de backup programdo</div>
+</div>
+
+<!-- 1.7 Logs -->
+<h2 id="admin-logs">1.7 Logs del Sistema</h2>
+
+<h3>1.7.1 Ver Logs</h3>
+
+<ol>
+    <li>Haga clic en <strong>"Logs"</strong> en el menú</li>
+    <li>Podrá ver todas las actividades registradas:
+        <ul>
+            <li>Inicios de sesión</li>
+            <li>Creación de tickets</li>
+            <li>Cierre de tickets</li>
+            <li>Cambios en usuarios</li>
+            <li>Backups realizados</li>
+        </ul>
+    </li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 16: Logs del Sistema</div>
+    <div class="descripcion">[Pegar captura de la lista de logs]</div>
+    <div class="indicaciones"> Indicación: Capturar la pantalla principal de logs</div>
+</div>
+
+<h3>1.7.2 Filtrar Logs</h3>
+
+<ol>
+    <li>Use los filtros disponibles:
+        <ul>
+            <li><strong>Por usuario:</strong> Vea actividad de un usuario específico</li>
+            <li><strong>Por acción:</strong> Filtre por tipo de acción</li>
+            <li><strong>Por fecha:</strong> Rango de fechas específico</li>
+            <li><strong>Búsqueda:</strong> Texto en descripción</li>
+        </ul>
+    </li>
+    <li>Use los <strong>períodos rápidos</strong> para fechas comunes (Hoy, Ayer, Última semana, Último mes)</li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 17: Filtros de Logs</div>
+    <div class="descripcion">[Pegar captura mostrando los filtros de búsqueda]</div>
+    <div class="indicaciones"> Indicación: Capturar la sección de filtros con las opciones disponibles</div>
+</div>
+
+<!-- ==================== SECCIÓN 2: TÉCNICO ==================== -->
+<h1 id="seccion2">2. MANUAL PARA TÉCNICO</h1>
+
+<p>El técnico tiene acceso para atender tickets asignados, cambiar estados y cerrar tickets.</p>
+
+<!-- 2.1 Inicio de Sesión -->
+<h2 id="tecnico-login">2.1 Inicio de Sesión</h2>
+
+<ol>
+    <li>Abra su navegador web</li>
+    <li>Diríjase a la dirección del sistema CSI</li>
+    <li>Ingrese su <strong>usuario</strong> y <strong>contraseña</strong></li>
+    <li>Haga clic en <strong>"Iniciar Sesión"</strong></li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 18: Login Técnico</div>
+    <div class="descripcion">[Pegar captura de la pantalla de login]</div>
+    <div class="indicaciones"> Indicación: Capturar la pantalla de inicio de sesión</div>
+</div>
+
+<h3>2.1.1 Menú del Técnico</h3>
+
+<p>El técnico verá las siguientes opciones:</p>
+
+<table>
+    <tr>
+        <th>Módulo</th>
+        <th>Descripción</th>
+    </tr>
+    <tr>
+        <td>Inicio</td>
+        <td>Dashboard con sus estadísticas</td>
+    </tr>
+    <tr>
+        <td>Tickets Asignados</td>
+        <td>Tickets que le han sido asignados</td>
+    </tr>
+    <tr>
+        <td>Aceptar Tickets</td>
+        <td>Aceptar tickets sin técnico asignado</td>
+    </tr>
+    <tr>
+        <td>Nuevo Ticket</td>
+        <td>Crear ticket</td>
+    </tr>
+    <tr>
+        <td>Mis Tickets</td>
+        <td>Mis propios tickets</td>
+    </tr>
+    <tr>
+        <td>Mi Perfil</td>
+        <td>Configuración de cuenta</td>
+    </tr>
+</table>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 19: Menú del Técnico</div>
+    <div class="descripcion">[Pegar captura del menú lateral del técnico]</div>
+    <div class="indicaciones"> Indicación: Capturar el menú lateral mostrando las opciones disponibles</div>
+</div>
+
+<!-- 2.2 Tickets Asignados -->
+<h2 id="tecnico-tickets">2.2 Ver Tickets Asignados</h2>
+
+<ol>
+    <li>Haga clic en <strong>"Tickets Asignados"</strong></li>
+    <li>Verá la lista de tickets que tiene asignados</li>
+    <li>Cada ticket muestra:
+        <ul>
+            <li>Número de ticket</li>
+            <li>Asunto</li>
+            <li>Prioridad</li>
+            <li>Estado actual</li>
+            <li>Tiempo transcurrido</li>
+        </ul>
+    </li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 20: Tickets Asignados</div>
+    <div class="descripcion">[Pegar captura de la lista de tickets asignados]</div>
+    <div class="indicaciones"> Indicación: Capturar la lista de tickets asignados al técnico</div>
+</div>
+
+<!-- 2.3 Cambiar Estado -->
+<h2 id="tecnico-estado">2.3 Cambiar Estado del Ticket</h2>
+
+<ol>
+    <li>Abra un ticket asignado</li>
+    <li>Haga clic en <strong>"Procesar Ticket"</strong></li>
+    <li>Podrá cambiar:
+        <ul>
+            <li><strong>Estado:</strong> Asignado → En Proceso</li>
+            <li><strong>Prioridad:</strong> Si es necesario</li>
+        </ul>
+    </li>
+    <li>Agregue notas en <strong>"Solución Aplicada"</strong></li>
+    <li>Haga clic en <strong>"Guardar Cambios"</strong></li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 21: Cambiar Estado</div>
+    <div class="descripcion">[Pegar captura del formulario de procesar ticket]</div>
+    <div class="indicaciones"> Indicación: Capturar la pantalla donde se cambia el estado del ticket</div>
+</div>
+
+<!-- 2.4 Cerrar Ticket -->
+<h2 id="tecnico-cerrar">2.4 Cerrar un Ticket</h2>
+
+<ol>
+    <li>Una vez resuelto el problema, abra el ticket</li>
+    <li>Haga clic en <strong>"Cerrar"</strong></li>
+    <li>Seleccione el tipo de cierre:
+        <ul>
+            <li><strong>Cerrado Exitosamente:</strong> El problema fue resuelto</li>
+            <li><strong>Cerrado No Exitoso:</strong> No se pudo resolver</li>
+        </ul>
+    </li>
+    <li>Describa la <strong>solución aplicada</strong></li>
+    <li>Adjunte archivos si es necesario</li>
+    <li>Haga clic en <strong>"Cerrar Ticket"</strong></li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 22: Cerrar Ticket</div>
+    <div class="descripcion">[Pegar captura del formulario de cierre]</div>
+    <div class="indicaciones"> Indicación: Capturar la pantalla de cierre con la descripción de la solución</div>
+</div>
+
+<div class="nota-exito">
+    <strong>Tip:</strong> Siempre documente la solución aplicada para futura referencia y para ayudar a resolver casos similares.
+</div>
+
+<!-- 2.5 Crear Tickets -->
+<h2 id="tecnico-crear">2.5 Crear Tickets Propios</h2>
+
+<p>Si detecta un problema que debe reportar, puede crear su propio ticket:</p>
+
+<ol>
+    <li>Haga clic en <strong>"Nuevo Ticket"</strong></li>
+    <li>Complete todos los campos obligatorios</li>
+    <li>Adjunte archivos si es necesario</li>
+    <li>Haga clic en <strong>"Crear Ticket"</strong></li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 23: Crear Ticket Propio</div>
+    <div class="descripcion">[Pegar captura del formulario de nuevo ticket]</div>
+    <div class="indicaciones"> Indicación: Capturar el formulario de creación de ticket</div>
+</div>
+
+<!-- ==================== SECCIÓN 3: USUARIO ==================== -->
+<h1 id="seccion3">3. MANUAL PARA USUARIO</h1>
+
+<p>El usuario puede crear tickets para reportar problemas y dar seguimiento a sus tickets.</p>
+
+<!-- 3.1 Inicio de Sesión -->
+<h2 id="usuario-login">3.1 Inicio de Sesión</h2>
+
+<ol>
+    <li>Abra su navegador web</li>
+    <li>Diríjase a la dirección del sistema CSI</li>
+    <li>Ingrese su <strong>usuario</strong> y <strong>contraseña</strong></li>
+    <li>Haga clic en <strong>"Iniciar Sesión"</strong></li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 24: Login Usuario</div>
+    <div class="descripcion">[Pegar captura de la pantalla de login]</div>
+    <div class="indicaciones"> Indicación: Capturar la pantalla de inicio de sesión</div>
+</div>
+
+<h3>3.1.1 Menú del Usuario</h3>
+
+<p>El usuario verá las siguientes opciones:</p>
+
+<table>
+    <tr>
+        <th>Módulo</th>
+        <th>Descripción</th>
+    </tr>
+    <tr>
+        <td>Inicio</td>
+        <td>Dashboard personal</td>
+    </tr>
+    <tr>
+        <td>Nuevo Ticket</td>
+        <td>Crear ticket</td>
+    </tr>
+    <tr>
+        <td>Mis Tickets</td>
+        <td>Tickets que ha creado</td>
+    </tr>
+    <tr>
+        <td>Mi Perfil</td>
+        <td>Configuración de cuenta</td>
+    </tr>
+</table>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 25: Menú del Usuario</div>
+    <div class="descripcion">[Pegar captura del menú lateral del usuario]</div>
+    <div class="indicaciones"> Indicación: Capturar el menú lateral mostrando las opciones disponibles</div>
+</div>
+
+<!-- 3.2 Crear Ticket -->
+<h2 id="usuario-crear">3.2 Crear un Ticket</h2>
+
+<h3>3.2.1 Procedimiento para Crear Ticket</h3>
+
+<ol>
+    <li>Haga clic en <strong>"Nuevo Ticket"</strong></li>
+    <li>Complete <strong>todos los campos obligatorios</strong></li>
+</ol>
+
+<h3>3.2.2 Campos del Formulario</h3>
+
+<table>
+    <tr>
+        <th>Campo</th>
+        <th>Descripción</th>
+        <th>Ejemplo</th>
+    </tr>
+    <tr>
+        <td><strong>Dependencia donde se presenta la falla</strong></td>
+        <td>Lugar físico donde está el problema</td>
+        <td>Sala de Juntas, Oficina 201</td>
+    </tr>
+    <tr>
+        <td><strong>Lugar/Área</strong></td>
+        <td>Ubicación exacta dentro del lugar</td>
+        <td>Área de atención al público</td>
+    </tr>
+    <tr>
+        <td><strong>Área de Soporte</strong></td>
+        <td>Tipo de soporte necesario</td>
+        <td>Infraestructura, Software</td>
+    </tr>
+    <tr>
+        <td><strong>Servicio Específico</strong></td>
+        <td>Servicio particular</td>
+        <td>Reparación de equipo</td>
+    </tr>
+    <tr>
+        <td><strong>Asunto</strong></td>
+        <td>Título breve del problema</td>
+        <td>Monitor no enciende</td>
+    </tr>
+    <tr>
+        <td><strong>Descripción</strong></td>
+        <td>Detalle completo del problema</td>
+        <td>El monitor muestra pantalla negra al encender</td>
+    </tr>
+</table>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 26: Formulario de Nuevo Ticket</div>
+    <div class="descripcion">[Pegar captura del formulario de nuevo ticket]</div>
+    <div class="indicaciones"> Indicación: Capturar el formulario completo con todos los campos</div>
+</div>
+
+<div class="nota-importante">
+    <strong>Importante:</strong> El campo "Dependencia donde se presenta la falla" indica el lugar FÍSICO donde está el problema, no su dependencia de trabajo. Ejemplo: Si está en Recursos Humanos pero el problema es en la Sala de Juntas, seleccione "Sala de Juntas".
+</div>
+
+<h3>3.2.3 Adjuntar Archivos</h3>
+
+<ol>
+    <li>Haga clic en el botón <strong>"Adjuntar archivos"</strong></li>
+    <li>Seleccione los archivos de su computadora</li>
+    <li>Formatos permitidos: JPG, PNG, PDF, DOC, XLS, TXT</li>
+    <li>Tamaño máximo: 5MB por archivo</li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 27: Adjuntar Archivos</div>
+    <div class="descripcion">[Pegar captura del botón y área de adjuntos]</div>
+    <div class="indicaciones"> Indicación: Capturar la sección de adjuntos del formulario</div>
+</div>
+
+<h3>3.2.4 Confirmación</h3>
+
+<ol>
+    <li>Revise todos los campos</li>
+    <li>Haga clic en <strong>"Crear Ticket"</strong></li>
+    <li>Recibirá un mensaje de confirmación con el número de ticket</li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 28: Confirmación de Ticket Creado</div>
+    <div class="descripcion">[Pegar captura del mensaje de confirmación]</div>
+    <div class="indicaciones"> Indicación: Capturar el mensaje de éxito al crear el ticket</div>
+</div>
+
+<!-- 3.3 Seguimiento -->
+<h2 id="usuario-seguir">3.3 Seguimiento de Tickets</h2>
+
+<h3>3.3.1 Ver Mis Tickets</h3>
+
+<ol>
+    <li>Haga clic en <strong>"Mis Tickets"</strong></li>
+    <li>Verá todos los tickets que ha creado</li>
+    <li>Cada ticket muestra:
+        <ul>
+            <li>Número de ticket</li>
+            <li>Asunto</li>
+            <li>Estado actual</li>
+            <li>Fecha de creación</li>
+        </ul>
+    </li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 29: Mis Tickets</div>
+    <div class="descripcion">[Pegar captura de la lista de mis tickets]</div>
+    <div class="indicaciones"> Indicación: Capturar la lista de tickets creados por el usuario</div>
+</div>
+
+<h3>3.3.2 Ver Detalle de un Ticket</h3>
+
+<ol>
+    <li>En <strong>"Mis Tickets"</strong>, haga clic en el ticket</li>
+    <li>Podrá ver:
+        <ul>
+            <li>Detalle completo del ticket</li>
+            <li>Estado actual</li>
+            <li>Técnico asignado (si existe)</li>
+            <li>Solución aplicada (si está cerrado)</li>
+            <li>Archivos adjuntos</li>
+        </ul>
+    </li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 30: Detalle de Ticket</div>
+    <div class="descripcion">[Pegar captura del detalle de un ticket]</div>
+    <div class="indicaciones"> Indicación: Capturar la pantalla de detalle del ticket</div>
+</div>
+
+<h3>3.3.3 ¿Qué hacer si mi ticket está cerrado?</h3>
+
+<ol>
+    <li>Revise la <strong>solución aplicada</strong> en el detalle del ticket</li>
+    <li>Si el problema persiste:
+        <ul>
+            <li>Cree un <strong>nuevo ticket</strong></li>
+            <li>Explique la situación</li>
+            <li>Puede hacer referencia al ticket anterior</li>
+        </ul>
+    </li>
+</ol>
+
+<!-- 3.4 Perfil -->
+<h2 id="usuario-perfil">3.4 Editar Perfil</h2>
+
+<ol>
+    <li>Haga clic en <strong>"Mi Perfil"</strong></li>
+    <li>Actualice sus datos si es necesario:
+        <ul>
+            <li>Nombre</li>
+            <li>Correo electrónico</li>
+        </ul>
+    </li>
+    <li>Para cambiar la contraseña:
+        <ul>
+            <li>Ingrese la contraseña actual</li>
+            <li>Ingrese la nueva contraseña</li>
+            <li>Confirme la nueva contraseña</li>
+        </ul>
+    </li>
+    <li>Guarde los cambios</li>
+</ol>
+
+<div class="captura">
+    <div class="titulo">CAPTURA DE PANTALLA 31: Mi Perfil</div>
+    <div class="descripcion">[Pegar captura del formulario de perfil]</div>
+    <div class="indicaciones"> Indicación: Capturar la pantalla de edición de perfil</div>
+</div>
+
+<!-- ==================== SECCIÓN 4: REFERENCIAS ==================== -->
+<h1 id="seccion4">4. REFERENCIAS GENERALES</h1>
+
+<!-- 4.1 Estados -->
+<h2 id="estados">4.1 Estados de Tickets</h2>
+
+<table>
+    <tr>
+        <th>Estado</th>
+        <th>Descripción</th>
+        <th>Color</th>
+    </tr>
+    <tr>
+        <td><strong>Nuevo</strong></td>
+        <td>El ticket acaba de ser creado y no tiene técnico asignado</td>
+        <td>Azul</td>
+    </tr>
+    <tr>
+        <td><strong>Asignado</strong></td>
+        <td>Un técnico ha sido asignado al ticket</td>
+        <td>Naranja</td>
+    </tr>
+    <tr>
+        <td><strong>En Proceso</strong></td>
+        <td>El técnico está trabajando en resolver el problema</td>
+        <td>Verde</td>
+    </tr>
+    <tr>
+        <td><strong>Cerrado Exitosamente</strong></td>
+        <td>El problema fue resuelto ✅</td>
+        <td>Gris oscuro</td>
+    </tr>
+    <tr>
+        <td><strong>Cerrado No Exitoso</strong></td>
+        <td>No fue posible resolver el problema</td>
+        <td>Rojo oscuro</td>
+    </tr>
+</table>
+
+<h3>Flujo de un Ticket</h3>
+
+<div class="flujo">
+NUEVO → ASIGNADO → EN PROCESO → CERRADO EXITOSAMENTE / NO EXITOSO
+   │         │           │            │
+   │         │           │            └── ✅ Problema resuelto / ❌ No resuelto
+   │         │           └── Técnico trabajando en la solución
+   │         └── Técnico asignado al ticket
+   └── Ticket recibido, sin asignar
+</div>
+
+<!-- 4.2 Prioridades -->
+<h2 id="prioridades">4.2 Prioridades</h2>
+
+<table>
+    <tr>
+        <th>Prioridad</th>
+        <th>Descripción</th>
+        <th>Tiempo Sugerido</th>
+    </tr>
+    <tr>
+        <td><strong>Urgente</strong></td>
+        <td>Problema crítico, atención inmediata</td>
+        <td>1-2 horas</td>
+    </tr>
+    <tr>
+        <td><strong>Alta</strong></td>
+        <td>Problema importante, atender urgente</td>
+        <td>4-8 horas</td>
+    </tr>
+    <tr>
+        <td><strong>Media</strong></td>
+        <td>Problema moderado, atender pronto</td>
+        <td>1-2 días</td>
+    </tr>
+    <tr>
+        <td><strong>Baja</strong></td>
+        <td>Problema menor, puede esperar</td>
+        <td>3-5 días</td>
+    </tr>
+</table>
+
+<!-- 4.3 Privilegios -->
+<h2 id="privilegios">4.3 Privilegios de Usuario</h2>
+
+<table>
+    <tr>
+        <th>Privilegio</th>
+        <th>Descripción</th>
+        <th>Permisos</th>
+    </tr>
+    <tr>
+        <td><strong>Administrador</strong></td>
+        <td>Control total del sistema</td>
+        <td>Gestionar usuarios, tickets, dependencias, backups, ver logs</td>
+    </tr>
+    <tr>
+        <td><strong>Técnico</strong></td>
+        <td>Atención de tickets</td>
+        <td>Ver/asignar tickets, cambiar estados, cerrar tickets</td>
+    </tr>
+    <tr>
+        <td><strong>Usuario</strong></td>
+        <td>Reportar problemas</td>
+        <td>Crear tickets, ver tickets propios, seguimiento</td>
+    </tr>
+</table>
+
+<!-- 4.4 Consejos -->
+<h2 id="consejos">4.4 Consejos Útiles</h2>
+
+<h3>Para todos los usuarios:</h3>
+
+<div class="nota-exito">
+<ul>
+    <li>✅ Use un <strong>asunto descriptivo</strong> para identificar rápidamente su ticket</li>
+    <li>✅ Proporcione <strong>detalles completos</strong> en la descripción</li>
+    <li>✅ Si es posible, <strong>adjunte capturas de pantalla</strong> del error</li>
+    <li>✅ Sea <strong>específico</strong> en la ubicación del problema</li>
+</ul>
+</div>
+
+<h3>Al reportar problemas técnicos:</h3>
+
+<ul>
+    <li><strong>Error en equipo:</strong> Indique el número de inventario si lo conoce</li>
+    <li><strong>Error en sistema:</strong> Indique qué acción estaba realizando</li>
+    <li><strong>Error en red:</strong> Indique desde dónde intenta conectarse</li>
+</ul>
+
+<h3>Ubicación del problema:</h3>
+
+<div class="nota-info">
+<strong>Sea lo más específico posible:</strong> "Oficina 201, área de atención al público" es mejor que simplemente "Oficina".
+</div>
+
+<!-- ==================== FOOTER ==================== -->
+<div class="footer">
+    <p><strong>Sistema CSI</strong> - Centro de Soporte Informático</p>
+    <p>Versión del Manual: 1.0 | Fecha: Marzo 2026</p>
+</div>
+
+</body>
+</html>
