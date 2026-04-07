@@ -64,7 +64,15 @@
                 <span>Dependencias</span>
             </a>
         </li>
-        
+         
+        <li>
+            <a href="admin_areas_servicios.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_areas_servicios.php' ? 'active' : ''; ?>">
+                <img src="imagen/Settings.png" alt="Áreas" class="menu-img"
+                     onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fas fa-cogs img-fallback\'></i><span>Áreas y Servicios</span>';">
+                <span>Áreas y Servicios</span>
+            </a>
+        </li>
+         
         <li>
             <a href="admin_backup.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_backup.php' ? 'active' : ''; ?>">
                 <img src="imagen/Tools.png" alt="Backup" class="menu-img"

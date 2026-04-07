@@ -56,9 +56,9 @@ try {
     error_log("Error cargando dependencias: " . $e->getMessage());
 }
 
-// c) Obtener técnicos y admins disponibles (solo si es admin)
+// c) Obtener técnicos y admins disponibles (para admin y técnicos)
 $tecnicos = [];
-if ($privilegio == 'admin') {
+if ($privilegio == 'admin' || $privilegio == 'tecnico') {
     try {
         // Obtener todos los admins activos
         $stmt_admins = $conn->query("SELECT id, nombre, correo FROM Usuarios WHERE privilegio = 'admin' AND activo = 1 ORDER BY nombre");
@@ -117,8 +117,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Obtener dependencia de donde se presenta la falla (PARA TODOS LOS USUARIOS)
     $datos_formulario['dependencia_id'] = isset($_POST['dependencia_id']) ? intval($_POST['dependencia_id']) : $dependencia_id;
     
-    // Técnico asignado solo para admin
-    if ($privilegio == 'admin') {
+    // Técnico asignado para admin y técnicos
+    if ($privilegio == 'admin' || $privilegio == 'tecnico') {
         $datos_formulario['tecnico_asignado'] = isset($_POST['tecnico_asignado']) ? intval($_POST['tecnico_asignado']) : null;
     } else {
         $datos_formulario['tecnico_asignado'] = null;
@@ -807,9 +807,9 @@ if (!file_exists($menu_archivo)) {
                         </div>
                         <?php endif; ?>
                         
-                        <?php if ($privilegio == 'admin' && !empty($tecnicos)): ?>
+                        <?php if (($privilegio == 'admin' || $privilegio == 'tecnico') && !empty($tecnicos)): ?>
                         <div class="admin-panel">
-                            <h5><i class="fas fa-user-shield"></i> Opciones de Administrador</h5>
+                            <h5><i class="fas fa-user-tag"></i> Asignación de Técnico</h5>
                             
                             <div class="toggle-container">
                                 <input type="checkbox" id="asignar_tecnico" name="asignar_tecnico" value="1" 
