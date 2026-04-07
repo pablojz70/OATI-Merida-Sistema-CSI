@@ -190,8 +190,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ticket #<?php echo htmlspecialchars($ticket['numero_ticket']); ?> - CSI</title>
-    <link rel="stylesheet" href="css/estilos.css">
-    <link rel="stylesheet" href="css/estilos2.css">
+    <link rel="stylesheet" href="css/estilos.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="css/estilos2.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ESTILOS ESPECÍFICOS PARA VER TICKET */
@@ -1027,16 +1027,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                         </a>
                     <?php endif; ?>
                     
-                    <!-- Botón PROCESAR (admin o técnico asignado) -->
-                    <?php if ($privilegio == 'admin' || ($privilegio == 'tecnico' && $ticket['tecnico_asignado'] == $id_usuario)): ?>
+                    <!-- Botón PROCESAR (admin o técnico asignado, solo si no está cerrado) -->
+                    <?php 
+                    $ticketCerrado = strpos($ticket['estado'], 'Cerrado') !== false;
+                    if (($privilegio == 'admin' || ($privilegio == 'tecnico' && $ticket['tecnico_asignado'] == $id_usuario)) && !$ticketCerrado): ?>
                         <a href="procesar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action procesar" title="Procesar ticket">
                             <i class="fas fa-tools"></i>
                         </a>
                     <?php endif; ?>
                     
                     <!-- Botón CERRAR (solo si no está cerrado) -->
-                    <?php if (($privilegio == 'admin' || ($privilegio == 'tecnico' && $ticket['tecnico_asignado'] == $id_usuario)) 
-                              && !strpos($ticket['estado'], 'Cerrado')): ?>
+                    <?php if (($privilegio == 'admin' || ($privilegio == 'tecnico' && $ticket['tecnico_asignado'] == $id_usuario)) && !$ticketCerrado): ?>
                         <a href="cerrar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action close" title="Cerrar ticket">
                             <i class="fas fa-check"></i>
                         </a>
