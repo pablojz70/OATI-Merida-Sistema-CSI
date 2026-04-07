@@ -546,37 +546,45 @@ $servicios = $conn->query("
             flex: 1;
         }
         
-        /* CONTADORES */
-        .stats-mini {
-            display: flex;
-            gap: 20px;
+        /* ESTADÍSTICAS UNIFORMES */
+        .stats-usuarios {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
             margin-bottom: 20px;
         }
         
-        .stat-mini {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 25px;
+        .stat-usuario {
+            background: white;
             border-radius: 8px;
+            padding: 12px;
             text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-top: 3px solid;
+            transition: transform 0.2s;
         }
         
-        .stat-mini.green {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        .stat-usuario:hover {
+            transform: translateY(-3px);
         }
         
-        .stat-mini.orange {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        .stat-usuario.total { border-color: #1a2980; }
+        .stat-usuario.green { border-color: #27ae60; }
+        .stat-usuario.orange { border-color: #f39c12; }
+        
+        .stat-numero {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            display: block;
         }
         
-        .stat-mini .number {
-            font-size: 28px;
-            font-weight: bold;
-        }
-        
-        .stat-mini .label {
+        .stat-label {
             font-size: 11px;
-            opacity: 0.9;
+            color: #7f8c8d;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
     </style>
 </head>
@@ -624,18 +632,18 @@ $servicios = $conn->query("
             <?php endif; ?>
             
             <!-- ESTADÍSTICAS -->
-            <div class="stats-mini">
-                <div class="stat-mini">
-                    <div class="number"><?php echo count($areas); ?></div>
-                    <div class="label">Áreas de Soporte</div>
+            <div class="stats-usuarios">
+                <div class="stat-usuario total">
+                    <span class="stat-numero"><?php echo count($areas); ?></span>
+                    <span class="stat-label">Áreas de Soporte</span>
                 </div>
-                <div class="stat-mini green">
-                    <div class="number"><?php echo count($servicios); ?></div>
-                    <div class="label">Servicios</div>
+                <div class="stat-usuario green">
+                    <span class="stat-numero"><?php echo count($servicios); ?></span>
+                    <span class="stat-label">Servicios</span>
                 </div>
-                <div class="stat-mini orange">
-                    <div class="number"><?php echo count(array_filter($areas, fn($a) => !$a['activa'])); ?></div>
-                    <div class="label">Áreas Inactivas</div>
+                <div class="stat-usuario orange">
+                    <span class="stat-numero"><?php echo count(array_filter($areas, fn($a) => !$a['activa'])); ?></span>
+                    <span class="stat-label">Áreas Inactivas</span>
                 </div>
             </div>
             

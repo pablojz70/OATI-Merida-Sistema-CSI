@@ -265,43 +265,64 @@ body {
     font-weight: 500;
 }
 
-/* ESTADÍSTICAS COMPACTAS */
-.stats-grid-custom {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-    gap: 8px;
-    margin-bottom: 12px;
+/* ESTADÍSTICAS UNIFORMES */
+.stats-usuarios {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+    gap: 10px !important;
+    margin-bottom: 20px !important;
 }
 
-.stat-card-custom {
-    background: white;
-    border-radius: var(--compact-radius);
-    padding: 10px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    border: 1px solid #eef2f7;
-    transition: transform 0.2s;
+.stat-usuario {
+    background: white !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    text-align: center !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+    border: none !important;
+    border-top: 3px solid !important;
+    border-bottom: 1px solid #eef2f7 !important;
+    transition: transform 0.2s !important;
 }
 
-.stat-card-custom:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+.stat-usuario:hover {
+    transform: translateY(-3px) !important;
 }
 
-.stat-number-custom {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1a2980;
-    line-height: 1;
-    margin: 6px 0;
+.stat-usuario.total { border-top-color: #1a2980 !important; }
+.stat-usuario.admin { border-top-color: #e74c3c !important; }
+.stat-usuario.tecnico { border-top-color: #f39c12 !important; }
+.stat-usuario.usuario { border-top-color: #3498db !important; }
+.stat-usuario.activo { border-top-color: #27ae60 !important; }
+.stat-usuario.nuevo { border-top-color: #3498db !important; }
+.stat-usuario.asignado { border-top-color: #f39c12 !important; }
+.stat-usuario.proceso { border-top-color: #17a2b8 !important; }
+.stat-usuario.cerrado, .stat-usuario.cerrados { border-top-color: #28a745 !important; }
+.stat-usuario.urgente { border-top-color: #dc3545 !important; }
+.stat-usuario.abierto { border-top-color: #f39c12 !important; }
+.stat-usuario.days { border-top-color: #f39c12 !important; }
+.stat-usuario.last { border-top-color: #3498db !important; }
+.stat-usuario.active { border-top-color: #27ae60 !important; }
+.stat-usuario.green { border-top-color: #27ae60 !important; }
+.stat-usuario.orange { border-top-color: #f39c12 !important; }
+.stat-usuario.blue { border-top-color: #3498db !important; }
+.stat-usuario.pendientes { border-top-color: #f39c12 !important; }
+.stat-usuario.criticos { border-top-color: #dc3545 !important; }
+.stat-usuario.tiempo { border-top-color: #3498db !important; }
+
+.stat-numero {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    color: #2c3e50 !important;
+    display: block !important;
 }
 
-.stat-label-custom {
-    font-size: 10px;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
+.stat-label {
+    font-size: 11px !important;
+    color: #7f8c8d !important;
+    margin-top: 4px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
 }
 
 /* ACCIONES RÁPIDAS */

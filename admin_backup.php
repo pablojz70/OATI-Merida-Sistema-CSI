@@ -202,41 +202,44 @@ try {
             color: #3498db;
         }
         
-        .stats-grid {
+        /* ESTADÍSTICAS UNIFORMES */
+        .stats-usuarios {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
             margin-bottom: 20px;
         }
         
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
+        .stat-usuario {
+            background: white;
             border-radius: 8px;
+            padding: 12px;
             text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-top: 3px solid;
+            transition: transform 0.2s;
         }
         
-        .stat-card.green {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        .stat-usuario:hover {
+            transform: translateY(-3px);
         }
         
-        .stat-card.orange {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
+        .stat-usuario.total { border-color: #1a2980; }
+        .stat-usuario.green { border-color: #27ae60; }
+        .stat-usuario.orange { border-color: #f39c12; }
+        .stat-usuario.blue { border-color: #3498db; }
         
-        .stat-card.blue {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-        
-        .stat-number {
-            font-size: 28px;
+        .stat-numero {
+            font-size: 20px;
             font-weight: 700;
+            color: #2c3e50;
+            display: block;
         }
         
         .stat-label {
             font-size: 11px;
-            opacity: 0.9;
+            color: #7f8c8d;
+            margin-top: 4px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -495,22 +498,22 @@ try {
             <?php endif; ?>
             
             <!-- ESTADÍSTICAS -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number"><?php echo number_format($stats['tickets']); ?></div>
-                    <div class="stat-label">Tickets Totales</div>
+            <div class="stats-usuarios">
+                <div class="stat-usuario total">
+                    <span class="stat-numero"><?php echo number_format($stats['tickets']); ?></span>
+                    <span class="stat-label">Tickets Totales</span>
                 </div>
-                <div class="stat-card green">
-                    <div class="stat-number"><?php echo number_format($stats['usuarios']); ?></div>
-                    <div class="stat-label">Usuarios</div>
+                <div class="stat-usuario green">
+                    <span class="stat-numero"><?php echo number_format($stats['usuarios']); ?></span>
+                    <span class="stat-label">Usuarios</span>
                 </div>
-                <div class="stat-card orange">
-                    <div class="stat-number"><?php echo number_format($stats['adjuntos']); ?></div>
-                    <div class="stat-label">Archivos Adjuntos</div>
+                <div class="stat-usuario orange">
+                    <span class="stat-numero"><?php echo number_format($stats['adjuntos']); ?></span>
+                    <span class="stat-label">Archivos Adjuntos</span>
                 </div>
-                <div class="stat-card blue">
-                    <div class="stat-number"><?php echo $stats['tamano_adjuntos']; ?> MB</div>
-                    <div class="stat-label">Tamaño Adjuntos</div>
+                <div class="stat-usuario blue">
+                    <span class="stat-numero"><?php echo $stats['tamano_adjuntos']; ?> MB</span>
+                    <span class="stat-label">Tamaño Adjuntos</span>
                 </div>
             </div>
             
@@ -544,11 +547,6 @@ try {
                             <i class="fas fa-save"></i> Crear Backup Ahora
                         </button>
                     </form>
-                    
-                    <div class="cron-info">
-                        <strong>Comando para Tarea Programada (Windows):</strong><br>
-                        <code>php.exe "C:\xampp\htdocs\sistema_csi\backup.php"</code>
-                    </div>
                 </div>
                 
                 <!-- CONFIGURACIÓN PROGRAMADA -->
@@ -660,33 +658,6 @@ try {
                         </tbody>
                     </table>
                 <?php endif; ?>
-            </div>
-            
-            <!-- INSTRUCCIONES -->
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-info-circle"></i> Instrucciones para Backup Automático
-                </div>
-                
-                <h4 style="font-size: 14px; margin-bottom: 10px;">Windows - Tarea Programada:</h4>
-                <ol style="font-size: 12px; line-height: 1.8; padding-left: 20px;">
-                    <li>Abre el "Programador de Tareas" de Windows (Tasks Scheduler)</li>
-                    <li>Crea una tarea nueva</li>
-                    <li>Configura el trigger según la frecuencia deseada</li>
-                    <li>En "Acciones", selecciona "Iniciar un programa"</li>
-                    <li>Programa: <code>php.exe</code></li>
-                    <li>Argumentos: <code>"C:\xampp\htdocs\sistema_csi\backup.php"</code></li>
-                    <li>Guarda la tarea</li>
-                </ol>
-                
-                <h4 style="font-size: 14px; margin: 15px 0 10px 0;">Linux - Cron:</h4>
-                <div class="cron-info">
-                    <strong>Comando para agregar al crontab:</strong><br><br>
-                    <code># Backup diario a las 2:00 AM</code><br>
-                    <code>0 2 * * * php /opt/lampp/htdocs/sistema_csi/backup.php >> /var/log/csi_backup.log 2>&1</code><br><br>
-                    <code># Para editar el crontab:</code><br>
-                    <code>crontab -e</code>
-                </div>
             </div>
         </main>
     </div>

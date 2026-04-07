@@ -590,49 +590,75 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
             gap: 8px;
         }
         
+        /* BOTONES DE ACCIÓN COMPACTOS (iconos) */
+        .ticket-header-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        
         .btn-ticket-action {
-            padding: 6px 12px;
-            background: #3498db;
-            color: white;
+            width: 28px;
+            height: 28px;
             border: none;
-            border-radius: var(--compact-radius);
-            font-size: 11px;
-            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 5px;
+            justify-content: center;
             transition: all 0.2s;
+            font-size: 11px;
+            text-decoration: none;
         }
         
         .btn-ticket-action:hover {
             transform: translateY(-1px);
-            box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
         }
         
         .btn-ticket-action.back {
             background: #6c757d;
+            color: white;
+        }
+        
+        .btn-ticket-action.back:hover {
+            background: #5a6268;
         }
         
         .btn-ticket-action.edit {
             background: #f39c12;
+            color: white;
         }
         
-        .btn-ticket-action.assign {
-            background: #2ecc71;
+        .btn-ticket-action.edit:hover {
+            background: #e67e22;
+        }
+        
+        .btn-ticket-action.procesar {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-ticket-action.procesar:hover {
+            background: #2980b9;
         }
         
         .btn-ticket-action.close {
-            background: #9b59b6;
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-ticket-action.close:hover {
+            background: #218838;
         }
         
         .btn-ticket-action.danger {
             background: #dc3545;
+            color: white;
         }
         
         .btn-ticket-action.danger:hover {
             background: #c82333;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 6px rgba(220, 53, 69, 0.4);
         }
         
         .ticket-info-grid {
@@ -986,22 +1012,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                             'tecnico' => 'tickets_asignados.php',
                             default => 'mis_tickets.php'
                         };
-                    ?>" class="btn-ticket-action back">
-                        <i class="fas fa-arrow-left"></i> Volver
+                    ?>" class="btn-ticket-action back" title="Volver">
+                        <i class="fas fa-arrow-left"></i>
                     </a>
+                    
+                    <!-- Botón EDITAR (solo para el creador si NO está asignado y NO está cerrado) -->
+                    <?php if (
+                        $ticket['usuario_id'] == $id_usuario && 
+                        empty($ticket['tecnico_asignado']) && 
+                        $ticket['estado'] == 'Nuevo'
+                    ): ?>
+                        <a href="editar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action edit" title="Editar ticket">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    <?php endif; ?>
                     
                     <!-- Botón PROCESAR (admin o técnico asignado) -->
                     <?php if ($privilegio == 'admin' || ($privilegio == 'tecnico' && $ticket['tecnico_asignado'] == $id_usuario)): ?>
-                        <a href="procesar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action edit">
-                            <i class="fas fa-edit"></i> Procesar
+                        <a href="procesar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action procesar" title="Procesar ticket">
+                            <i class="fas fa-tools"></i>
                         </a>
                     <?php endif; ?>
                     
                     <!-- Botón CERRAR (solo si no está cerrado) -->
                     <?php if (($privilegio == 'admin' || ($privilegio == 'tecnico' && $ticket['tecnico_asignado'] == $id_usuario)) 
                               && !strpos($ticket['estado'], 'Cerrado')): ?>
-                        <a href="cerrar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action close">
-                            <i class="fas fa-check-circle"></i> Cerrar
+                        <a href="cerrar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action close" title="Cerrar ticket">
+                            <i class="fas fa-check"></i>
                         </a>
                     <?php endif; ?>
                     
@@ -1009,8 +1046,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                     <?php if ($privilegio == 'admin'): ?>
                         <a href="eliminar_ticket.php?id=<?php echo $ticket_id; ?>" 
                            class="btn-ticket-action danger" 
+                           title="Eliminar ticket"
                            onclick="return confirm('¿Está seguro de eliminar el ticket #<?php echo htmlspecialchars($ticket['numero_ticket']); ?>?\n\nEsta acción no se puede deshacer.');">
-                            <i class="fas fa-trash"></i> Eliminar
+                            <i class="fas fa-trash"></i>
                         </a>
                     <?php endif; ?>
                 </div>

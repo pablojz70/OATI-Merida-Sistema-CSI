@@ -206,8 +206,8 @@ if (!file_exists($menu_archivo)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CSI - Centro de Soporte Informático</title>
-    <link rel="stylesheet" href="css/estilos.css">
-    <link rel="stylesheet" href="css/estilos2.css">
+    <link rel="stylesheet" href="css/estilos.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="css/estilos2.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
     /* Estilos adicionales para consistencia */
@@ -284,40 +284,40 @@ if (!file_exists($menu_archivo)) {
             </div>
             
             <!-- ESTADÍSTICAS -->
-            <div class="stats-grid-custom fade-in-custom">
+            <div class="stats-usuarios fade-in-custom">
                 <?php if ($privilegio == 'admin'): ?>
-                    <div class="stat-card-custom">
-                        <div class="stat-number-custom"><?php echo $stats['total_usuarios'] ?? '0'; ?></div>
-                        <div class="stat-label-custom">Usuarios Totales</div>
+                    <div class="stat-usuario total">
+                        <span class="stat-numero"><?php echo $stats['total_usuarios'] ?? '0'; ?></span>
+                        <span class="stat-label">Usuarios Totales</span>
                     </div>
-                    <div class="stat-card-custom">
-                        <div class="stat-number-custom"><?php echo $stats['total_tickets'] ?? '0'; ?></div>
-                        <div class="stat-label-custom">Tickets Totales</div>
+                    <div class="stat-usuario" style="border-color: #6c757d;">
+                        <span class="stat-numero"><?php echo $stats['total_tickets'] ?? '0'; ?></span>
+                        <span class="stat-label">Tickets Totales</span>
                     </div>
-                    <div class="stat-card-custom">
-                        <div class="stat-number-custom" style="color: #3498db;"><?php echo $stats['tickets_nuevos'] ?? '0'; ?></div>
-                        <div class="stat-label-custom">Tickets Nuevos</div>
+                    <div class="stat-usuario nuevo">
+                        <span class="stat-numero"><?php echo $stats['tickets_nuevos'] ?? '0'; ?></span>
+                        <span class="stat-label">Tickets Nuevos</span>
                     </div>
-                    <div class="stat-card-custom">
-                        <div class="stat-number-custom" style="color: #f39c12;"><?php echo $stats['tickets_asignados'] ?? '0'; ?></div>
-                        <div class="stat-label-custom">Tickets Asignados</div>
+                    <div class="stat-usuario asignado">
+                        <span class="stat-numero"><?php echo $stats['tickets_asignados'] ?? '0'; ?></span>
+                        <span class="stat-label">Tickets Asignados</span>
                     </div>
-                    <div class="stat-card-custom">
-                        <div class="stat-number-custom" style="color: #27ae60;"><?php echo $stats['tickets_cerrados'] ?? '0'; ?></div>
-                        <div class="stat-label-custom">Tickets Cerrados</div>
+                    <div class="stat-usuario cerrado">
+                        <span class="stat-numero"><?php echo $stats['tickets_cerrados'] ?? '0'; ?></span>
+                        <span class="stat-label">Tickets Cerrados</span>
                     </div>
                 
                 <?php elseif ($privilegio == 'tecnico'): ?>
-                    <div class="stat-card-custom">
-                        <div class="stat-number-custom" style="color: #f39c12;"><?php echo $stats['tickets_asignados'] ?? '0'; ?></div>
-                        <div class="stat-label-custom">Asignados a Mí</div>
+                    <div class="stat-usuario asignado">
+                        <span class="stat-numero"><?php echo $stats['tickets_asignados'] ?? '0'; ?></span>
+                        <span class="stat-label">Asignados a Mí</span>
                     </div>
-                    <div class="stat-card-custom">
-                        <div class="stat-number-custom" style="color: #27ae60;"><?php echo $stats['tickets_resueltos'] ?? '0'; ?></div>
-                        <div class="stat-label-custom">Resueltos por Mí</div>
+                    <div class="stat-usuario cerrado">
+                        <span class="stat-numero"><?php echo $stats['tickets_resueltos'] ?? '0'; ?></span>
+                        <span class="stat-label">Resueltos por Mí</span>
                     </div>
-                    <div class="stat-card-custom">
-                        <div class="stat-number-custom" style="color: #3498db;">
+                    <div class="stat-usuario nuevo">
+                        <span class="stat-numero">
                             <?php 
                             try {
                                 $stmt = $conn->query("SELECT COUNT(*) as count FROM Tickets WHERE estado = 'Nuevo' AND tecnico_asignado IS NULL");
@@ -327,21 +327,21 @@ if (!file_exists($menu_archivo)) {
                                 echo '0';
                             }
                             ?>
-                        </div>
-                        <div class="stat-label-custom">Disponibles</div>
+                        </span>
+                        <span class="stat-label">Disponibles</span>
                     </div>
                 
                 <?php else: ?>
-                    <div class="stat-card-custom">
-                        <div class="stat-number-custom"><?php echo $stats['mis_tickets'] ?? '0'; ?></div>
-                        <div class="stat-label-custom">Mis Tickets</div>
+                    <div class="stat-usuario total">
+                        <span class="stat-numero"><?php echo $stats['mis_tickets'] ?? '0'; ?></span>
+                        <span class="stat-label">Mis Tickets</span>
                     </div>
-                    <div class="stat-card-custom">
-                        <div class="stat-number-custom" style="color: #f39c12;"><?php echo $stats['tickets_abiertos'] ?? '0'; ?></div>
-                        <div class="stat-label-custom">Tickets Abiertos</div>
+                    <div class="stat-usuario abierto">
+                        <span class="stat-numero"><?php echo $stats['tickets_abiertos'] ?? '0'; ?></span>
+                        <span class="stat-label">Tickets Abiertos</span>
                     </div>
-                    <div class="stat-card-custom">
-                        <div class="stat-number-custom" style="color: #27ae60;">
+                    <div class="stat-usuario cerrado">
+                        <span class="stat-numero">
                             <?php 
                             try {
                                 $stmt = $conn->prepare("SELECT COUNT(*) as count FROM Tickets WHERE usuario_id = ? AND estado LIKE 'Cerrado%'");
@@ -352,8 +352,8 @@ if (!file_exists($menu_archivo)) {
                                 echo '0';
                             }
                             ?>
-                        </div>
-                        <div class="stat-label-custom">Resueltos</div>
+                        </span>
+                        <span class="stat-label">Resueltos</span>
                     </div>
                 <?php endif; ?>
             </div>
@@ -587,19 +587,6 @@ if (!file_exists($menu_archivo)) {
         
         window.addEventListener('resize', adjustContentHeight);
         adjustContentHeight();
-        
-        // Efecto hover en las tarjetas de estadísticas
-        document.querySelectorAll('.stat-card-custom').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-3px)';
-                this.style.boxShadow = '0 6px 12px rgba(0,0,0,0.1)';
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
-            });
-        });
     });
     
     // Tooltips para botones sin texto en móviles

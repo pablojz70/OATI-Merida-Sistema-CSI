@@ -274,43 +274,47 @@ try {
             border-left: 3px solid #3498db;
         }
         
-        /* ESTADÍSTICAS COMPACTAS */
-        .stats-grid-reportes {
+        /* ESTADÍSTICAS UNIFORMES */
+        .stats-usuarios {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 10px;
+            margin-bottom: 20px;
         }
         
-        .stat-card-reporte {
+        .stat-usuario {
             background: white;
-            border-radius: var(--compact-radius);
-            padding: 10px;
+            border-radius: 8px;
+            padding: 12px;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-            border: 1px solid #eef2f7;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             border-top: 3px solid;
+            transition: transform 0.2s;
         }
         
-        .stat-number-reporte {
-            font-size: 18px;
+        .stat-usuario:hover {
+            transform: translateY(-3px);
+        }
+        
+        .stat-usuario.total { border-color: #1a2980; }
+        .stat-usuario.cerrados { border-color: #27ae60; }
+        .stat-usuario.pendientes { border-color: #f39c12; }
+        .stat-usuario.criticos { border-color: #dc3545; }
+        .stat-usuario.tiempo { border-color: #3498db; }
+        
+        .stat-numero {
+            font-size: 20px;
             font-weight: 700;
             color: #2c3e50;
             display: block;
-            margin: 4px 0;
         }
         
-        .stat-label-reporte {
-            font-size: 10px;
-            color: #666;
+        .stat-label {
+            font-size: 11px;
+            color: #7f8c8d;
+            margin-top: 4px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        }
-        
-        .stat-sub-reporte {
-            font-size: 9px;
-            color: #999;
-            margin-top: 2px;
         }
         
         .stat-total { border-color: #1a2980; }
@@ -536,13 +540,13 @@ try {
                 flex-direction: column;
             }
             
-            .stats-grid-reportes {
+            .stats-usuarios {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
         
         @media (max-width: 480px) {
-            .stats-grid-reportes {
+            .stats-usuarios {
                 grid-template-columns: 1fr;
             }
         }
@@ -677,33 +681,26 @@ try {
             </div>
             
             <!-- ESTADÍSTICAS -->
-            <div class="stats-grid-reportes">
-                <div class="stat-card-reporte stat-total">
-                    <span class="stat-number-reporte"><?php echo $stats['total'] ?? 0; ?></span>
-                    <span class="stat-label-reporte">Total Tickets</span>
+            <div class="stats-usuarios">
+                <div class="stat-usuario total">
+                    <span class="stat-numero"><?php echo $stats['total'] ?? 0; ?></span>
+                    <span class="stat-label">Total Tickets</span>
                 </div>
-                <div class="stat-card-reporte stat-cerrados">
-                    <span class="stat-number-reporte"><?php echo $stats['cerrados'] ?? 0; ?></span>
-                    <span class="stat-label-reporte">Resueltos</span>
-                    <span class="stat-sub-reporte">
-                        <?php echo ($stats['total'] ?? 0) > 0 ? round(($stats['cerrados']/$stats['total'])*100, 1) : 0; ?>%
-                    </span>
+                <div class="stat-usuario cerrados">
+                    <span class="stat-numero"><?php echo $stats['cerrados'] ?? 0; ?></span>
+                    <span class="stat-label">Resueltos</span>
                 </div>
-                <div class="stat-card-reporte stat-pendientes">
-                    <span class="stat-number-reporte"><?php echo $stats['pendientes'] ?? 0; ?></span>
-                    <span class="stat-label-reporte">Pendientes</span>
-                    <span class="stat-sub-reporte">
-                        <?php echo ($stats['total'] ?? 0) > 0 ? round(($stats['pendientes']/$stats['total'])*100, 1) : 0; ?>%
-                    </span>
+                <div class="stat-usuario pendientes">
+                    <span class="stat-numero"><?php echo $stats['pendientes'] ?? 0; ?></span>
+                    <span class="stat-label">Pendientes</span>
                 </div>
-                <div class="stat-card-reporte stat-criticos">
-                    <span class="stat-number-reporte"><?php echo $stats['criticos'] ?? 0; ?></span>
-                    <span class="stat-label-reporte">Críticos</span>
+                <div class="stat-usuario criticos">
+                    <span class="stat-numero"><?php echo $stats['criticos'] ?? 0; ?></span>
+                    <span class="stat-label">Críticos</span>
                 </div>
-                <div class="stat-card-reporte stat-tiempo">
-                    <span class="stat-number-reporte"><?php echo round($stats['promedio_horas'] ?? 0, 1); ?></span>
-                    <span class="stat-label-reporte">Horas Prom.</span>
-                    <span class="stat-sub-reporte">Resolución</span>
+                <div class="stat-usuario tiempo">
+                    <span class="stat-numero"><?php echo round($stats['promedio_horas'] ?? 0, 1); ?></span>
+                    <span class="stat-label">Horas Prom.</span>
                 </div>
             </div>
             

@@ -236,52 +236,50 @@ if (!file_exists($menu_archivo)) {
         margin-bottom: 15px;
     }
     
-    .stats-tickets {
+    /* ESTADÍSTICAS UNIFORMES */
+    .stats-usuarios {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-        gap: 15px;
-        margin-bottom: 25px;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
     }
     
-    .stat-ticket-card {
+    .stat-usuario {
         background: white;
         border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        display: flex;
-        align-items: center;
-        gap: 15px;
+        padding: 12px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border-top: 3px solid;
+        transition: transform 0.2s;
     }
     
-    .stat-ticket-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
+    .stat-usuario:hover {
+        transform: translateY(-3px);
     }
     
-    .stat-ticket-icon.total { background: #e3f2fd; color: #1976d2; }
-    .stat-ticket-icon.abiertos { background: #fff3e0; color: #f57c00; }
-    .stat-ticket-icon.cerrados { background: #e8f5e9; color: #388e3c; }
-    .stat-ticket-icon.alta { background: #f8d7da; color: #721c24; }
+    .stat-usuario.total { border-color: #1a2980; }
+    .stat-usuario.abierto { border-color: #f39c12; }
+    .stat-usuario.cerrado { border-color: #28a745; }
+    .stat-usuario.urgente { border-color: #dc3545; }
     
-    .stat-ticket-content h3 {
-        margin: 0;
-        font-size: 24px;
+    .stat-numero {
+        font-size: 20px;
         font-weight: 700;
+        color: #2c3e50;
+        display: block;
     }
     
-    .stat-ticket-content p {
-        margin: 5px 0 0;
-        color: #666;
-        font-size: 13px;
+    .stat-label {
+        font-size: 11px;
+        color: #7f8c8d;
+        margin-top: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
     @media (max-width: 768px) {
-        .stats-tickets {
+        .stats-usuarios {
             grid-template-columns: 1fr;
         }
         
@@ -354,45 +352,25 @@ if (!file_exists($menu_archivo)) {
             </div>
             
             <!-- ESTADÍSTICAS DE TICKETS -->
-            <div class="stats-tickets fade-in-custom">
-                <div class="stat-ticket-card">
-                    <div class="stat-ticket-icon total">
-                        <i class="fas fa-ticket-alt"></i>
-                    </div>
-                    <div class="stat-ticket-content">
-                        <h3><?php echo $total_tickets; ?></h3>
-                        <p>Tickets Totales</p>
-                    </div>
+            <div class="stats-usuarios fade-in-custom">
+                <div class="stat-usuario total">
+                    <span class="stat-numero"><?php echo $total_tickets; ?></span>
+                    <span class="stat-label">Tickets Totales</span>
                 </div>
                 
-                <div class="stat-ticket-card">
-                    <div class="stat-ticket-icon abiertos">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-ticket-content">
-                        <h3><?php echo $tickets_abiertos; ?></h3>
-                        <p>Tickets Abiertos</p>
-                    </div>
+                <div class="stat-usuario abierto">
+                    <span class="stat-numero"><?php echo $tickets_abiertos; ?></span>
+                    <span class="stat-label">Tickets Abiertos</span>
                 </div>
                 
-                <div class="stat-ticket-card">
-                    <div class="stat-ticket-icon cerrados">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-ticket-content">
-                        <h3><?php echo $tickets_cerrados; ?></h3>
-                        <p>Tickets Cerrados</p>
-                    </div>
+                <div class="stat-usuario cerrado">
+                    <span class="stat-numero"><?php echo $tickets_cerrados; ?></span>
+                    <span class="stat-label">Tickets Cerrados</span>
                 </div>
                 
-                <div class="stat-ticket-card">
-                    <div class="stat-ticket-icon alta">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="stat-ticket-content">
-                        <h3><?php echo $alta_prioridad; ?></h3>
-                        <p>Alta/Urgente</p>
-                    </div>
+                <div class="stat-usuario urgente">
+                    <span class="stat-numero"><?php echo $alta_prioridad; ?></span>
+                    <span class="stat-label">Alta/Urgente</span>
                 </div>
             </div>
             
@@ -628,19 +606,8 @@ if (!file_exists($menu_archivo)) {
     
     // Efectos hover en tarjetas
     document.addEventListener('DOMContentLoaded', function() {
-        // Tarjetas de estadísticas
-        document.querySelectorAll('.stat-ticket-card').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-3px)';
-                this.style.boxShadow = '0 6px 12px rgba(0,0,0,0.1)';
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '0 2px 10px rgba(0,0,0,0.05)';
-            });
+        // Las tarjetas de estadísticas ahora usan CSS para los efectos hover
         });
-        
         // Filas de tabla
         document.querySelectorAll('.ticket-row').forEach(row => {
             row.addEventListener('mouseenter', function() {

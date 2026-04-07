@@ -144,33 +144,46 @@ $estadisticas = $stmt_stats->fetch(PDO::FETCH_ASSOC);
             font-size: 13px;
         }
         
-        .stats-grid {
+        /* ESTADÍSTICAS UNIFORMES */
+        .stats-usuarios {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
             margin-bottom: 20px;
         }
         
-        .stat-card {
+        .stat-usuario {
             background: white;
-            padding: 15px;
             border-radius: 8px;
+            padding: 12px;
             text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border: 1px solid #eef2f7;
+            border-top: 3px solid;
+            transition: transform 0.2s;
         }
         
-        .stat-card h3 {
-            margin: 0 0 5px 0;
-            font-size: 12px;
-            color: #666;
+        .stat-usuario:hover {
+            transform: translateY(-3px);
+        }
+        
+        .stat-usuario.total { border-color: #1a2980; }
+        .stat-usuario.active { border-color: #27ae60; }
+        .stat-usuario.days { border-color: #f39c12; }
+        .stat-usuario.last { border-color: #3498db; }
+        
+        .stat-numero {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #7f8c8d;
+            margin-top: 4px;
             text-transform: uppercase;
-        }
-        
-        .stat-card .number {
-            font-size: 24px;
-            font-weight: bold;
-            color: #1a2980;
+            letter-spacing: 0.5px;
         }
         
         .card {
@@ -403,24 +416,24 @@ $estadisticas = $stmt_stats->fetch(PDO::FETCH_ASSOC);
             </div>
             
             <!-- ESTADÍSTICAS -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Total Logs</h3>
-                    <div class="number"><?php echo number_format($estadisticas['total_logs'] ?? 0); ?></div>
+            <div class="stats-usuarios">
+                <div class="stat-usuario total">
+                    <span class="stat-numero"><?php echo number_format($estadisticas['total_logs'] ?? 0); ?></span>
+                    <span class="stat-label">Total Logs</span>
                 </div>
-                <div class="stat-card">
-                    <h3>Usuarios Activos</h3>
-                    <div class="number"><?php echo $estadisticas['usuarios_activos'] ?? 0; ?></div>
+                <div class="stat-usuario active">
+                    <span class="stat-numero"><?php echo $estadisticas['usuarios_activos'] ?? 0; ?></span>
+                    <span class="stat-label">Usuarios Activos</span>
                 </div>
-                <div class="stat-card">
-                    <h3>Días Registrados</h3>
-                    <div class="number"><?php echo $estadisticas['dias_registrados'] ?? 0; ?></div>
+                <div class="stat-usuario days">
+                    <span class="stat-numero"><?php echo $estadisticas['dias_registrados'] ?? 0; ?></span>
+                    <span class="stat-label">Días Registrados</span>
                 </div>
-                <div class="stat-card">
-                    <h3>Último Log</h3>
-                    <div class="number" style="font-size: 16px;">
+                <div class="stat-usuario last">
+                    <span class="stat-numero" style="font-size: 14px;">
                         <?php echo $estadisticas['ultimo_log'] ? date('d/m H:i', strtotime($estadisticas['ultimo_log'])) : 'N/A'; ?>
-                    </div>
+                    </span>
+                    <span class="stat-label">Último Log</span>
                 </div>
             </div>
             

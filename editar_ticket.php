@@ -1,702 +1,715 @@
 <?php
-// editar_ticket.php - Editar tickets existentes
-require_once 'config/database.php';
-require_once 'config/session.php';
+session_start();
 
-// Verificar autenticación
-if (!isset($_SESSION['usuario_id'])) {
+if (!isset($_SESSION['privilegio'])) {
     header('Location: index.php');
     exit();
 }
 
-// Verificar que se proporcionó un ID de ticket
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    $_SESSION['error'] = 'ID de ticket inválido';
-    header('Location: ver_tickets.php');
-    exit();
-}
-
-$ticket_id = intval($_GET['id']);
-$usuario_id = $_SESSION['usuario_id'];
+$id_usuario = $_SESSION['id_usuario'] ?? $_SESSION['usuario_id'] ?? null;
 $privilegio = $_SESSION['privilegio'];
+$usuario_nombre = $_SESSION['nombre'] ?? 'Usuario';
 
-// Obtener información del ticket
-$sql_ticket = "SELECT t.*, 
-                a.nombre as area_nombre,
-                s.nombre as servicio_nombre,
-                d.nombre as dependencia_nombre,
-                u.nombre as usuario_nombre
-                FROM Tickets t
-                JOIN AreasSoporte a ON t.area_id = a.id
-                JOIN Servicios s ON t.servicio_id = s.id
-                JOIN Dependencias d ON t.dependencia_id = d.id
-                JOIN Usuarios u ON t.usuario_id = u.id
-                WHERE t.id = ?";
-
-$stmt_ticket = $conn->prepare($sql_ticket);
-$stmt_ticket->bind_param("i", $ticket_id);
-$stmt_ticket->execute();
-$result_ticket = $stmt_ticket->get_result();
-
-if ($result_ticket->num_rows === 0) {
-    $_SESSION['error'] = 'Ticket no encontrado';
-    header('Location: ver_tickets.php');
+if (!$id_usuario) {
+    header('Location: index.php');
     exit();
 }
 
-$ticket = $result_ticket->fetch_assoc();
-
-// Verificar permisos para editar
-$puede_editar = false;
-
-if ($privilegio === 'admin') {
-    $puede_editar = true; // Admin puede editar cualquier ticket
-} elseif ($privilegio === 'tecnico' && $ticket['tecnico_asignado'] == $usuario_id) {
-    $puede_editar = true; // Técnico solo sus tickets asignados
-} elseif ($privilegio === 'usuario' && $ticket['usuario_id'] == $usuario_id && $ticket['estado'] === 'Nuevo') {
-    $puede_editar = true; // Usuario solo sus tickets en estado Nuevo
+try {
+    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Error de conexión: " . $e->getMessage());
 }
 
-if (!$puede_editar) {
-    $_SESSION['error'] = 'No tiene permisos para editar este ticket';
-    header('Location: detalle_ticket.php?id=' . $ticket_id);
+$ticket_id = intval($_GET['id'] ?? 0);
+
+if ($ticket_id <= 0) {
+    header('Location: ' . ($privilegio == 'admin' ? 'todos_tickets.php' : 'mis_tickets.php'));
     exit();
 }
 
-// Obtener datos para formularios
-$areas = $conn->query("SELECT id, nombre FROM AreasSoporte ORDER BY nombre");
-$dependencias = $conn->query("SELECT id, nombre FROM Dependencias ORDER BY nombre");
+try {
+    $sql = "SELECT t.*, 
+                   a.nombre as area_nombre, 
+                   s.nombre as servicio_nombre,
+                   d.nombre as dependencia_nombre,
+                   d.nombre_corto as dependencia_corto
+            FROM Tickets t
+            JOIN AreasSoporte a ON t.area_id = a.id
+            JOIN Servicios s ON t.servicio_id = s.id
+            JOIN Dependencias d ON t.dependencia_id = d.id
+            WHERE t.id = ?";
+            
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$ticket_id]);
+    $ticket = $stmt->fetch();
+    
+    if (!$ticket) {
+        header('Location: mis_tickets.php?error=ticket_no_encontrado');
+        exit();
+    }
+    
+    if ($ticket['usuario_id'] != $id_usuario) {
+        header('Location: mis_tickets.php?error=permiso_denegado');
+        exit();
+    }
+    
+    if (!empty($ticket['tecnico_asignado'])) {
+        header('Location: ver_ticket.php?id=' . $ticket_id . '?error=no_editable');
+        exit();
+    }
+    
+    if ($ticket['estado'] != 'Nuevo') {
+        header('Location: ver_ticket.php?id=' . $ticket_id . '?error=no_editable');
+        exit();
+    }
+    
+} catch (PDOException $e) {
+    die("Error al obtener el ticket: " . $e->getMessage());
+}
 
-// Procesar actualización
-$mensaje = '';
-$error = '';
-$datos_formulario = $ticket;
+$dependencia_id = $_SESSION['dependencia_id'] ?? 0;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $asunto = trim($_POST['asunto'] ?? '');
-    $descripcion = trim($_POST['descripcion'] ?? '');
-    $area_id = $_POST['area_id'] ?? '';
-    $servicio_id = $_POST['servicio_id'] ?? '';
-    $dependencia_id = $_POST['dependencia_id'] ?? '';
-    $prioridad = $_POST['prioridad'] ?? 'media';
+$dependencia_nombre = "Sin dependencia asignada";
+$dependencia_corto = "";
+if ($dependencia_id > 0) {
+    try {
+        $stmt = $conn->prepare("SELECT nombre, nombre_corto FROM Dependencias WHERE id = ?");
+        $stmt->execute([$dependencia_id]);
+        $dep_data = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($dep_data) {
+            $dependencia_nombre = $dep_data['nombre'];
+            $dependencia_corto = $dep_data['nombre_corto'] ?? $dep_data['nombre'];
+        }
+    } catch (Exception $e) {
+        error_log("Error: " . $e->getMessage());
+    }
+}
+
+$todas_dependencias = [];
+try {
+    $sql_dep = "SELECT id, nombre, nombre_corto, responsable, email_responsable FROM Dependencias WHERE activa = 1 ORDER BY nombre_corto, nombre";
+    $stmt = $conn->query($sql_dep);
+    $todas_dependencias = $stmt->fetchAll();
+} catch (Exception $e) {
+    error_log("Error cargando dependencias: " . $e->getMessage());
+}
+
+$areas = [];
+try {
+    $stmt = $conn->query("SELECT id, nombre FROM AreasSoporte WHERE activa = 1 AND todosven = 1 ORDER BY orden, nombre");
+    $areas = $stmt->fetchAll();
+} catch (Exception $e) {
+    error_log("Error cargando áreas: " . $e->getMessage());
+}
+
+$servicios_del_ticket = [];
+try {
+    $stmt = $conn->prepare("SELECT id, nombre FROM Servicios WHERE area_id = ? ORDER BY nombre");
+    $stmt->execute([$ticket['area_id']]);
+    $servicios_del_ticket = $stmt->fetchAll();
+} catch (Exception $e) {
+    error_log("Error cargando servicios: " . $e->getMessage());
+}
+
+$archivos_actuales = [];
+try {
+    $stmt = $conn->prepare("SELECT * FROM TicketAdjuntos WHERE ticket_id = ? ORDER BY fecha_subida DESC");
+    $stmt->execute([$ticket_id]);
+    $archivos_actuales = $stmt->fetchAll();
+} catch (Exception $e) {
+    error_log("Error cargando archivos: " . $e->getMessage());
+}
+
+$errores = [];
+$datos = [
+    'dependencia_id' => $ticket['dependencia_id'],
+    'lugar_area' => $ticket['lugar_area'],
+    'area_id' => $ticket['area_id'],
+    'servicio_id' => $ticket['servicio_id'],
+    'asunto' => $ticket['asunto'],
+    'descripcion' => $ticket['descripcion']
+];
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $datos['area_id'] = intval($_POST['area_id'] ?? 0);
+    $datos['servicio_id'] = intval($_POST['servicio_id'] ?? 0);
+    $datos['dependencia_id'] = intval($_POST['dependencia_id'] ?? 0);
+    $datos['lugar_area'] = trim($_POST['lugar_area'] ?? '');
+    $datos['asunto'] = trim($_POST['asunto'] ?? '');
+    $datos['descripcion'] = trim($_POST['descripcion'] ?? '');
     
-    // Validaciones
-    $errores = [];
-    
-    if (empty($asunto)) {
-        $errores[] = 'El asunto es requerido';
-    } elseif (strlen($asunto) < 5) {
-        $errores[] = 'El asunto debe tener al menos 5 caracteres';
+    if (empty($datos['asunto']) || strlen($datos['asunto']) < 5) {
+        $errores[] = "El asunto debe tener al menos 5 caracteres";
     }
     
-    if (empty($descripcion)) {
-        $errores[] = 'La descripción es requerida';
-    } elseif (strlen($descripcion) < 10) {
-        $errores[] = 'La descripción debe tener al menos 10 caracteres';
+    if (empty($datos['descripcion']) || strlen($datos['descripcion']) < 10) {
+        $errores[] = "La descripción debe tener al menos 10 caracteres";
     }
     
-    if (empty($area_id)) {
-        $errores[] = 'Debe seleccionar un área';
+    if ($datos['area_id'] <= 0) {
+        $errores[] = "Seleccione un área de soporte";
     }
     
-    if (empty($servicio_id)) {
-        $errores[] = 'Debe seleccionar un servicio';
+    if ($datos['servicio_id'] <= 0) {
+        $errores[] = "Seleccione un servicio";
+    }
+    
+    if (empty($datos['lugar_area'])) {
+        $errores[] = "Debe especificar el lugar/área";
+    }
+    
+    if ($datos['dependencia_id'] <= 0) {
+        $errores[] = "Seleccione la dependencia donde se presenta la falla";
     }
     
     if (empty($errores)) {
-        // Actualizar ticket
-        $sql_update = "UPDATE Tickets SET 
-                      asunto = ?, 
-                      descripcion = ?, 
-                      area_id = ?, 
-                      servicio_id = ?, 
-                      dependencia_id = ?,
-                      prioridad = ?
-                      WHERE id = ?";
-        
-        $stmt_update = $conn->prepare($sql_update);
-        $stmt_update->bind_param("ssiiisi", 
-            $asunto, 
-            $descripcion, 
-            $area_id, 
-            $servicio_id, 
-            $dependencia_id,
-            $prioridad,
-            $ticket_id
-        );
-        
-        if ($stmt_update->execute()) {
-            // Registrar en historial
-            $sql_historial = "INSERT INTO HistorialTickets (ticket_id, usuario_id, accion, descripcion, fecha) 
-                            VALUES (?, ?, 'EDITAR_TICKET', 'Ticket editado por usuario', NOW())";
-            $stmt_historial = $conn->prepare($sql_historial);
-            $stmt_historial->bind_param("ii", $ticket_id, $usuario_id);
-            $stmt_historial->execute();
+        try {
+            $sql_update = "UPDATE Tickets SET 
+                          dependencia_id = ?, 
+                          lugar_area = ?, 
+                          area_id = ?, 
+                          servicio_id = ?, 
+                          asunto = ?, 
+                          descripcion = ?
+                          WHERE id = ?";
             
-            $_SESSION['mensaje'] = '✅ Ticket actualizado exitosamente';
-            header('Location: detalle_ticket.php?id=' . $ticket_id);
+            $stmt_update = $conn->prepare($sql_update);
+            $stmt_update->execute([
+                $datos['dependencia_id'],
+                $datos['lugar_area'],
+                $datos['area_id'],
+                $datos['servicio_id'],
+                $datos['asunto'],
+                $datos['descripcion'],
+                $ticket_id
+            ]);
+            
+            if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
+                $ruta_base = "/opt/lampp/htdocs/sistema_csi/adjuntos/tickets/";
+                
+                foreach($_FILES['archivos']['tmp_name'] as $key => $tmp_name) {
+                    if($_FILES['archivos']['error'][$key] === UPLOAD_ERR_OK) {
+                        $nombre_archivo = $_FILES['archivos']['name'][$key];
+                        $tamano_bytes = $_FILES['archivos']['size'][$key];
+                        $tipo_archivo = $_FILES['archivos']['type'][$key];
+                        
+                        try {
+                            $anio = date('Y');
+                            $mes = date('m');
+                            $carpeta_destino = $ruta_base . "{$anio}/{$mes}/";
+                            
+                            if(!file_exists($carpeta_destino)) {
+                                mkdir($carpeta_destino, 0755, true);
+                            }
+                            
+                            $nombre_sanitizado = preg_replace('/[^a-zA-Z0-9._-]/', '_', $nombre_archivo);
+                            $nombre_guardado = uniqid() . '_' . $ticket_id . '_' . $nombre_sanitizado;
+                            $ruta_completa = $carpeta_destino . $nombre_guardado;
+                            $ruta_archivo = "tickets/{$anio}/{$mes}/{$nombre_guardado}";
+                            
+                            if(move_uploaded_file($tmp_name, $ruta_completa)) {
+                                $sql_adj = "INSERT INTO TicketAdjuntos 
+                                           (ticket_id, nombre_archivo, tipo_archivo, tamano_bytes, ruta_archivo, subido_por) 
+                                           VALUES (:ticket_id, :nombre_archivo, :tipo_archivo, :tamano_bytes, :ruta_archivo, :subido_por)";
+                                $stmt_adj = $conn->prepare($sql_adj);
+                                $stmt_adj->execute([
+                                    ':ticket_id' => $ticket_id,
+                                    ':nombre_archivo' => $nombre_archivo,
+                                    ':tipo_archivo' => $tipo_archivo,
+                                    ':tamano_bytes' => $tamano_bytes,
+                                    ':ruta_archivo' => $ruta_archivo,
+                                    ':subido_por' => $id_usuario
+                                ]);
+                            }
+                        } catch (Exception $e) {
+                            error_log("Error archivo: " . $e->getMessage());
+                        }
+                    }
+                }
+            }
+            
+            $_SESSION['mensaje_exito'] = "Ticket actualizado exitosamente";
+            header('Location: ver_ticket.php?id=' . $ticket_id);
             exit();
-        } else {
-            $error = 'Error al actualizar el ticket: ' . $conn->error;
+            
+        } catch (PDOException $e) {
+            $errores[] = "Error al actualizar: " . $e->getMessage();
         }
-    } else {
-        $error = implode('<br>', $errores);
-        // Guardar datos del formulario para rellenar
-        $datos_formulario = [
-            'asunto' => $asunto,
-            'descripcion' => $descripcion,
-            'area_id' => $area_id,
-            'servicio_id' => $servicio_id,
-            'dependencia_id' => $dependencia_id,
-            'prioridad' => $prioridad
-        ];
-    }
-}
-
-// Obtener servicios según área seleccionada
-$servicios = [];
-if (isset($datos_formulario['area_id']) && !empty($datos_formulario['area_id'])) {
-    $area_actual = $datos_formulario['area_id'];
-    $sql_servicios = "SELECT id, nombre FROM Servicios WHERE area_id = ? ORDER BY nombre";
-    $stmt_servicios = $conn->prepare($sql_servicios);
-    $stmt_servicios->bind_param("i", $area_actual);
-    $stmt_servicios->execute();
-    $result_servicios = $stmt_servicios->get_result();
-    while ($serv = $result_servicios->fetch_assoc()) {
-        $servicios[] = $serv;
-    }
-} else {
-    // Si no hay área seleccionada, usar la del ticket
-    $area_actual = $ticket['area_id'];
-    $sql_servicios = "SELECT id, nombre FROM Servicios WHERE area_id = ? ORDER BY nombre";
-    $stmt_servicios = $conn->prepare($sql_servicios);
-    $stmt_servicios->bind_param("i", $area_actual);
-    $stmt_servicios->execute();
-    $result_servicios = $stmt_servicios->get_result();
-    while ($serv = $result_servicios->fetch_assoc()) {
-        $servicios[] = $serv;
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Ticket #<?php echo $ticket['numero_ticket']; ?> - CSI</title>
-    
-    <!-- CSS Principal -->
+    <title>Editar Ticket #<?php echo htmlspecialchars($ticket['numero_ticket']); ?> - CSI</title>
     <link rel="stylesheet" href="css/estilos.css">
-    
-    <!-- Font Awesome -->
+    <link rel="stylesheet" href="css/estilos2.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        /* Estilos específicos para editar ticket */
-        .edit-container {
-            max-width: 800px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        
-        .edit-header {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
+        .editar-ticket-container {
+            margin-left: 190px;
             padding: 20px;
-            border-radius: 10px 10px 0 0;
-            margin-bottom: 0;
-        }
-        
-        .edit-header h1 {
-            margin: 0;
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .ticket-info {
-            background: #f8f9fa;
-            padding: 15px 20px;
-            border-left: 4px solid #3498db;
-            margin-bottom: 20px;
-            border-radius: 0 0 10px 10px;
-        }
-        
-        .info-item {
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        .info-label {
-            font-weight: 600;
-            color: #495057;
-            display: inline-block;
-            width: 120px;
-        }
-        
-        .edit-form-container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        }
-        
-        .form-section {
-            margin-bottom: 25px;
-        }
-        
-        .form-section h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #f0f0f0;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            min-height: calc(100vh - 70px);
+            background: #f8fafc;
+            width: calc(100% - 190px);
         }
         
         @media (max-width: 768px) {
-            .form-row {
+            .editar-ticket-container {
+                margin-left: 0 !important;
+                width: 100% !important;
+                padding: 10px !important;
+            }
+        }
+        
+        .page-header {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #eef2f7;
+        }
+        
+        .page-header h1 {
+            margin: 0;
+            font-size: 18px;
+            color: #1a2980;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .page-header h1 i {
+            color: #3498db;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        @media (max-width: 900px) {
+            .form-grid {
                 grid-template-columns: 1fr;
             }
         }
         
+        .form-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #eef2f7;
+        }
+        
+        .form-card h3 {
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            color: #1a2980;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eef2f7;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             font-weight: 600;
             color: #333;
+            font-size: 12px;
         }
         
         .form-control {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            font-family: inherit;
-            transition: border-color 0.3s;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 13px;
+            transition: all 0.3s;
+            box-sizing: border-box;
         }
         
         .form-control:focus {
             outline: none;
             border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
         
-        textarea.form-control {
-            min-height: 150px;
-            resize: vertical;
-        }
-        
-        .form-actions {
-            display: flex;
-            gap: 15px;
-            justify-content: flex-end;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-        
-        .btn-edit {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .btn-update {
-            background: #3498db;
-            color: white;
-        }
-        
-        .btn-update:hover {
-            background: #2980b9;
-        }
-        
-        .btn-cancel {
-            background: #95a5a6;
-            color: white;
-        }
-        
-        .btn-cancel:hover {
-            background: #7f8c8d;
-        }
-        
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+        .error-text {
+            color: #e74c3c;
+            font-size: 11px;
+            margin-top: 4px;
+            display: block;
         }
         
         .alert-error {
-            background: #ffebee;
-            color: #c62828;
-            border-left: 4px solid #c62828;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
         }
         
-        .alert-success {
-            background: #e8f5e9;
-            color: #2e7d32;
-            border-left: 4px solid #2e7d32;
+        .alert-error h5 {
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .readonly-field {
-            background-color: #f5f5f5;
-            cursor: not-allowed;
-            color: #666;
+        .alert-error ul {
+            margin: 0;
+            padding-left: 20px;
         }
         
-        /* Estado actual */
-        .current-status {
-            display: inline-block;
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-        
-        .status-nuevo { background: #e3f2fd; color: #1976d2; }
-        .status-asignado { background: #fff3e0; color: #f57c00; }
-        .status-en-proceso { background: #f3e5f5; color: #7b1fa2; }
-        
-        /* Solo lectura para usuarios normales */
-        .user-readonly {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            padding: 10px;
+        .btn-primary {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
             border-radius: 5px;
-            color: #6c757d;
+            cursor: pointer;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-secondary {
+            padding: 10px 20px;
+            background: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .archivos-lista {
+            margin-top: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+        
+        .archivo-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        
+        .archivo-item i {
+            margin-right: 8px;
+            color: #3498db;
+        }
+        
+        .form-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .badge-info {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-left: 10px;
         }
     </style>
 </head>
-<body class="no-sidebar">
-    <!-- Header con logo OATI -->
-    <header class="top-logo-bar">
-        <div class="logo-section">
-            <?php if (file_exists('imagen/oati.png')): ?>
-                <img src="imagen/oati.png" alt="Logo OATI" class="top-logo">
-            <?php else: ?>
-                <div class="logo-placeholder">OATI</div>
-            <?php endif; ?>
-            <div class="system-info">
-                <h1>Centro de Soporte Informático</h1>
-                <p>Editar Ticket</p>
+<body>
+    <header class="top-header">
+        <div class="logo-oati">
+            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img">
+            <div class="system-titles-custom">
+                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
+                <p class="system-sub-custom">Editar Ticket</p>
             </div>
         </div>
         
-        <div class="user-actions">
-            <div class="user-info">
-                <i class="fas fa-user"></i>
-                <div>
-                    <div><?php echo htmlspecialchars($_SESSION['nombre']); ?></div>
-                    <small><?php echo htmlspecialchars($_SESSION['privilegio']); ?></small>
-                </div>
+        <div class="user-header-info-custom">
+            <div class="user-details-custom">
+                <span class="user-name-custom"><?php echo htmlspecialchars($usuario_nombre); ?></span>
+                <span class="user-role-custom"><?php echo htmlspecialchars(ucfirst($privilegio)); ?></span>
             </div>
-            
-            <a href="dashboard.php" class="btn-back">
-                <?php if (file_exists('imagen/Home.png')): ?>
-                    <img src="imagen/Home.png" alt="Inicio" class="btn-icon">
-                <?php else: ?>
-                    <i class="fas fa-home"></i>
-                <?php endif; ?>
-                Inicio
-            </a>
-            
-            <a href="cerrar_sesion.php" class="btn-logout">
-                <?php if (file_exists('imagen/Salir.png')): ?>
-                    <img src="imagen/Salir.png" alt="Cerrar" class="btn-icon">
-                <?php else: ?>
-                    <i class="fas fa-sign-out-alt"></i>
-                <?php endif; ?>
-                Cerrar
+            <a href="logout.php" class="logout-btn-custom">
+                <img src="imagen/Salir.png" alt="Salir" class="logout-img">
+                <span class="logout-text">Salir</span>
             </a>
         </div>
     </header>
     
-    <main class="edit-container">
-        <!-- Encabezado -->
-        <div class="edit-header">
-            <h1>
-                <?php if (file_exists('imagen/Document.png')): ?>
-                    <img src="imagen/Document.png" alt="Editar Ticket" style="width: 32px; height: 32px;">
-                <?php else: ?>
+    <div class="main-wrapper">
+        <?php
+        $menu_archivo = "includes/menu_$privilegio.php";
+        if (!file_exists($menu_archivo)) {
+            $menu_archivo = "includes/menu_usuario.php";
+        }
+        include $menu_archivo;
+        ?>
+        
+        <main class="editar-ticket-container">
+            <div class="page-header">
+                <h1>
                     <i class="fas fa-edit"></i>
-                <?php endif; ?>
-                Editar Ticket #<?php echo htmlspecialchars($ticket['numero_ticket']); ?>
-            </h1>
-        </div>
-        
-        <!-- Información del ticket -->
-        <div class="ticket-info">
-            <div class="info-item">
-                <span class="info-label">Estado actual:</span>
-                <span class="current-status status-<?php echo strtolower(str_replace(' ', '-', $ticket['estado'])); ?>">
-                    <?php echo htmlspecialchars($ticket['estado']); ?>
-                </span>
+                    Editar Ticket #<?php echo htmlspecialchars($ticket['numero_ticket']); ?>
+                    <span class="badge-info">Solo si no ha sido asignado</span>
+                </h1>
+                <a href="ver_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
             </div>
-            <div class="info-item">
-                <span class="info-label">Creado por:</span>
-                <?php echo htmlspecialchars($ticket['usuario_nombre']); ?>
+            
+            <?php if (!empty($errores)): ?>
+            <div class="alert-error">
+                <h5><i class="fas fa-exclamation-triangle"></i> Errores en el formulario:</h5>
+                <ul>
+                    <?php foreach ($errores as $error): ?>
+                        <li><?php echo htmlspecialchars($error); ?></li>
+                    <?php endforeach; ?>
+                </ul>
             </div>
-            <div class="info-item">
-                <span class="info-label">Fecha creación:</span>
-                <?php echo date('d/m/Y H:i', strtotime($ticket['fecha_creacion'])); ?>
-            </div>
-        </div>
-        
-        <!-- Mensajes de error/éxito -->
-        <?php if ($error): ?>
-            <div class="alert alert-error">
-                <i class="fas fa-exclamation-circle"></i> <?php echo $error; ?>
-            </div>
-        <?php endif; ?>
-        
-        <?php if (isset($_SESSION['mensaje'])): ?>
-            <div class="alert alert-success">
-                <i class="fas fa-check-circle"></i> <?php echo $_SESSION['mensaje']; ?>
-                <?php unset($_SESSION['mensaje']); ?>
-            </div>
-        <?php endif; ?>
-        
-        <!-- Formulario de edición -->
-        <div class="edit-form-container">
-            <form method="POST" action="" id="formEditarTicket">
-                
-                <!-- Sección: Información básica -->
-                <div class="form-section">
-                    <h3><i class="fas fa-info-circle"></i> Información Básica</h3>
-                    
-                    <div class="form-group">
-                        <label for="asunto"><i class="fas fa-heading"></i> Asunto del Ticket *</label>
-                        <input type="text" id="asunto" name="asunto" class="form-control" 
-                               value="<?php echo htmlspecialchars($datos_formulario['asunto']); ?>" 
-                               required minlength="5" maxlength="255">
-                        <small style="color: #666;">Describa brevemente el problema (mínimo 5 caracteres)</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="descripcion"><i class="fas fa-file-alt"></i> Descripción Detallada *</label>
-                        <textarea id="descripcion" name="descripcion" class="form-control" 
-                                  required minlength="10"><?php echo htmlspecialchars($datos_formulario['descripcion']); ?></textarea>
-                        <small style="color: #666;">Mínimo 10 caracteres. Sea lo más descriptivo posible.</small>
-                    </div>
-                </div>
-                
-                <!-- Sección: Clasificación -->
-                <div class="form-section">
-                    <h3><i class="fas fa-tags"></i> Clasificación</h3>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="dependencia_id"><i class="fas fa-building"></i> Dependencia *</label>
-                            <select id="dependencia_id" name="dependencia_id" class="form-control" required>
-                                <option value="">Seleccione una dependencia</option>
-                                <?php while ($dep = $dependencias->fetch_assoc()): ?>
-                                    <option value="<?php echo $dep['id']; ?>"
-                                        <?php echo ($datos_formulario['dependencia_id'] == $dep['id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($dep['nombre']); ?>
-                                    </option>
-                                <?php endwhile; ?>
-                            </select>
-                        </div>
+            <?php endif; ?>
+            
+            <form method="POST" action="" id="formEditarTicket" enctype="multipart/form-data">
+                <div class="form-grid">
+                    <div class="form-card">
+                        <h3><i class="fas fa-map-marker-alt"></i> Ubicación de la Falla</h3>
                         
                         <div class="form-group">
-                            <label for="area_id"><i class="fas fa-layer-group"></i> Área de Soporte *</label>
-                            <select id="area_id" name="area_id" class="form-control" required 
-                                    onchange="cargarServicios(this.value)">
-                                <option value="">Seleccione un área</option>
-                                <?php 
-                                $areas->data_seek(0); // Reiniciar puntero
-                                while ($area = $areas->fetch_assoc()): 
+                            <label for="dependencia_id">Dependencia donde se presenta la falla *</label>
+                            <select class="form-control" id="dependencia_id" name="dependencia_id" required>
+                                <option value="">-- Seleccionar --</option>
+                                <?php foreach ($todas_dependencias as $dep): 
+                                    $nombre_corto = !empty($dep['nombre_corto']) ? $dep['nombre_corto'] : substr($dep['nombre'], 0, 35);
                                 ?>
-                                    <option value="<?php echo $area['id']; ?>"
-                                        <?php echo ($datos_formulario['area_id'] == $area['id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($area['nombre']); ?>
-                                    </option>
-                                <?php endwhile; ?>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="servicio_id"><i class="fas fa-cogs"></i> Servicio Específico *</label>
-                            <select id="servicio_id" name="servicio_id" class="form-control" required>
-                                <option value="">Primero seleccione un área</option>
-                                <?php foreach ($servicios as $servicio): ?>
-                                    <option value="<?php echo $servicio['id']; ?>"
-                                        <?php echo ($datos_formulario['servicio_id'] == $servicio['id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($servicio['nombre']); ?>
+                                    <option value="<?php echo $dep['id']; ?>" 
+                                            <?php echo $datos['dependencia_id'] == $dep['id'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($nombre_corto); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
                         
                         <div class="form-group">
-                            <label for="prioridad"><i class="fas fa-exclamation-triangle"></i> Prioridad</label>
-                            <?php if ($privilegio === 'usuario'): ?>
-                                <!-- Usuario normal: prioridad fija -->
-                                <input type="text" class="form-control readonly-field" 
-                                       value="<?php echo htmlspecialchars(ucfirst($datos_formulario['prioridad'])); ?>" 
-                                       readonly>
-                                <input type="hidden" name="prioridad" value="<?php echo $datos_formulario['prioridad']; ?>">
-                                <small style="color: #666;">La prioridad solo puede ser modificada por administradores</small>
-                            <?php else: ?>
-                                <!-- Admin/Técnico: pueden cambiar prioridad -->
-                                <select id="prioridad" name="prioridad" class="form-control">
-                                    <option value="baja" <?php echo ($datos_formulario['prioridad'] == 'baja') ? 'selected' : ''; ?>>🟢 Baja - Sin urgencia</option>
-                                    <option value="media" <?php echo ($datos_formulario['prioridad'] == 'media' || empty($datos_formulario['prioridad'])) ? 'selected' : ''; ?>>🟡 Media - Resolver pronto</option>
-                                    <option value="alta" <?php echo ($datos_formulario['prioridad'] == 'alta') ? 'selected' : ''; ?>>🔴 Alta - Necesita atención urgente</option>
-                                    <option value="urgente" <?php echo ($datos_formulario['prioridad'] == 'urgente') ? 'selected' : ''; ?>>⚫ Urgente - Todo el sistema está afectado</option>
-                                </select>
-                            <?php endif; ?>
+                            <label for="lugar_area">Lugar/Área exacta *</label>
+                            <input type="text" class="form-control" id="lugar_area" name="lugar_area" 
+                                   value="<?php echo htmlspecialchars($datos['lugar_area']); ?>" 
+                                   placeholder="Ej: Sala de Audiencias, Recepción, Oficina 201"
+                                   maxlength="150" required>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Sección: Campos de solo lectura según privilegio -->
-                <?php if ($privilegio === 'usuario'): ?>
-                <div class="form-section">
-                    <h3><i class="fas fa-lock"></i> Información Restringida</h3>
                     
-                    <div class="form-row">
+                    <div class="form-card">
+                        <h3><i class="fas fa-tag"></i> Categorización</h3>
+                        
                         <div class="form-group">
-                            <label>Estado del Ticket</label>
-                            <div class="user-readonly">
-                                <?php echo htmlspecialchars($ticket['estado']); ?>
-                            </div>
-                            <small style="color: #666;">Solo puede editar tickets en estado "Nuevo"</small>
+                            <label for="area_id">Área de Soporte *</label>
+                            <select class="form-control" id="area_id" name="area_id" required>
+                                <option value="">-- Seleccionar --</option>
+                                <?php foreach ($areas as $area): ?>
+                                    <option value="<?php echo $area['id']; ?>" 
+                                            <?php echo $datos['area_id'] == $area['id'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($area['nombre']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                         
                         <div class="form-group">
-                            <label>Técnico Asignado</label>
-                            <div class="user-readonly">
-                                <?php echo $ticket['tecnico_asignado'] ? 'Técnico asignado' : 'Por asignar'; ?>
-                            </div>
-                            <small style="color: #666;">La asignación la realiza un administrador</small>
+                            <label for="servicio_id">Servicio Específico *</label>
+                            <select class="form-control" id="servicio_id" name="servicio_id" required>
+                                <option value="">-- Seleccione área primero --</option>
+                                <?php foreach ($servicios_del_ticket as $serv): ?>
+                                    <option value="<?php echo $serv['id']; ?>" 
+                                            <?php echo $datos['servicio_id'] == $serv['id'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($serv['nombre']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-card" style="grid-column: 1 / -1;">
+                        <h3><i class="fas fa-file-alt"></i> Descripción del Problema</h3>
+                        
+                        <div class="form-group">
+                            <label for="asunto">Asunto / Título *</label>
+                            <input type="text" class="form-control" id="asunto" name="asunto" 
+                                   value="<?php echo htmlspecialchars($datos['asunto']); ?>" 
+                                   maxlength="200" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="descripcion">Descripción Detallada *</label>
+                            <textarea class="form-control" id="descripcion" name="descripcion" 
+                                      rows="6" required><?php echo htmlspecialchars($datos['descripcion']); ?></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-card" style="grid-column: 1 / -1;">
+                        <h3><i class="fas fa-paperclip"></i> Archivos Adjuntos</h3>
+                        
+                        <?php if (!empty($archivos_actuales)): ?>
+                        <div class="archivos-lista">
+                            <p style="margin: 0 0 10px 0; font-size: 12px; color: #666;">
+                                <i class="fas fa-info-circle"></i> Archivos adjuntos actualmente:
+                            </p>
+                            <?php foreach ($archivos_actuales as $archivo): ?>
+                                <div class="archivo-item">
+                                    <span>
+                                        <i class="fas fa-file"></i>
+                                        <?php echo htmlspecialchars($archivo['nombre_archivo']); ?>
+                                    </span>
+                                    <span style="color: #999; font-size: 11px;">
+                                        <?php echo date('d/m/Y H:i', strtotime($archivo['fecha_subida'])); ?>
+                                    </span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <br>
+                        <?php endif; ?>
+                        
+                        <div class="form-group">
+                            <label for="archivos">Agregar nuevos archivos (opcional):</label>
+                            <input type="file" name="archivos[]" id="archivos" class="form-control" 
+                                   multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.txt">
+                            <small style="color: #666; font-size: 11px;">
+                                Formatos: JPG, PNG, PDF, DOC, XLS, TXT. Máx. 5MB por archivo.
+                            </small>
+                            <div id="preview-archivos" class="mt-2"></div>
                         </div>
                     </div>
                 </div>
-                <?php endif; ?>
                 
-                <!-- Acciones del formulario -->
                 <div class="form-actions">
-                    <button type="submit" class="btn-edit btn-update">
+                    <button type="submit" class="btn-primary">
                         <i class="fas fa-save"></i> Guardar Cambios
                     </button>
-                    <a href="detalle_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-edit btn-cancel">
+                    <a href="ver_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-secondary">
                         <i class="fas fa-times"></i> Cancelar
                     </a>
                 </div>
             </form>
-        </div>
-    </main>
+        </main>
+    </div>
     
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // Cargar servicios según área seleccionada
-        function cargarServicios(area_id) {
-            if (!area_id) {
-                document.getElementById('servicio_id').innerHTML = '<option value="">Primero seleccione un área</option>';
-                return;
-            }
+    $(document).ready(function() {
+        $('#area_id').change(function() {
+            const areaId = $(this).val();
+            const $servicioSelect = $('#servicio_id');
             
-            document.getElementById('servicio_id').innerHTML = '<option value="">Cargando servicios...</option>';
-            
-            fetch(`ajax_cargar_servicios.php?area_id=${area_id}`)
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById('servicio_id').innerHTML = data;
-                    
-                    // Seleccionar el servicio actual si existe
-                    const servicioActual = <?php echo $datos_formulario['servicio_id']; ?>;
-                    if (servicioActual) {
-                        const selectServicio = document.getElementById('servicio_id');
-                        for (let i = 0; i < selectServicio.options.length; i++) {
-                            if (selectServicio.options[i].value == servicioActual) {
-                                selectServicio.options[i].selected = true;
-                                break;
-                            }
+            if (areaId) {
+                $.ajax({
+                    url: 'ajax/cargar_servicios_simple.php',
+                    type: 'GET',
+                    data: { area_id: areaId },
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.success && data.servicios.length > 0) {
+                            let options = '<option value="">-- Seleccione servicio --</option>';
+                            data.servicios.forEach(servicio => {
+                                options += `<option value="${servicio.id}">${servicio.nombre}</option>`;
+                            });
+                            $servicioSelect.html(options);
+                        } else {
+                            $servicioSelect.html('<option value="">No hay servicios disponibles</option>');
                         }
+                    },
+                    error: function() {
+                        $servicioSelect.html('<option value="">Error de conexión</option>');
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    document.getElementById('servicio_id').innerHTML = '<option value="">Error cargando servicios</option>';
                 });
-        }
-        
-        // Validación antes de enviar
-        document.getElementById('formEditarTicket').addEventListener('submit', function(e) {
-            const asunto = document.getElementById('asunto').value.trim();
-            const descripcion = document.getElementById('descripcion').value.trim();
-            const area = document.getElementById('area_id').value;
-            const servicio = document.getElementById('servicio_id').value;
-            
-            let errores = [];
-            
-            if (asunto.length < 5) {
-                errores.push('El asunto debe tener al menos 5 caracteres');
-            }
-            
-            if (descripcion.length < 10) {
-                errores.push('La descripción debe tener al menos 10 caracteres');
-            }
-            
-            if (!area) {
-                errores.push('Debe seleccionar un área');
-            }
-            
-            if (!servicio) {
-                errores.push('Debe seleccionar un servicio');
-            }
-            
-            if (errores.length > 0) {
-                e.preventDefault();
-                alert('Por favor corrija los siguientes errores:\n\n' + errores.join('\n'));
+            } else {
+                $servicioSelect.html('<option value="">-- Seleccione área primero --</option>');
             }
         });
         
-        // Cargar servicios al cargar la página si hay un área seleccionada
-        document.addEventListener('DOMContentLoaded', function() {
-            const areaSelect = document.getElementById('area_id');
-            if (areaSelect.value) {
-                cargarServicios(areaSelect.value);
+        $('#archivos').change(function(e) {
+            const preview = $('#preview-archivos');
+            preview.empty();
+            
+            if (this.files.length > 0) {
+                let html = '<div style="font-size:12px;color:#666;margin-bottom:5px;">Archivos seleccionados:</div>';
+                $.each(this.files, function(index, file) {
+                    const size = (file.size / 1024).toFixed(2);
+                    html += `<div style="font-size:11px;padding:3px 0;">
+                        <i class="fas fa-file" style="color:#3498db;"></i> ${file.name} (${size} KB)
+                    </div>`;
+                });
+                preview.html(html);
             }
         });
         
-        // Confirmación para cancelar
-        document.querySelector('.btn-cancel').addEventListener('click', function(e) {
-            if (!confirm('¿Está seguro de cancelar la edición? Los cambios no guardados se perderán.')) {
+        $('#formEditarTicket').submit(function(e) {
+            let valid = true;
+            $('.error-text').remove();
+            
+            const campos = [
+                {id: '#dependencia_id', msg: 'Seleccione una dependencia'},
+                {id: '#lugar_area', msg: 'Ingrese el lugar/área'},
+                {id: '#area_id', msg: 'Seleccione un área'},
+                {id: '#servicio_id', msg: 'Seleccione un servicio'},
+                {id: '#asunto', msg: 'Ingrese el asunto'},
+                {id: '#descripcion', msg: 'Ingrese la descripción'}
+            ];
+            
+            campos.forEach(function(campo) {
+                if (!$(campo.id).val().trim()) {
+                    $(campo.id).after('<span class="error-text">' + campo.msg + '</span>');
+                    valid = false;
+                }
+            });
+            
+            if (!valid) {
                 e.preventDefault();
             }
         });
+    });
     </script>
 </body>
 </html>
-
-<?php
-// Cerrar conexiones
-if (isset($stmt_ticket)) $stmt_ticket->close();
-if (isset($stmt_servicios)) $stmt_servicios->close();
-if (isset($conn)) $conn->close();
-?>

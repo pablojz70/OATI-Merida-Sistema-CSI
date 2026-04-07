@@ -113,39 +113,48 @@ $stats = $stats_stmt->fetch();
             margin: 0 !important;
         }
         
-        /* ESTADÍSTICAS COMPACTAS */
-        .stats-grid-tickets {
+        /* ESTADÍSTICAS UNIFORMES */
+        .stats-usuarios {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 8px;
-            margin-bottom: 15px;
+            gap: 10px;
+            margin-bottom: 20px;
         }
         
-        .stat-card-ticket {
+        .stat-usuario {
             background: white;
-            border-radius: 6px;
-            padding: 10px;
+            border-radius: 8px;
+            padding: 12px;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            border: 1px solid #eef2f7;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-top: 3px solid;
             transition: transform 0.2s;
         }
         
-        .stat-card-ticket:hover {
-            transform: translateY(-2px);
+        .stat-usuario:hover {
+            transform: translateY(-3px);
         }
         
-        .stat-number-ticket {
+        .stat-usuario.total { border-color: #1a2980; }
+        .stat-usuario.nuevo { border-color: #3498db; }
+        .stat-usuario.asignado { border-color: #f39c12; }
+        .stat-usuario.proceso { border-color: #9b59b6; }
+        .stat-usuario.cerrado { border-color: #28a745; }
+        
+        .stat-numero {
             font-size: 20px;
             font-weight: 700;
-            line-height: 1;
-            margin: 5px 0;
+            color: #2c3e50;
+            display: block;
         }
         
-        .stat-label-ticket {
-            font-size: 10px;
-            color: #666;
+        .stat-label {
+            font-size: 11px;
+            color: #7f8c8d;
+            margin-top: 4px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
             letter-spacing: 0.5px;
             font-weight: 600;
         }
@@ -436,7 +445,7 @@ $stats = $stats_stmt->fetch();
                 width: 100%;
             }
             
-            .stats-grid-tickets {
+            .stats-usuarios {
                 grid-template-columns: repeat(2, 1fr);
             }
             
@@ -506,26 +515,26 @@ $stats = $stats_stmt->fetch();
             </div>
             
             <!-- ESTADÍSTICAS -->
-            <div class="stats-grid-tickets">
-                <div class="stat-card-ticket">
-                    <div class="stat-number-ticket" style="color: #3498db;"><?php echo $stats['total'] ?? 0; ?></div>
-                    <div class="stat-label-ticket">Total</div>
+            <div class="stats-usuarios">
+                <div class="stat-usuario total">
+                    <span class="stat-numero"><?php echo $stats['total'] ?? 0; ?></span>
+                    <span class="stat-label">Total</span>
                 </div>
-                <div class="stat-card-ticket">
-                    <div class="stat-number-ticket" style="color: #3498db;"><?php echo $stats['nuevos'] ?? 0; ?></div>
-                    <div class="stat-label-ticket">Nuevos</div>
+                <div class="stat-usuario nuevo">
+                    <span class="stat-numero"><?php echo $stats['nuevos'] ?? 0; ?></span>
+                    <span class="stat-label">Nuevos</span>
                 </div>
-                <div class="stat-card-ticket">
-                    <div class="stat-number-ticket" style="color: #f39c12;"><?php echo $stats['asignados'] ?? 0; ?></div>
-                    <div class="stat-label-ticket">Asignados</div>
+                <div class="stat-usuario asignado">
+                    <span class="stat-numero"><?php echo $stats['asignados'] ?? 0; ?></span>
+                    <span class="stat-label">Asignados</span>
                 </div>
-                <div class="stat-card-ticket">
-                    <div class="stat-number-ticket" style="color: #9b59b6;"><?php echo $stats['en_proceso'] ?? 0; ?></div>
-                    <div class="stat-label-ticket">En Proceso</div>
+                <div class="stat-usuario proceso">
+                    <span class="stat-numero"><?php echo $stats['en_proceso'] ?? 0; ?></span>
+                    <span class="stat-label">En Proceso</span>
                 </div>
-                <div class="stat-card-ticket">
-                    <div class="stat-number-ticket" style="color: #27ae60;"><?php echo $stats['cerrados_hoy'] ?? 0; ?></div>
-                    <div class="stat-label-ticket">Cerrados Hoy</div>
+                <div class="stat-usuario cerrado">
+                    <span class="stat-numero"><?php echo $stats['cerrados_hoy'] ?? 0; ?></span>
+                    <span class="stat-label">Cerrados Hoy</span>
                 </div>
             </div>
             

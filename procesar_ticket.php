@@ -66,6 +66,39 @@ try {
     die("Error al obtener el ticket: " . $e->getMessage());
 }
 
+// CAMBIAR AUTOMÁTICAMENTE A "En Proceso" si no está cerrado ni ya en proceso
+if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+    $estados_no_proceso = ['Nuevo', 'Asignado'];
+    $estados_cerrados = ['Cerrado Exitosamente', 'Cerrado No Exitoso'];
+    
+    if (in_array($ticket['estado'], $estados_no_proceso)) {
+        try {
+            $sql_auto_update = "UPDATE Tickets SET estado = 'En Proceso' WHERE id = ?";
+            $stmt_auto = $conn->prepare($sql_auto_update);
+            $stmt_auto->execute([$ticket_id]);
+            
+            // Registrar en historial
+            try {
+                $sql_hist = "INSERT INTO HistorialTickets (ticket_id, usuario_id, accion, detalle, fecha_accion) 
+                            VALUES (:ticket_id, :usuario_id, 'estado_en_proceso', 'Ticket puesto en proceso automáticamente', NOW())";
+                $stmt_hist = $conn->prepare($sql_hist);
+                $stmt_hist->execute([
+                    ':ticket_id' => $ticket_id,
+                    ':usuario_id' => $id_usuario
+                ]);
+            } catch (Exception $e) {
+                error_log("Error historial: " . $e->getMessage());
+            }
+            
+            // Actualizar variable para reflejar el cambio
+            $ticket['estado'] = 'En Proceso';
+            
+        } catch (PDOException $e) {
+            error_log("Error actualizando estado a En Proceso: " . $e->getMessage());
+        }
+    }
+}
+
 // Obtener técnicos disponibles (solo para admin) - incluyendo a todos los admins
 $tecnicos = [];
 if ($privilegio == 'admin') {
@@ -590,8 +623,15 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
                                 }
                                 
                                 foreach ($estados_disponibles as $estado_opt):
-                                    $selected = ($estado_opt == $ticket['estado']) ? 'selected' : '';
                                     $estado_class = strtolower(str_replace(' ', '_', $estado_opt));
+                                    // Si es GET, seleccionar "En Proceso" por defecto; si es POST, mantener el valor enviado
+                                    if ($_SERVER['REQUEST_METHOD'] == 'GET' && $estado_opt == 'En Proceso') {
+                                        $selected = 'selected';
+                                    } elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
+                                        $selected = ($estado_opt == ($_POST['estado'] ?? '')) ? 'selected' : '';
+                                    } else {
+                                        $selected = ($estado_opt == $ticket['estado']) ? 'selected' : '';
+                                    }
                                 ?>
                                 <option value="<?php echo $estado_opt; ?>" <?php echo $selected; ?>>
                                     <?php echo $estado_opt; ?>
