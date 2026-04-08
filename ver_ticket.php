@@ -70,52 +70,26 @@ try {
     // Verificar permisos
     $puede_ver = false;
     
-    // Debug: mostrar privilegio actual
-    error_log("DEBUG ver_ticket - Privilegio: " . $privilegio . ", Usuario ID: " . $id_usuario);
-    
     if ($privilegio == 'admin') {
         $puede_ver = true;
     } elseif ($privilegio == 'director') {
-        $puede_ver = true; // Directores pueden ver todos los tickets
-        error_log("DEBUG ver_ticket - Director, puede_ver: true");
+        $puede_ver = true;
     } elseif ($privilegio == 'tecnico') {
         $puede_ver = ($ticket['tecnico_asignado'] == $id_usuario);
     } elseif ($privilegio == 'usuario') {
         $puede_ver = ($ticket['usuario_id'] == $id_usuario);
     }
     
-    error_log("DEBUG ver_ticket - puede_ver final: " . ($puede_ver ? 'true' : 'false'));
-    
     if (!$puede_ver) {
-        // Debug: mostrar por qué no tiene permisos
-        error_log("DEBUG: No tiene permisos - Privilegio: " . $privilegio . ", Admin: " . ($privilegio == 'admin' ? 'si' : 'no') . ", Director: " . ($privilegio == 'director' ? 'si' : 'no'));
-        die("
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Acceso Denegado</title>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 50px; text-align: center; }
-                    .error { color: #dc3545; margin: 20px 0; }
-                    a { color: #3498db; text-decoration: none; }
-                    .debug { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 5px; font-size: 12px; text-align: left; }
-                </style>
-            </head>
-            <body>
-                <h1 class='error'>⛔ Acceso Denegado</h1>
-                <p>No tienes permisos para ver este ticket.</p>
-                <div class='debug'>
-                    <strong>Debug info:</strong><br>
-                    Privilegio: " . htmlspecialchars($privilegio) . "<br>
-                    Usuario ID: " . $id_usuario . "<br>
-                    Ticket ID: " . $ticket_id . "<br>
-                    Ticket Usuario ID: " . ($ticket['usuario_id'] ?? 'N/A') . "<br>
-                    Ticket Técnico: " . ($ticket['tecnico_asignado'] ?? 'N/A') . "
-                </div>
-                <p><a href='todos_tickets.php'>Volver a todos los tickets</a></p>
-            </body>
-            </html>
-        ");
+        if ($privilegio == 'admin' || $privilegio == 'director') {
+            $redirect_url = 'todos_tickets.php';
+        } elseif ($privilegio == 'tecnico') {
+            $redirect_url = 'tickets_asignados.php';
+        } else {
+            $redirect_url = 'mis_tickets.php';
+        }
+        header('Location: ' . $redirect_url . '?error=permiso_denegado');
+        exit();
     }
     
 } catch (PDOException $e) {
@@ -135,6 +109,63 @@ try {
 } catch (PDOException $e) {
     // No interrumpir la página si hay error en archivos
     error_log("Error cargando archivos adjuntos: " . $e->getMessage());
+}
+
+// ============================================
+// CONSULTAR Y PROCESAR EVALUACIÓN DEL TICKET
+// ============================================
+$evaluacion = null;
+$puede_evaluar = false;
+$ticket_esta_cerrado = strpos($ticket['estado'], 'Cerrado') !== false;
+
+// Verificar si el ticket está cerrado y el usuario es el creador
+if ($ticket_esta_cerrado && $ticket['usuario_id'] == $id_usuario) {
+    // Consultar si ya existe evaluación
+    try {
+        $sql_eval = "SELECT * FROM TicketEvaluaciones WHERE ticket_id = ? AND usuario_id = ?";
+        $stmt_eval = $conn->prepare($sql_eval);
+        $stmt_eval->execute([$ticket_id, $id_usuario]);
+        $evaluacion = $stmt_eval->fetch();
+        
+        if (!$evaluacion) {
+            $puede_evaluar = true;
+        }
+    } catch (PDOException $e) {
+        error_log("Error consultando evaluación: " . $e->getMessage());
+    }
+    
+    // Procesar envío de evaluación
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['enviar_evaluacion'])) {
+        $calificacion = intval($_POST['calificacion'] ?? 0);
+        $comentario = trim($_POST['comentario'] ?? '');
+        
+        if ($calificacion >= 1 && $calificacion <= 5) {
+            try {
+                $sql_insert_eval = "INSERT INTO TicketEvaluaciones (ticket_id, usuario_id, calificacion, comentario, tecnico_id, fecha_evaluacion) 
+                                   VALUES (?, ?, ?, ?, ?, NOW())";
+                $stmt_insert = $conn->prepare($sql_insert_eval);
+                $stmt_insert->execute([
+                    $ticket_id, 
+                    $id_usuario, 
+                    $calificacion, 
+                    $comentario,
+                    $ticket['tecnico_asignado']
+                ]);
+                
+                // Recargar la evaluación
+                $sql_eval = "SELECT * FROM TicketEvaluaciones WHERE ticket_id = ? AND usuario_id = ?";
+                $stmt_eval = $conn->prepare($sql_eval);
+                $stmt_eval->execute([$ticket_id, $id_usuario]);
+                $evaluacion = $stmt_eval->fetch();
+                $puede_evaluar = false;
+                
+                $_SESSION['mensaje_exito'] = "¡Gracias por tu evaluación!";
+                
+            } catch (PDOException $e) {
+                error_log("Error guardando evaluación: " . $e->getMessage());
+            }
+        }
+    }
 }
 
 // Función para determinar tipo de archivo
@@ -984,6 +1015,136 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                 height: 150px;
             }
         }
+        
+        /* ===== EVALUACIÓN DEL TICKET ===== */
+        .evaluacion-section {
+            background: white;
+            border-radius: var(--compact-radius);
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #eef2f7;
+        }
+        
+        .evaluacion-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eef2f7;
+        }
+        
+        .evaluacion-header h3 {
+            margin: 0;
+            font-size: 14px;
+            color: #1a2980;
+        }
+        
+        .evaluacion-header i {
+            color: #f39c12;
+        }
+        
+        .evaluacion-ya-existente {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .evaluacion-ya-existente .gracias-msg {
+            font-size: 16px;
+            font-weight: bold;
+            color: #155724;
+            margin-bottom: 10px;
+        }
+        
+        .estrellas-mostradas {
+            font-size: 24px;
+            color: #ffc107;
+            margin: 10px 0;
+        }
+        
+        .evaluacion-comentario {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-style: italic;
+            color: #495057;
+        }
+        
+        .formulario-evaluacion label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .estrellas-selector {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .estrella-btn {
+            background: none;
+            border: none;
+            font-size: 32px;
+            cursor: pointer;
+            color: #ddd;
+            transition: color 0.2s, transform 0.2s;
+            padding: 0;
+        }
+        
+        .estrella-btn:hover,
+        .estrella-btn.active {
+            color: #ffc107;
+            transform: scale(1.1);
+        }
+        
+        .estrella-btn:hover ~ .estrella-btn,
+        .estrella-btn.active ~ .estrella-btn {
+            color: #ddd;
+        }
+        
+        .evaluacion-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        
+        .evaluacion-textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .btn-enviar-evaluacion {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn-enviar-evaluacion:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(243, 156, 18, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -1434,6 +1595,67 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                 </div>
                 <?php endif; ?>
             </div>
+            <?php endif; ?>
+            
+            <!-- SECCIÓN DE EVALUACIÓN -->
+            <?php if ($ticket_esta_cerrado): ?>
+            <div class="evaluacion-section">
+                <div class="evaluacion-header">
+                    <i class="fas fa-star"></i>
+                    <h3>Evaluación del Servicio</h3>
+                </div>
+                
+                <?php if ($evaluacion): ?>
+                    <!-- Ya existe evaluacion -->
+                    <div class="evaluacion-ya-existente">
+                        <div class="gracias-msg">Gracias por tu evaluacion!</div>
+                        <div class="estrellas-mostradas">
+                            <?php 
+                            for ($i = 1; $i <= 5; $i++) {
+                                if ($i <= $evaluacion['calificacion']) {
+                                    echo '<i class="fas fa-star"></i>';
+                                } else {
+                                    echo '<i class="far fa-star"></i>';
+                                }
+                            }
+                            ?>
+                        </div>
+                        <?php if (!empty($evaluacion['comentario'])): ?>
+                            <div class="evaluacion-comentario">
+                                "<?php echo htmlspecialchars($evaluacion['comentario']); ?>"
+                            </div>
+                        <?php endif; ?>
+                        <div style="margin-top: 10px; font-size: 11px; color: #666;">
+                            Evaluado el <?php echo date('d/m/Y H:i', strtotime($evaluacion['fecha_evaluacion'])); ?>
+                        </div>
+                    </div>
+                <?php elseif ($puede_evaluar): ?>
+                    <!-- Formulario de evaluacion -->
+                    <form method="POST" action="" class="formulario-evaluacion">
+                        <p style="margin: 0 0 15px 0; color: #666; font-size: 13px;">
+                            Como calificarías la atencion recibida en este ticket?
+                        </p>
+                        
+                        <div class="estrellas-selector">
+                            <?php for ($i = 1; $i <= 5; $i++): ?>
+                                <button type="button" class="estrella-btn" data-value="<?php echo $i; ?>" onclick="setCalificacion(<?php echo $i; ?>)">
+                                    <i class="far fa-star"></i>
+                                </button>
+                            <?php endfor; ?>
+                        </div>
+                        <input type="hidden" name="calificacion" id="calificacion" value="0">
+                        
+                        <div style="margin-top: 15px;">
+                            <label for="comentario">Comentario (opcional):</label>
+                            <textarea name="comentario" id="comentario" class="evaluacion-textarea" 
+                                      placeholder="Cuentanos como fue tu experiencia con la atencion recibida..."></textarea>
+                        </div>
+                        
+                        <button type="submit" name="enviar_evaluacion" class="btn-enviar-evaluacion">
+                            <i class="fas fa-paper-plane"></i> Enviar Evaluacion
+                        </button>
+                    </form>
+                <?php endif; ?>
             <?php endif; ?>
             
             <!-- TIMELINE -->
@@ -1942,6 +2164,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
     }
     
     setInterval(updateTicketTime, 60000);
+    
+    // Función para manejar la calificación por estrellas
+    function setCalificacion(valor) {
+        document.getElementById('calificacion').value = valor;
+        
+        const estrellas = document.querySelectorAll('.estrella-btn');
+        estrellas.forEach((btn, index) => {
+            const icono = btn.querySelector('i');
+            if (index < valor) {
+                icono.className = 'fas fa-star';
+                btn.classList.add('active');
+            } else {
+                icono.className = 'far fa-star';
+                btn.classList.remove('active');
+            }
+        });
+    }
+    
+    // Inicializar estrellas al cargar
+    document.addEventListener('DOMContentLoaded', function() {
+        const calificacionInicial = document.getElementById('calificacion').value;
+        if (calificacionInicial > 0) {
+            setCalificacion(parseInt(calificacionInicial));
+        }
+    });
     </script>
 </body>
 </html>
