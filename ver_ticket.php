@@ -1008,7 +1008,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                     <!-- Botón VOLVER según privilegio -->
                     <a href="<?php 
                         echo match($privilegio) {
-                            'admin' => 'todos_tickets.php',
+                            'admin', 'director' => 'todos_tickets.php',
                             'tecnico' => 'tickets_asignados.php',
                             default => 'mis_tickets.php'
                         };
@@ -1016,6 +1016,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                         <i class="fas fa-arrow-left"></i>
                     </a>
                     
+                    <?php if ($privilegio != 'director'): ?>
                     <!-- Botón EDITAR (solo para el creador si NO está asignado y NO está cerrado) -->
                     <?php if (
                         $ticket['usuario_id'] == $id_usuario && 
@@ -1051,6 +1052,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                            onclick="return confirm('¿Está seguro de eliminar el ticket #<?php echo htmlspecialchars($ticket['numero_ticket']); ?>?\n\nEsta acción no se puede deshacer.');">
                             <i class="fas fa-trash"></i>
                         </a>
+                    <?php endif; ?>
                     <?php endif; ?>
                 </div>
             </div>

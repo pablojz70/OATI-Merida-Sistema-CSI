@@ -4,7 +4,7 @@ session_start();
 // Compatible con ambos sistemas de sesión
 $id_usuario = $_SESSION['id_usuario'] ?? $_SESSION['usuario_id'] ?? null;
 
-if (!$id_usuario || ($_SESSION['privilegio'] ?? '') != 'admin') {
+if (!$id_usuario || !in_array($_SESSION['privilegio'] ?? '', ['admin', 'director'])) {
     header('Location: index.php');
     exit();
 }

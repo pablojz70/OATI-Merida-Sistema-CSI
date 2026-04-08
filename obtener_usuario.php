@@ -227,6 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
         
         .badge-admin { background: #fee; color: #c0392b; }
         .badge-tecnico { background: #fff3cd; color: #856404; }
+        .badge-director { background: #e8f5e9; color: #2e7d32; }
         .badge-usuario { background: #e3f2fd; color: #1976d2; }
         
         .user-email {
@@ -662,6 +663,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
                                 <select id="privilegio" name="privilegio" required>
                                     <option value="usuario" <?php echo ($usuario['privilegio'] ?? '') == 'usuario' ? 'selected' : ''; ?>>Usuario Normal</option>
                                     <option value="tecnico" <?php echo ($usuario['privilegio'] ?? '') == 'tecnico' ? 'selected' : ''; ?>>Técnico</option>
+                                    <option value="director" <?php echo ($usuario['privilegio'] ?? '') == 'director' ? 'selected' : ''; ?>>Director</option>
                                     <option value="admin" <?php echo ($usuario['privilegio'] ?? '') == 'admin' ? 'selected' : ''; ?>>Administrador</option>
                                 </select>
                             </div>

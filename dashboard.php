@@ -307,6 +307,24 @@ if (!file_exists($menu_archivo)) {
                         <span class="stat-label">Tickets Cerrados</span>
                     </div>
                 
+                <?php elseif ($privilegio == 'director'): ?>
+                    <div class="stat-usuario" style="border-color: #6c757d;">
+                        <span class="stat-numero"><?php echo $stats['total_tickets'] ?? '0'; ?></span>
+                        <span class="stat-label">Tickets Totales</span>
+                    </div>
+                    <div class="stat-usuario nuevo">
+                        <span class="stat-numero"><?php echo $stats['tickets_nuevos'] ?? '0'; ?></span>
+                        <span class="stat-label">Tickets Nuevos</span>
+                    </div>
+                    <div class="stat-usuario proceso">
+                        <span class="stat-numero"><?php echo ($stats['tickets_asignados'] ?? 0) + ($stats['tickets_cerrados'] ?? 0); ?></span>
+                        <span class="stat-label">En Proceso/Cerrados</span>
+                    </div>
+                    <div class="stat-usuario cerrado">
+                        <span class="stat-numero"><?php echo $stats['tickets_cerrados'] ?? '0'; ?></span>
+                        <span class="stat-label">Tickets Cerrados</span>
+                    </div>
+                
                 <?php elseif ($privilegio == 'tecnico'): ?>
                     <div class="stat-usuario asignado">
                         <span class="stat-numero"><?php echo $stats['tickets_asignados'] ?? '0'; ?></span>
@@ -369,6 +387,20 @@ if (!file_exists($menu_archivo)) {
                     </a>
                     <a href="admin_reportes.php" class="action-btn-custom warning">
                         <i class="fas fa-chart-bar"></i> Generar Reportes
+                    </a>
+                
+                <?php elseif ($privilegio == 'director'): ?>
+                    <a href="todos_tickets.php" class="action-btn-custom">
+                        <i class="fas fa-ticket-alt"></i> Ver Todos los Tickets
+                    </a>
+                    <a href="crear_ticket.php" class="action-btn-custom success">
+                        <i class="fas fa-plus-circle"></i> Crear Nuevo Ticket
+                    </a>
+                    <a href="admin_reportes.php" class="action-btn-custom warning">
+                        <i class="fas fa-chart-bar"></i> Ver Reportes
+                    </a>
+                    <a href="perfil.php" class="action-btn-custom info">
+                        <i class="fas fa-user-edit"></i> Mi Perfil
                     </a>
                 
                 <?php elseif ($privilegio == 'tecnico'): ?>

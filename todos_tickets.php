@@ -5,7 +5,7 @@ session_start();
 // Compatible con ambos sistemas de sesión
 $id_usuario = $_SESSION['id_usuario'] ?? $_SESSION['usuario_id'] ?? null;
 
-if (!$id_usuario || ($_SESSION['privilegio'] ?? '') != 'admin') {
+if (!$id_usuario || !in_array($_SESSION['privilegio'] ?? '', ['admin', 'director'])) {
     header('Location: index.php');
     exit();
 }
@@ -13,9 +13,9 @@ if (!$id_usuario || ($_SESSION['privilegio'] ?? '') != 'admin') {
 require_once 'config/database.php';
 require_once 'includes/functions.php';
 
-// Verificar que sea administrador
+// Verificar que sea administrador o director
 $privilegio = $_SESSION['privilegio'] ?? '';
-if ($privilegio != 'admin') {
+if (!in_array($privilegio, ['admin', 'director'])) {
     die("
         <!DOCTYPE html>
         <html>
@@ -39,6 +39,9 @@ if ($privilegio != 'admin') {
 // Obtener datos de sesión
 $id_usuario = getUserIdFromSession();
 $usuario_nombre = $_SESSION['nombre'] ?? 'Usuario';
+
+// Determinar si es solo lectura (director)
+$es_solo_lectura = ($privilegio == 'director');
 
 // CONEXIÓN A LA BASE DE DATOS CON PDO
 try {
@@ -1122,14 +1125,15 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                     
                                     <td>
                                         <div class="acciones-rapidas-tickets">
-                                            <!-- Botón Ver -->
+                                            <!-- Botón Ver - Siempre visible -->
                                             <a href="ver_ticket.php?id=<?php echo $ticket['id']; ?>" 
                                                class="btn-accion-ticket btn-ver-ticket" 
                                                title="Ver detalle del ticket <?php echo htmlspecialchars($ticket['numero_ticket'] ?? ''); ?>">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             
-                                            <!-- Botón Asignar - Solo si no está cerrado -->
+                                            <?php if (!$es_solo_lectura): ?>
+                                            <!-- Botón Asignar - Solo admin, si no está cerrado -->
                                             <?php 
                                             $ticketAsignado = !empty($ticket['tecnico_asignado']);
                                             $ticketCerrado = !empty($ticket['estado']) && strpos($ticket['estado'], 'Cerrado') !== false;
@@ -1143,7 +1147,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                                 </button>
                                             <?php endif; ?>
                                             
-                                            <!-- Botón Cerrar - Solo si no está cerrado -->
+                                            <!-- Botón Cerrar - Solo admin, si no está cerrado -->
                                             <?php if (!$ticketCerrado): ?>
                                                 <button onclick="verificarAntesDeCerrar(<?php echo $ticket['id']; ?>)" 
                                                         class="btn-accion-ticket btn-cerrar-ticket" 
@@ -1159,6 +1163,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                                onclick="return confirm('¿Eliminar ticket #<?php echo htmlspecialchars($ticket['numero_ticket'] ?? ''); ?>?\n\nEsta acción no se puede deshacer.');">
                                                 <i class="fas fa-trash"></i>
                                             </a>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>

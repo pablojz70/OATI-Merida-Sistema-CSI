@@ -198,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
             
             $estado_inicial = 'Nuevo';
-            if ($privilegio == 'admin' && $datos_formulario['tecnico_asignado']) {
+            if (($privilegio == 'admin' || $privilegio == 'tecnico') && $datos_formulario['tecnico_asignado']) {
                 $estado_inicial = 'Asignado';
             }
             
@@ -224,7 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $datos_formulario['descripcion'],
                 $datos_formulario['prioridad'],
                 $estado_inicial,
-                $privilegio == 'admin' && $datos_formulario['tecnico_asignado'] ? $datos_formulario['tecnico_asignado'] : null
+                (($privilegio == 'admin' || $privilegio == 'tecnico') && $datos_formulario['tecnico_asignado']) ? $datos_formulario['tecnico_asignado'] : null
             ];
             
             $stmt = $conn->prepare($sql);

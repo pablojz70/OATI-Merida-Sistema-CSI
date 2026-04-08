@@ -130,6 +130,7 @@ $stats_query = "
         COUNT(*) as total,
         SUM(CASE WHEN privilegio = 'admin' THEN 1 ELSE 0 END) as admins,
         SUM(CASE WHEN privilegio = 'tecnico' THEN 1 ELSE 0 END) as tecnicos,
+        SUM(CASE WHEN privilegio = 'director' THEN 1 ELSE 0 END) as directores,
         SUM(CASE WHEN privilegio = 'usuario' THEN 1 ELSE 0 END) as usuarios,
         SUM(CASE WHEN activo = 1 THEN 1 ELSE 0 END) as activos
     FROM Usuarios
@@ -225,6 +226,7 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
         .stat-usuario.total { border-color: #1a2980; }
         .stat-usuario.admin { border-color: #e74c3c; }
         .stat-usuario.tecnico { border-color: #f39c12; }
+        .stat-usuario.director { border-color: #2e7d32; }
         .stat-usuario.usuario { border-color: #3498db; }
         .stat-usuario.activo { border-color: #27ae60; }
         
@@ -263,6 +265,7 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
         
         .badge-admin { background: #fee; color: #c0392b; }
         .badge-tecnico { background: #fff3cd; color: #856404; }
+        .badge-director { background: #e8f5e9; color: #2e7d32; }
         .badge-usuario { background: #e3f2fd; color: #1976d2; }
         
         .estado-activo { 
@@ -702,6 +705,10 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
                         <span class="stat-numero"><?php echo $stats['tecnicos']; ?></span>
                         <span class="stat-label">Técnicos</span>
                     </div>
+                    <div class="stat-usuario director">
+                        <span class="stat-numero"><?php echo $stats['directores'] ?? 0; ?></span>
+                        <span class="stat-label">Directores</span>
+                    </div>
                     <div class="stat-usuario usuario">
                         <span class="stat-numero"><?php echo $stats['usuarios']; ?></span>
                         <span class="stat-label">Usuarios Normales</span>
@@ -841,6 +848,7 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
                                     <option value="">Seleccionar...</option>
                                     <option value="usuario" selected>Usuario Normal</option>
                                     <option value="tecnico">Técnico</option>
+                                    <option value="director">Director</option>
                                     <option value="admin">Administrador</option>
                                 </select>
                             </div>
