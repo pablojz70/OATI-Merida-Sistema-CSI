@@ -600,7 +600,7 @@ $stats = $stats_stmt->fetch();
             <div class="tickets-list-container">
                 <div class="tickets-list-header">
                     <div>
-                        <i class="fas fa-ticket-alt"></i> Tickets Asignados
+                        <img src="imagen/MTasignados.png" alt="Asignados" style="width:20px;height:20px;object-fit:contain;"> Tickets Asignados
                         <span style="font-weight: normal; color: #666; margin-left: 5px;">
                             (<?php echo count($tickets); ?> tickets)
                         </span>

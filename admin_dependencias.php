@@ -521,9 +521,9 @@ if (!file_exists($menu_archivo)) {
             <!-- CARD: LISTADO DE DEPENDENCIAS -->
             <div class="admin-card-custom fade-in-custom">
                 <div class="card-header-custom">
-                    <h2><i class="fas fa-list"></i> Listado de Dependencias</h2>
+                    <h2><img src="imagen/Components.png" alt="Dependencias" style="width:20px;height:20px;object-fit:contain;"> Listado de Dependencias</h2>
                     <button class="btn-custom btn-primary-custom" onclick="abrirModalCrear()">
-                        <i class="fas fa-plus"></i> Nueva Dependencia
+                        <img src="imagen/Add Ticket.png" alt="Nuevo" style="width:14px;height:14px;object-fit:contain;"> Nueva Dependencia
                     </button>
                 </div>
                 

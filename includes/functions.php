@@ -212,7 +212,12 @@ function checkPrivilege($required) {
 // Verificar estructura de la base de datos
 function checkDatabaseStructure($conn) {
     $structure = [];
-    $tables_to_check = ['usuarios', 'tickets', 'dependencias', 'areas_soporte', 'areassoporte', 'servicios'];
+    $tables_to_check = [
+        'usuarios', 'tickets', 'dependencias', 
+        'areas_soporte', 'areassoporte', 'servicios',
+        'ticketadjuntos', 'ticket_evaluaciones', 'tickettevaluaciones',
+        'backupconfig', 'backup_config', 'historialtickets'
+    ];
     
     try {
         $result = $conn->query("SHOW TABLES");

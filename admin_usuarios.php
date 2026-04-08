@@ -677,16 +677,16 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
             <div class="usuarios-container">
                 <!-- Header -->
                 <div class="usuarios-header">
-                    <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
+                    <h1><img src="imagen/Users.png" alt="Usuarios" style="width:24px;height:24px;object-fit:contain;"> Gestión de Usuarios</h1>
                     <button class="btn-nuevo-usuario" onclick="abrirModal()">
-                        <i class="fas fa-plus"></i> Nuevo Usuario
+                        <img src="imagen/Add Ticket.png" alt="Nuevo" style="width:16px;height:16px;object-fit:contain;"> Nuevo Usuario
                     </button>
                 </div>
                 
                 <!-- Mensajes -->
                 <?php if ($mensaje): ?>
                     <div class="mensaje-alerta mensaje-<?php echo $tipo_mensaje; ?> fade-in">
-                        <i class="fas fa-<?php echo $tipo_mensaje == 'success' ? 'check-circle' : 'exclamation-circle'; ?>"></i>
+                        <img src="imagen/<?php echo $tipo_mensaje == 'success' ? 'Accept' : 'Comments'; ?>.png" alt="" style="width:18px;height:18px;object-fit:contain;">
                         <?php echo htmlspecialchars($mensaje); ?>
                     </div>
                 <?php endif; ?>

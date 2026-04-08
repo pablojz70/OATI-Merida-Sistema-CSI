@@ -926,30 +926,35 @@ if (!file_exists($menu_archivo)) {
             });
         });
         
-        // Cargar servicios
+        // Cargar servicios con timeout y mejor manejo de errores
         $('#area_id').change(function() {
             const areaId = $(this).val();
             const $servicioSelect = $('#servicio_id');
             
             if (areaId) {
+                // Mostrar estado de carga
+                $servicioSelect.html('<option value="">Cargando servicios...</option>');
+                
                 $.ajax({
                     url: 'ajax/cargar_servicios_simple.php',
                     type: 'GET',
                     data: { area_id: areaId },
                     dataType: 'json',
+                    timeout: 5000, // 5 segundos de timeout
                     success: function(data) {
-                        if (data.success && data.servicios.length > 0) {
+                        if (data.success && data.servicios && data.servicios.length > 0) {
                             let options = '<option value="">-- Seleccione servicio --</option>';
                             data.servicios.forEach(servicio => {
                                 options += `<option value="${servicio.id}">${servicio.nombre}</option>`;
                             });
                             $servicioSelect.html(options);
                         } else {
-                            $servicioSelect.html('<option value="">No hay servicios</option>');
+                            $servicioSelect.html('<option value="">No hay servicios disponibles</option>');
                         }
                     },
-                    error: function() {
-                        $servicioSelect.html('<option value="">Error de conexión</option>');
+                    error: function(xhr, status, error) {
+                        console.log('Error AJAX: ' + status);
+                        $servicioSelect.html('<option value="">Sin conexión, reintente</option>');
                     }
                 });
             } else {

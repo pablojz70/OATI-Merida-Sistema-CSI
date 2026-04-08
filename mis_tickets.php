@@ -377,14 +377,14 @@ if (!file_exists($menu_archivo)) {
             <!-- ACCIONES RÁPIDAS -->
             <div class="quick-actions-row-custom fade-in-custom">
                 <a href="crear_ticket.php" class="action-btn-custom success">
-                    <i class="fas fa-plus-circle"></i> Crear Nuevo Ticket
+                    <img src="imagen/Add Ticket.png" alt="Nuevo" style="width:18px;height:18px;object-fit:contain;"> Crear Nuevo Ticket
                 </a>
                 <a href="dashboard.php" class="action-btn-custom">
-                    <i class="fas fa-tachometer-alt"></i> Volver al Dashboard
+                    <img src="imagen/Home.png" alt="Dashboard" style="width:18px;height:18px;object-fit:contain;"> Volver al Dashboard
                 </a>
                 <?php if ($privilegio == 'admin'): ?>
                 <a href="todos_tickets.php" class="action-btn-custom warning">
-                    <i class="fas fa-ticket-alt"></i> Ver Todos los Tickets
+                    <img src="imagen/Cabinet.png" alt="Tickets" style="width:18px;height:18px;object-fit:contain;"> Ver Todos los Tickets
                 </a>
                 <?php endif; ?>
             </div>
@@ -394,7 +394,7 @@ if (!file_exists($menu_archivo)) {
                 <!-- ENCABEZADO -->
                 <div class="tickets-header">
                     <div class="tickets-title">
-                        <i class="fas fa-ticket-alt"></i>
+                        <img src="imagen/Ticket.png" alt="Tickets" style="width:18px;height:18px;object-fit:contain;">
                         <h3>Mis Tickets</h3>
                         <span style="font-size: 13px; color: #666; margin-left: 10px;">
                             Mostrando <?php echo $total_tickets; ?> tickets

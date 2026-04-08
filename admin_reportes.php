@@ -624,20 +624,20 @@ try {
         <main class="main-content-custom">
             <!-- HEADER DE REPORTES -->
             <div class="reportes-header-compact">
-                <h1><i class="fas fa-chart-bar"></i> Reportes y Estadísticas</h1>
+                <h1><img src="imagen/Bar Chart.png" alt="Reportes" style="width:24px;height:24px;object-fit:contain;"> Reportes y Estadísticas</h1>
                 <div class="header-actions">
                     <button class="btn-header-action btn-export" onclick="exportarReporte()">
-                        <i class="fas fa-file-excel"></i> Exportar
+                        <img src="imagen/Document.png" alt="Exportar" style="width:16px;height:16px;object-fit:contain;"> Exportar
                     </button>
                     <button class="btn-header-action btn-print" onclick="imprimirReporte()">
-                        <i class="fas fa-print"></i> Imprimir
+                        <img src="imagen/imprimir.png" alt="Imprimir" style="width:16px;height:16px;object-fit:contain;"> Imprimir
                     </button>
                 </div>
             </div>
             
             <!-- INFORMACIÓN DEL REPORTE -->
             <div class="info-bar-compact">
-                <i class="fas fa-info-circle"></i>
+                <img src="imagen/Comments.png" alt="Info" style="width:18px;height:18px;object-fit:contain;">
                 Reporte <?php echo ucfirst(str_replace('_', ' ', $filtros['tipo_reporte'])); ?>
                 <?php 
                 $texto_filtros = [];

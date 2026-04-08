@@ -661,7 +661,7 @@ $servicios = $conn->query("
             <div id="tab-areas" class="tab-content active">
                 <div class="card">
                     <div class="card-header">
-                        <i class="fas fa-plus-circle"></i> Agregar Nueva Área
+                        <img src="imagen/Add Ticket.png" alt="Nuevo" style="width:18px;height:18px;object-fit:contain;"> Agregar Nueva Área
                     </div>
                     
                     <form method="POST" class="inline-form">
@@ -674,14 +674,14 @@ $servicios = $conn->query("
                             <label for="todosven" style="margin: 0; font-size: 11px;">Visible para usuarios</label>
                         </div>
                         <button type="submit" class="btn btn-success">
-                            <i class="fas fa-plus"></i> Agregar
+                            <img src="imagen/Add Ticket.png" alt="Agregar" style="width:14px;height:14px;object-fit:contain;"> Agregar
                         </button>
                     </form>
                 </div>
                 
                 <div class="card">
                     <div class="card-header">
-                        <i class="fas fa-list"></i> Lista de Áreas de Soporte
+                        <img src="imagen/Settings.png" alt="Áreas" style="width:18px;height:18px;object-fit:contain;"> Lista de Áreas de Soporte
                     </div>
                     
                     <div class="table-container">
@@ -765,7 +765,7 @@ $servicios = $conn->query("
             <div id="tab-servicios" class="tab-content">
                 <div class="card">
                     <div class="card-header">
-                        <i class="fas fa-plus-circle"></i> Agregar Nuevo Servicio
+                        <img src="imagen/Add Ticket.png" alt="Nuevo" style="width:18px;height:18px;object-fit:contain;"> Agregar Nuevo Servicio
                     </div>
                     
                     <form method="POST" class="inline-form">
@@ -781,14 +781,14 @@ $servicios = $conn->query("
                         <input type="text" name="nombre" class="form-control" placeholder="Nombre del servicio" required style="flex: 2;">
                         <input type="text" name="descripcion" class="form-control" placeholder="Descripción (opcional)">
                         <button type="submit" class="btn btn-success">
-                            <i class="fas fa-plus"></i> Agregar
+                            <img src="imagen/Add Ticket.png" alt="Agregar" style="width:14px;height:14px;object-fit:contain;"> Agregar
                         </button>
                     </form>
                 </div>
                 
                 <div class="card">
                     <div class="card-header">
-                        <i class="fas fa-list"></i> Lista de Servicios Específicos
+                        <img src="imagen/Settings.png" alt="Servicios" style="width:18px;height:18px;object-fit:contain;"> Lista de Servicios Específicos
                     </div>
                     
                     <div class="table-container">

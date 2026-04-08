@@ -245,6 +245,12 @@ $total_activos = $activos_data['total_activos'] ?? 0;
             gap: 8px;
         }
         
+        .title-icon {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+        
         .page-subtitle-custom {
             color: #666;
             font-size: 11px !important;
@@ -822,7 +828,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
             <!-- ENCABEZADO DE PÁGINA -->
             <div class="page-header-custom">
                 <h1 class="page-title-custom">
-                    <i class="fas fa-ticket-alt"></i> Todos los Tickets
+                    <img src="imagen/Cabinet.png" alt="Tickets" class="title-icon"> Todos los Tickets
                 </h1>
                 <p class="page-subtitle-custom">Vista completa de todos los tickets del sistema</p>
             </div>

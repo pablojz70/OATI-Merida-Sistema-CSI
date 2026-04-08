@@ -380,49 +380,49 @@ if (!file_exists($menu_archivo)) {
             <div class="quick-actions-row-custom fade-in-custom">
                 <?php if ($privilegio == 'admin'): ?>
                     <a href="todos_tickets.php" class="action-btn-custom">
-                        <i class="fas fa-ticket-alt"></i> Ver Todos los Tickets
+                        <img src="imagen/Cabinet.png" alt="Tickets" style="width:18px;height:18px;object-fit:contain;"> Ver Todos los Tickets
                     </a>
                     <a href="crear_ticket.php" class="action-btn-custom success">
-                        <i class="fas fa-plus-circle"></i> Crear Nuevo Ticket
+                        <img src="imagen/Add Ticket.png" alt="Nuevo" style="width:18px;height:18px;object-fit:contain;"> Crear Nuevo Ticket
                     </a>
                     <a href="admin_reportes.php" class="action-btn-custom warning">
-                        <i class="fas fa-chart-bar"></i> Generar Reportes
+                        <img src="imagen/Bar Chart.png" alt="Reportes" style="width:18px;height:18px;object-fit:contain;"> Generar Reportes
                     </a>
                 
                 <?php elseif ($privilegio == 'director'): ?>
                     <a href="todos_tickets.php" class="action-btn-custom">
-                        <i class="fas fa-ticket-alt"></i> Ver Todos los Tickets
+                        <img src="imagen/Cabinet.png" alt="Tickets" style="width:18px;height:18px;object-fit:contain;"> Ver Todos los Tickets
                     </a>
                     <a href="crear_ticket.php" class="action-btn-custom success">
-                        <i class="fas fa-plus-circle"></i> Crear Nuevo Ticket
+                        <img src="imagen/Add Ticket.png" alt="Nuevo" style="width:18px;height:18px;object-fit:contain;"> Crear Nuevo Ticket
                     </a>
                     <a href="admin_reportes.php" class="action-btn-custom warning">
-                        <i class="fas fa-chart-bar"></i> Ver Reportes
+                        <img src="imagen/Bar Chart.png" alt="Reportes" style="width:18px;height:18px;object-fit:contain;"> Ver Reportes
                     </a>
                     <a href="perfil.php" class="action-btn-custom info">
-                        <i class="fas fa-user-edit"></i> Mi Perfil
+                        <img src="imagen/User.png" alt="Perfil" style="width:18px;height:18px;object-fit:contain;"> Mi Perfil
                     </a>
                 
                 <?php elseif ($privilegio == 'tecnico'): ?>
                     <a href="tickets_asignados.php" class="action-btn-custom">
-                        <i class="fas fa-tasks"></i> Mis Tickets Asignados
+                        <img src="imagen/MTasignados.png" alt="Asignados" style="width:18px;height:18px;object-fit:contain;"> Mis Tickets Asignados
                     </a>
                     <a href="crear_ticket.php" class="action-btn-custom success">
-                        <i class="fas fa-hand-circle"></i> Crear Nuevo Ticket
+                        <img src="imagen/Add Ticket.png" alt="Nuevo" style="width:18px;height:18px;object-fit:contain;"> Crear Nuevo Ticket
                     </a>
                     <a href="perfil.php" class="action-btn-custom warning">
-                        <i class="fas fa-edit"></i> Editar Mi Perfil
+                        <img src="imagen/User.png" alt="Perfil" style="width:18px;height:18px;object-fit:contain;"> Editar Mi Perfil
                     </a>
                 
                 <?php else: ?>
                     <a href="crear_ticket.php" class="action-btn-custom success">
-                        <i class="fas fa-plus-circle"></i> Crear Nuevo Ticket
+                        <img src="imagen/Add Ticket.png" alt="Nuevo" style="width:18px;height:18px;object-fit:contain;"> Crear Nuevo Ticket
                     </a>
                     <a href="mis_tickets.php" class="action-btn-custom">
-                        <i class="fas fa-history"></i> Ver Mis Tickets
+                        <img src="imagen/Cabinet.png" alt="Tickets" style="width:18px;height:18px;object-fit:contain;"> Ver Mis Tickets
                     </a>
                     <a href="perfil.php" class="action-btn-custom info">
-                        <i class="fas fa-user-edit"></i> Editar Mi Perfil
+                        <img src="imagen/User.png" alt="Perfil" style="width:18px;height:18px;object-fit:contain;"> Editar Mi Perfil
                     </a>
                 <?php endif; ?>
             </div>
