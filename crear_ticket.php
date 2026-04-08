@@ -11,18 +11,18 @@ error_reporting(E_ALL);
 // 1. INCLUIR CONFIGURACIÓN CENTRAL
 require_once 'config/config.php';
 
-// 2. VERIFICAR AUTENTICACIÓN
+// 2. CONEXIÓN GLOBAL
+global $conn;
+
+// 3. VERIFICAR AUTENTICACIÓN
 verificarAutenticacion();
 
-// 3. OBTENER DATOS DEL USUARIO ACTUAL
+// 4. OBTENER DATOS DEL USUARIO ACTUAL
 $usuario = usuarioActual();
 $usuario_id = $usuario['id'];
 $usuario_nombre = $usuario['nombre'];
 $privilegio = $usuario['privilegio'];
 $dependencia_id = $usuario['dependencia_id'];
-
-// 4. CONEXIÓN YA DISPONIBLE VIA config.php
-global $conn;
 
 // 5. OBTENER DATOS ADICIONALES PARA EL FORMULARIO
 
@@ -417,8 +417,8 @@ if (!file_exists($menu_archivo)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Nuevo Ticket - CSI</title>
-    <link rel="stylesheet" href="css/estilos.css">
-    <link rel="stylesheet" href="css/estilos2.css">
+    <link rel="stylesheet" href="css/estilos.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="css/estilos2.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .crear-ticket-container {
@@ -739,12 +739,29 @@ if (!file_exists($menu_archivo)) {
                             </select>
                         </div>
                         
-                        <!-- SERVICIO ESPECÍFICO -->
+                        <!-- SERVICIO ESPECÍFICO - Select dinámico por área -->
                         <div class="form-group">
                             <label for="servicio_id">Servicio Específico *</label>
                             <select class="form-control" id="servicio_id" name="servicio_id" required>
                                 <option value="">-- Seleccione área primero --</option>
                             </select>
+                            
+                            <!-- Selects ocultos por cada área con sus servicios -->
+                            <?php foreach ($areas as $area): ?>
+                                <select id="servicios_area_<?php echo $area['id']; ?>" style="display:none;">
+                                    <option value="">-- Seleccione servicio --</option>
+                                    <?php 
+                                    // Obtener servicios de esta área
+                                    $sql = "SELECT id, nombre FROM Servicios WHERE area_id = ? AND activo = 1 ORDER BY nombre";
+                                    $stmt_s = $conn->prepare($sql);
+                                    $stmt_s->execute([$area['id']]);
+                                    $servicios_area = $stmt_s->fetchAll();
+                                    foreach ($servicios_area as $serv): 
+                                    ?>
+                                        <option value="<?php echo $serv['id']; ?>"><?php echo htmlspecialchars($serv['nombre']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                     
@@ -911,6 +928,20 @@ if (!file_exists($menu_archivo)) {
             actualizarInfoDependencia(dependenciaId);
         });
         
+        // Método simple: copiar opciones del select oculto al select visible
+        $('#area_id').change(function() {
+            const areaId = $(this).val();
+            const $servicioSelect = $('#servicio_id');
+            const $hiddenSelect = $('#servicios_area_' + areaId);
+            
+            if (areaId && $hiddenSelect.length) {
+                // Copiar opciones del select oculto
+                $servicioSelect.html($hiddenSelect.html());
+            } else {
+                $servicioSelect.html('<option value="">-- Seleccione área primero --</option>');
+            }
+        });
+        
         // Vista previa de archivos
         $('#archivos').change(function(e) {
             const preview = $('#preview-archivos');
@@ -924,42 +955,6 @@ if (!file_exists($menu_archivo)) {
                 `);
                 preview.append(div);
             });
-        });
-        
-        // Cargar servicios con timeout y mejor manejo de errores
-        $('#area_id').change(function() {
-            const areaId = $(this).val();
-            const $servicioSelect = $('#servicio_id');
-            
-            if (areaId) {
-                // Mostrar estado de carga
-                $servicioSelect.html('<option value="">Cargando servicios...</option>');
-                
-                $.ajax({
-                    url: 'ajax/cargar_servicios_simple.php',
-                    type: 'GET',
-                    data: { area_id: areaId },
-                    dataType: 'json',
-                    timeout: 5000, // 5 segundos de timeout
-                    success: function(data) {
-                        if (data.success && data.servicios && data.servicios.length > 0) {
-                            let options = '<option value="">-- Seleccione servicio --</option>';
-                            data.servicios.forEach(servicio => {
-                                options += `<option value="${servicio.id}">${servicio.nombre}</option>`;
-                            });
-                            $servicioSelect.html(options);
-                        } else {
-                            $servicioSelect.html('<option value="">No hay servicios disponibles</option>');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.log('Error AJAX: ' + status);
-                        $servicioSelect.html('<option value="">Sin conexión, reintente</option>');
-                    }
-                });
-            } else {
-                $servicioSelect.html('<option value="">-- Seleccione área primero --</option>');
-            }
         });
         
         // Toggle para selector de técnico
