@@ -29,7 +29,7 @@ try {
 $ticket_id = intval($_GET['id'] ?? 0);
 
 if ($ticket_id <= 0) {
-    header('Location: ' . ($privilegio == 'admin' ? 'todos_tickets.php' : 'mis_tickets.php'));
+    header('Location: ' . (in_array($privilegio, ['admin', 'director']) ? 'todos_tickets.php' : 'mis_tickets.php'));
     exit();
 }
 
@@ -63,24 +63,59 @@ try {
     $ticket['usuario_dependencia_corto'] = $ticket['usuario_dependencia_corto'] ?? $ticket['usuario_dependencia_nombre'];
     
     if (!$ticket) {
-        header('Location: ' . ($privilegio == 'admin' ? 'todos_tickets.php' : 'mis_tickets.php') . '?error=ticket_no_encontrado');
+        header('Location: ' . (in_array($privilegio, ['admin', 'director']) ? 'todos_tickets.php' : 'mis_tickets.php') . '?error=ticket_no_encontrado');
         exit();
     }
     
     // Verificar permisos
     $puede_ver = false;
     
+    // Debug: mostrar privilegio actual
+    error_log("DEBUG ver_ticket - Privilegio: " . $privilegio . ", Usuario ID: " . $id_usuario);
+    
     if ($privilegio == 'admin') {
         $puede_ver = true;
+    } elseif ($privilegio == 'director') {
+        $puede_ver = true; // Directores pueden ver todos los tickets
+        error_log("DEBUG ver_ticket - Director, puede_ver: true");
     } elseif ($privilegio == 'tecnico') {
         $puede_ver = ($ticket['tecnico_asignado'] == $id_usuario);
     } elseif ($privilegio == 'usuario') {
         $puede_ver = ($ticket['usuario_id'] == $id_usuario);
     }
     
+    error_log("DEBUG ver_ticket - puede_ver final: " . ($puede_ver ? 'true' : 'false'));
+    
     if (!$puede_ver) {
-        header('Location: ' . ($privilegio == 'admin' ? 'todos_tickets.php' : ($privilegio == 'tecnico' ? 'tickets_asignados.php' : 'mis_tickets.php')) . '?error=permiso_denegado');
-        exit();
+        // Debug: mostrar por qué no tiene permisos
+        error_log("DEBUG: No tiene permisos - Privilegio: " . $privilegio . ", Admin: " . ($privilegio == 'admin' ? 'si' : 'no') . ", Director: " . ($privilegio == 'director' ? 'si' : 'no'));
+        die("
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Acceso Denegado</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 50px; text-align: center; }
+                    .error { color: #dc3545; margin: 20px 0; }
+                    a { color: #3498db; text-decoration: none; }
+                    .debug { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 5px; font-size: 12px; text-align: left; }
+                </style>
+            </head>
+            <body>
+                <h1 class='error'>⛔ Acceso Denegado</h1>
+                <p>No tienes permisos para ver este ticket.</p>
+                <div class='debug'>
+                    <strong>Debug info:</strong><br>
+                    Privilegio: " . htmlspecialchars($privilegio) . "<br>
+                    Usuario ID: " . $id_usuario . "<br>
+                    Ticket ID: " . $ticket_id . "<br>
+                    Ticket Usuario ID: " . ($ticket['usuario_id'] ?? 'N/A') . "<br>
+                    Ticket Técnico: " . ($ticket['tecnico_asignado'] ?? 'N/A') . "
+                </div>
+                <p><a href='todos_tickets.php'>Volver a todos los tickets</a></p>
+            </body>
+            </html>
+        ");
     }
     
 } catch (PDOException $e) {
