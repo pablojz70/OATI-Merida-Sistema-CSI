@@ -420,6 +420,8 @@ if (!file_exists($menu_archivo)) {
     <link rel="stylesheet" href="css/estilos.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="css/estilos2.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- jQuery en el header para evitar problemas de carga -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <style>
         .crear-ticket-container {
             margin-left: 190px;
@@ -871,7 +873,55 @@ if (!file_exists($menu_archivo)) {
         </main>
     </div>
     
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- JavaScript Vanilla como fallback si jQuery falla -->
+    <script>
+    // Versión vanilla para cargar servicios (funciona sin jQuery)
+    (function() {
+        var areaSelect = document.getElementById('area_id');
+        var servicioSelect = document.getElementById('servicio_id');
+        
+        if (areaSelect && servicioSelect) {
+            areaSelect.addEventListener('change', function() {
+                var areaId = this.value;
+                
+                if (areaId) {
+                    var hiddenSelect = document.getElementById('servicios_area_' + areaId);
+                    if (hiddenSelect) {
+                        servicioSelect.innerHTML = hiddenSelect.innerHTML;
+                    }
+                } else {
+                    servicioSelect.innerHTML = '<option value="">-- Seleccione área primero --</option>';
+                }
+            });
+        }
+        
+        // Toggle para técnico
+        var asignarTecnico = document.getElementById('asignar_tecnico');
+        var tecnicoSelector = document.getElementById('tecnico-selector');
+        var tecnicoAsignado = document.getElementById('tecnico_asignado');
+        
+        if (asignarTecnico && tecnicoSelector && tecnicoAsignado) {
+            asignarTecnico.addEventListener('change', function() {
+                if (this.checked) {
+                    tecnicoSelector.style.display = 'block';
+                    tecnicoAsignado.disabled = false;
+                } else {
+                    tecnicoSelector.style.display = 'none';
+                    tecnicoAsignado.disabled = true;
+                    tecnicoAsignado.value = '';
+                }
+            });
+            
+            // Inicializar estado
+            if (!asignarTecnico.checked) {
+                tecnicoSelector.style.display = 'none';
+                tecnicoAsignado.disabled = true;
+            }
+        }
+    })();
+    </script>
+    
+    <!-- jQuery Scripts (se ejecutan si jQuery está disponible) -->
     <script>
     $(document).ready(function() {
         // Datos de las dependencias pasados desde PHP
@@ -967,6 +1017,12 @@ if (!file_exists($menu_archivo)) {
                 $('#tecnico_asignado').prop('disabled', true).val('');
             }
         });
+        
+        // Inicializar estado del selector de técnico
+        if (!$('#asignar_tecnico').is(':checked')) {
+            $('#tecnico-selector').hide();
+            $('#tecnico_asignado').prop('disabled', true);
+        }
         
         // Validación simple
         $('#formTicketCompleto').submit(function(e) {

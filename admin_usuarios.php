@@ -154,6 +154,9 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
     <link rel="stylesheet" href="css/estilos2.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <!-- jQuery y DataTables en el header -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <style>
         /* ESTILOS ESPECÍFICOS PARA ADMIN_USUARIOS */
         .usuarios-container {
@@ -898,8 +901,6 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
     </div>
     
     <!-- SCRIPTS -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script>
         // Datos de dependencias para JavaScript
         const dependenciasData = <?php echo json_encode($dependencias); ?>;

@@ -80,6 +80,8 @@ $stats = $stats_stmt->fetch();
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/estilos2.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- jQuery en el header -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <style>
         /* ESTILOS ESPECÍFICOS PARA TICKETS_ASIGNADOS.PHP */
         
@@ -888,7 +890,6 @@ $stats = $stats_stmt->fetch();
 }
 </style>
     <!-- SCRIPTS -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
     // Función para cambiar estado del ticket
 function cambiarEstado(ticketId, nuevoEstado) {

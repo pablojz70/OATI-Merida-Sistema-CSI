@@ -22,8 +22,33 @@ try {
     die("Error de conexion: " . $e->getMessage());
 }
 
+// Filtros
 $busqueda = trim($_GET['buscar'] ?? '');
 $filtro_calificacion = $_GET['calificacion'] ?? '';
+$filtro_tecnico = $_GET['tecnico'] ?? '';
+$filtro_dependencia = $_GET['dependencia'] ?? '';
+
+// Obtener técnicos para el filtro
+$tecnicos = [];
+try {
+    $stmt_tec = $conn->query("SELECT DISTINCT tech.id, tech.nombre 
+                               FROM TicketEvaluaciones e 
+                               JOIN Usuarios tech ON e.tecnico_id = tech.id 
+                               WHERE tech.id IS NOT NULL 
+                               ORDER BY tech.nombre");
+    $tecnicos = $stmt_tec->fetchAll();
+} catch (Exception $e) {}
+
+// Obtener dependencias para el filtro
+$dependencias = [];
+try {
+    $stmt_dep = $conn->query("SELECT DISTINCT d.id, d.nombre 
+                               FROM TicketEvaluaciones e 
+                               JOIN Tickets t ON e.ticket_id = t.id 
+                               JOIN Dependencias d ON t.dependencia_id = d.id 
+                               ORDER BY d.nombre");
+    $dependencias = $stmt_dep->fetchAll();
+} catch (Exception $e) {}
 
 $where = [];
 $params = [];
@@ -40,19 +65,33 @@ if (!empty($filtro_calificacion) && is_numeric($filtro_calificacion)) {
     $params[] = $filtro_calificacion;
 }
 
+if (!empty($filtro_tecnico) && is_numeric($filtro_tecnico)) {
+    $where[] = "e.tecnico_id = ?";
+    $params[] = $filtro_tecnico;
+}
+
+if (!empty($filtro_dependencia) && is_numeric($filtro_dependencia)) {
+    $where[] = "t.dependencia_id = ?";
+    $params[] = $filtro_dependencia;
+}
+
 $sql_where = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
 
+// Consulta principal
 $query = "SELECT e.*, 
           t.numero_ticket,
           t.asunto,
           t.estado,
+          t.dependencia_id,
           u.nombre as usuario_nombre,
           u.correo as usuario_correo,
-          tech.nombre as tecnico_nombre
+          tech.nombre as tecnico_nombre,
+          d.nombre as dependencia_nombre
           FROM TicketEvaluaciones e
           JOIN Tickets t ON e.ticket_id = t.id
           JOIN Usuarios u ON e.usuario_id = u.id
           LEFT JOIN Usuarios tech ON e.tecnico_id = tech.id
+          LEFT JOIN Dependencias d ON t.dependencia_id = d.id
           $sql_where
           ORDER BY e.fecha_evaluacion DESC";
 
@@ -60,6 +99,7 @@ $stmt = $conn->prepare($query);
 $stmt->execute($params);
 $evaluaciones = $stmt->fetchAll();
 
+// Estadísticas generales
 $stats = [];
 try {
     $stats_query = "SELECT 
@@ -77,6 +117,38 @@ try {
 } catch (PDOException $e) {
     error_log("Error stats: " . $e->getMessage());
 }
+
+// Estadísticas por TÉCNICO
+$stats_por_tecnico = [];
+try {
+    $stats_tec = $conn->query("SELECT 
+        tech.id as tecnico_id,
+        tech.nombre as tecnico_nombre,
+        COUNT(*) as total,
+        AVG(e.calificacion) as promedio
+        FROM TicketEvaluaciones e
+        JOIN Usuarios tech ON e.tecnico_id = tech.id
+        WHERE tech.id IS NOT NULL
+        GROUP BY tech.id, tech.nombre
+        ORDER BY promedio DESC");
+    $stats_por_tecnico = $stats_tec->fetchAll();
+} catch (Exception $e) {}
+
+// Estadísticas por DEPENDENCIA
+$stats_por_dependencia = [];
+try {
+    $stats_dep = $conn->query("SELECT 
+        d.id as dependencia_id,
+        d.nombre as dependencia_nombre,
+        COUNT(*) as total,
+        AVG(e.calificacion) as promedio
+        FROM TicketEvaluaciones e
+        JOIN Tickets t ON e.ticket_id = t.id
+        JOIN Dependencias d ON t.dependencia_id = d.id
+        GROUP BY d.id, d.nombre
+        ORDER BY promedio DESC");
+    $stats_por_dependencia = $stats_dep->fetchAll();
+} catch (Exception $e) {}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -87,6 +159,8 @@ try {
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/estilos2.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- jQuery en el header -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <style>
         .admin-evaluaciones-container {
             margin-left: 190px;
@@ -350,6 +424,74 @@ try {
         .btn-ver-ticket:hover {
             background: #2980b9;
         }
+        
+        /* ESTADISTICAS POR TECNICO Y DEPENDENCIA */
+        .stats-seccion {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #eef2f7;
+        }
+        
+        .stats-seccion h3 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #1a2980;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .stats-card {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #3498db;
+        }
+        
+        .stats-card .nombre {
+            font-weight: 600;
+            font-size: 12px;
+            color: #2c3e50;
+        }
+        
+        .stats-card .detalle {
+            text-align: right;
+        }
+        
+        .stats-card .promedio {
+            font-size: 18px;
+            font-weight: 700;
+            color: #f39c12;
+        }
+        
+        .stats-card .total {
+            font-size: 10px;
+            color: #7f8c8d;
+        }
+        
+        .stats-card .estrellas {
+            font-size: 11px;
+            color: #ffc107;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -430,6 +572,58 @@ try {
                 </div>
             </div>
             
+            <!-- ESTADISTICAS POR TECNICO -->
+            <?php if (!empty($stats_por_tecnico)): ?>
+            <div class="stats-seccion">
+                <h3><i class="fas fa-user-cog"></i> Rendimiento por Técnico</h3>
+                <div class="stats-grid">
+                    <?php foreach ($stats_por_tecnico as $stat): ?>
+                        <div class="stats-card">
+                            <div class="nombre"><?php echo htmlspecialchars($stat['tecnico_nombre']); ?></div>
+                            <div class="detalle">
+                                <div class="promedio"><?php echo number_format($stat['promedio'], 1); ?></div>
+                                <div class="estrellas">
+                                    <?php
+                                    $promedio_tec = round($stat['promedio']);
+                                    for ($i = 1; $i <= 5; $i++) {
+                                        echo $i <= $promedio_tec ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+                                    }
+                                    ?>
+                                </div>
+                                <div class="total"><?php echo $stat['total']; ?> evaluaciones</div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <!-- ESTADISTICAS POR DEPENDENCIA -->
+            <?php if (!empty($stats_por_dependencia)): ?>
+            <div class="stats-seccion">
+                <h3><i class="fas fa-building"></i> Satisfacción por Dependencia</h3>
+                <div class="stats-grid">
+                    <?php foreach ($stats_por_dependencia as $stat): ?>
+                        <div class="stats-card" style="border-left-color: #27ae60;">
+                            <div class="nombre"><?php echo htmlspecialchars($stat['dependencia_nombre']); ?></div>
+                            <div class="detalle">
+                                <div class="promedio" style="color: #27ae60;"><?php echo number_format($stat['promedio'], 1); ?></div>
+                                <div class="estrellas">
+                                    <?php
+                                    $promedio_dep = round($stat['promedio']);
+                                    for ($i = 1; $i <= 5; $i++) {
+                                        echo $i <= $promedio_dep ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+                                    }
+                                    ?>
+                                </div>
+                                <div class="total"><?php echo $stat['total']; ?> evaluaciones</div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+            
             <!-- FILTROS -->
             <div class="filtros-box">
                 <form method="GET" class="filtros-form">
@@ -442,6 +636,24 @@ try {
                         <option value="3" <?php echo $filtro_calificacion == '3' ? 'selected' : ''; ?>>3 Estrellas</option>
                         <option value="2" <?php echo $filtro_calificacion == '2' ? 'selected' : ''; ?>>2 Estrellas</option>
                         <option value="1" <?php echo $filtro_calificacion == '1' ? 'selected' : ''; ?>>1 Estrella</option>
+                    </select>
+                    
+                    <select name="tecnico">
+                        <option value="">Todos los técnicos</option>
+                        <?php foreach ($tecnicos as $tec): ?>
+                            <option value="<?php echo $tec['id']; ?>" <?php echo $filtro_tecnico == $tec['id'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($tec['nombre']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    
+                    <select name="dependencia">
+                        <option value="">Todas las dependencias</option>
+                        <?php foreach ($dependencias as $dep): ?>
+                            <option value="<?php echo $dep['id']; ?>" <?php echo $filtro_dependencia == $dep['id'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($dep['nombre']); ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                     
                     <button type="submit" class="btn-filtro">
@@ -542,15 +754,16 @@ try {
         </main>
     </div>
     
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const filtrosForm = document.querySelector('.filtros-form');
             filtrosForm.addEventListener('submit', function(e) {
                 const buscar = this.querySelector('input[name="buscar"]').value.trim();
                 const calificacion = this.querySelector('select[name="calificacion"]').value;
+                const tecnico = this.querySelector('select[name="tecnico"]').value;
+                const dependencia = this.querySelector('select[name="dependencia"]').value;
                 
-                if (!buscar && !calificacion) {
+                if (!buscar && !calificacion && !tecnico && !dependencia) {
                     e.preventDefault();
                     window.location.href = 'admin_evaluaciones.php';
                 }

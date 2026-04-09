@@ -627,17 +627,6 @@ if (!file_exists($menu_archivo)) {
             btn.setAttribute('title', 'Cerrar sesión');
         });
     }
-    
-    // Mostrar mensajes de sesión si existen
-    <?php if (isset($_SESSION['mensaje_exito'])): ?>
-        alert('<?php echo addslashes($_SESSION['mensaje_exito']); ?>');
-        <?php unset($_SESSION['mensaje_exito']); ?>
-    <?php endif; ?>
-    
-    <?php if (isset($_SESSION['mensaje_error'])): ?>
-        alert('Error: <?php echo addslashes($_SESSION['mensaje_error']); ?>');
-        <?php unset($_SESSION['mensaje_error']); ?>
-    <?php endif; ?>
     </script>
 </body>
 </html>
