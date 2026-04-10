@@ -18,6 +18,9 @@ if (!$tecnico_id) {
     exit();
 }
 
+// Obtener parámetros de filtro de la URL
+$filtro_estado = $_GET['estado'] ?? '';
+
 // CONEXIÓN A BASE DE DATOS (igual que otros archivos)
 try {
     $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
@@ -27,7 +30,7 @@ try {
     die("Error de conexión a la base de datos: " . $e->getMessage());
 }
 
-// Consultar tickets asignados (con nombres de tablas correctos)
+// Construir consulta con filtro de estado si existe
 $query = "SELECT t.*, a.nombre as area_nombre, s.nombre as servicio_nombre, 
           d.nombre as dependencia_nombre, u.nombre as usuario_nombre,
           TIMESTAMPDIFF(HOUR, t.fecha_creacion, NOW()) as horas_transcurridas,
@@ -41,8 +44,18 @@ $query = "SELECT t.*, a.nombre as area_nombre, s.nombre as servicio_nombre,
           JOIN Servicios s ON t.servicio_id = s.id
           JOIN Dependencias d ON t.dependencia_id = d.id
           JOIN Usuarios u ON t.usuario_id = u.id
-          WHERE t.tecnico_asignado = :tecnico_id
-          ORDER BY 
+          WHERE t.tecnico_asignado = :tecnico_id";
+
+// Agregar filtro de estado si viene en la URL
+if (!empty($filtro_estado)) {
+    if ($filtro_estado === 'Cerrado') {
+        $query .= " AND t.estado LIKE 'Cerrado%'";
+    } else {
+        $query .= " AND t.estado = :filtro_estado";
+    }
+}
+
+$query .= " ORDER BY 
             CASE t.prioridad
                 WHEN 'urgente' THEN 1
                 WHEN 'alta' THEN 2
@@ -52,7 +65,11 @@ $query = "SELECT t.*, a.nombre as area_nombre, s.nombre as servicio_nombre,
             t.fecha_creacion DESC";
 
 $stmt = $conn->prepare($query);
-$stmt->execute([':tecnico_id' => $tecnico_id]);
+$params = [':tecnico_id' => $tecnico_id];
+if (!empty($filtro_estado) && $filtro_estado !== 'Cerrado') {
+    $params[':filtro_estado'] = $filtro_estado;
+}
+$stmt->execute($params);
 $tickets = $stmt->fetchAll();
 
 // Obtener estadísticas
@@ -157,8 +174,21 @@ $stats = $stats_stmt->fetch();
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-            letter-spacing: 0.5px;
-            font-weight: 600;
+        
+        /* Enlaces de estadísticas */
+        .stat-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .stat-link:hover .stat-usuario {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+        
+        .stat-link .stat-usuario {
+            transition: all 0.2s ease;
         }
         
         /* FILTROS */
@@ -518,26 +548,36 @@ $stats = $stats_stmt->fetch();
             
             <!-- ESTADÍSTICAS -->
             <div class="stats-usuarios">
-                <div class="stat-usuario total">
-                    <span class="stat-numero"><?php echo $stats['total'] ?? 0; ?></span>
-                    <span class="stat-label">Total</span>
-                </div>
-                <div class="stat-usuario nuevo">
-                    <span class="stat-numero"><?php echo $stats['nuevos'] ?? 0; ?></span>
-                    <span class="stat-label">Nuevos</span>
-                </div>
-                <div class="stat-usuario asignado">
-                    <span class="stat-numero"><?php echo $stats['asignados'] ?? 0; ?></span>
-                    <span class="stat-label">Asignados</span>
-                </div>
-                <div class="stat-usuario proceso">
-                    <span class="stat-numero"><?php echo $stats['en_proceso'] ?? 0; ?></span>
-                    <span class="stat-label">En Proceso</span>
-                </div>
-                <div class="stat-usuario cerrado">
-                    <span class="stat-numero"><?php echo $stats['cerrados_hoy'] ?? 0; ?></span>
-                    <span class="stat-label">Cerrados Hoy</span>
-                </div>
+                <a href="tickets_asignados.php" class="stat-link">
+                    <div class="stat-usuario total">
+                        <span class="stat-numero"><?php echo $stats['total'] ?? 0; ?></span>
+                        <span class="stat-label">Total</span>
+                    </div>
+                </a>
+                <a href="tickets_asignados.php?estado=Nuevo" class="stat-link">
+                    <div class="stat-usuario nuevo">
+                        <span class="stat-numero"><?php echo $stats['nuevos'] ?? 0; ?></span>
+                        <span class="stat-label">Nuevos</span>
+                    </div>
+                </a>
+                <a href="tickets_asignados.php?estado=Asignado" class="stat-link">
+                    <div class="stat-usuario asignado">
+                        <span class="stat-numero"><?php echo $stats['asignados'] ?? 0; ?></span>
+                        <span class="stat-label">Asignados</span>
+                    </div>
+                </a>
+                <a href="tickets_asignados.php?estado=En+Proceso" class="stat-link">
+                    <div class="stat-usuario proceso">
+                        <span class="stat-numero"><?php echo $stats['en_proceso'] ?? 0; ?></span>
+                        <span class="stat-label">En Proceso</span>
+                    </div>
+                </a>
+                <a href="tickets_asignados.php?estado=Cerrado" class="stat-link">
+                    <div class="stat-usuario cerrado">
+                        <span class="stat-numero"><?php echo $stats['cerrados'] ?? 0; ?></span>
+                        <span class="stat-label">Cerrados</span>
+                    </div>
+                </a>
             </div>
             
             <!-- FILTROS -->
@@ -552,11 +592,10 @@ $stats = $stats_stmt->fetch();
                             <label for="estado">Estado:</label>
                             <select id="estado" name="estado">
                                 <option value="">Todos</option>
-                                <option value="Nuevo">Nuevo</option>
-                                <option value="Asignado">Asignado</option>
-                                <option value="En Proceso">En Proceso</option>
-                                <option value="Cerrado Exitosamente">Cerrado Exitoso</option>
-                                <option value="Cerrado No Exitoso">Cerrado No Exitoso</option>
+                                <option value="Nuevo" <?php echo $filtro_estado == 'Nuevo' ? 'selected' : ''; ?>>Nuevo</option>
+                                <option value="Asignado" <?php echo $filtro_estado == 'Asignado' ? 'selected' : ''; ?>>Asignado</option>
+                                <option value="En Proceso" <?php echo $filtro_estado == 'En Proceso' ? 'selected' : ''; ?>>En Proceso</option>
+                                <option value="Cerrado" <?php echo $filtro_estado == 'Cerrado' ? 'selected' : ''; ?>>Cerrados</option>
                             </select>
                         </div>
                         

@@ -244,6 +244,21 @@ try {
             letter-spacing: 0.5px;
         }
         
+        .stat-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .stat-link:hover .stat-usuario {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+        
+        .stat-link .stat-usuario {
+            transition: all 0.2s ease;
+        }
+        
         .btn-backup {
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
             color: white;
@@ -499,14 +514,18 @@ try {
             
             <!-- ESTADÍSTICAS -->
             <div class="stats-usuarios">
-                <div class="stat-usuario total">
-                    <span class="stat-numero"><?php echo number_format($stats['tickets']); ?></span>
-                    <span class="stat-label">Tickets Totales</span>
-                </div>
-                <div class="stat-usuario green">
-                    <span class="stat-numero"><?php echo number_format($stats['usuarios']); ?></span>
-                    <span class="stat-label">Usuarios</span>
-                </div>
+                <a href="todos_tickets.php?estado=todos" class="stat-link">
+                    <div class="stat-usuario total">
+                        <span class="stat-numero"><?php echo number_format($stats['tickets']); ?></span>
+                        <span class="stat-label">Tickets Totales</span>
+                    </div>
+                </a>
+                <a href="admin_usuarios.php" class="stat-link">
+                    <div class="stat-usuario green">
+                        <span class="stat-numero"><?php echo number_format($stats['usuarios']); ?></span>
+                        <span class="stat-label">Usuarios</span>
+                    </div>
+                </a>
                 <div class="stat-usuario orange">
                     <span class="stat-numero"><?php echo number_format($stats['adjuntos']); ?></span>
                     <span class="stat-label">Archivos Adjuntos</span>

@@ -230,6 +230,22 @@ if (!file_exists($menu_archivo)) {
         color: #6c757d;
         margin-top: 5px;
     }
+    
+    /* Estilos para enlaces de estadísticas */
+    .stat-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    
+    .stat-link:hover .stat-usuario {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+    
+    .stat-link .stat-usuario {
+        transition: all 0.2s ease;
+    }
     </style>
 </head>
 <body>
@@ -286,93 +302,123 @@ if (!file_exists($menu_archivo)) {
             <!-- ESTADÍSTICAS -->
             <div class="stats-usuarios fade-in-custom">
                 <?php if ($privilegio == 'admin'): ?>
-                    <div class="stat-usuario total">
-                        <span class="stat-numero"><?php echo $stats['total_usuarios'] ?? '0'; ?></span>
-                        <span class="stat-label">Usuarios Totales</span>
-                    </div>
-                    <div class="stat-usuario" style="border-color: #6c757d;">
-                        <span class="stat-numero"><?php echo $stats['total_tickets'] ?? '0'; ?></span>
-                        <span class="stat-label">Tickets Totales</span>
-                    </div>
-                    <div class="stat-usuario nuevo">
-                        <span class="stat-numero"><?php echo $stats['tickets_nuevos'] ?? '0'; ?></span>
-                        <span class="stat-label">Tickets Nuevos</span>
-                    </div>
-                    <div class="stat-usuario asignado">
-                        <span class="stat-numero"><?php echo $stats['tickets_asignados'] ?? '0'; ?></span>
-                        <span class="stat-label">Tickets Asignados</span>
-                    </div>
-                    <div class="stat-usuario cerrado">
-                        <span class="stat-numero"><?php echo $stats['tickets_cerrados'] ?? '0'; ?></span>
-                        <span class="stat-label">Tickets Cerrados</span>
-                    </div>
+                    <a href="admin_usuarios.php" class="stat-link">
+                        <div class="stat-usuario total">
+                            <span class="stat-numero"><?php echo $stats['total_usuarios'] ?? '0'; ?></span>
+                            <span class="stat-label">Usuarios Totales</span>
+                        </div>
+                    </a>
+                    <a href="todos_tickets.php" class="stat-link">
+                        <div class="stat-usuario" style="border-color: #6c757d;">
+                            <span class="stat-numero"><?php echo $stats['total_tickets'] ?? '0'; ?></span>
+                            <span class="stat-label">Tickets Totales</span>
+                        </div>
+                    </a>
+                    <a href="todos_tickets.php?estado=Nuevo" class="stat-link">
+                        <div class="stat-usuario nuevo">
+                            <span class="stat-numero"><?php echo $stats['tickets_nuevos'] ?? '0'; ?></span>
+                            <span class="stat-label">Tickets Nuevos</span>
+                        </div>
+                    </a>
+                    <a href="todos_tickets.php?estado=Asignado" class="stat-link">
+                        <div class="stat-usuario asignado">
+                            <span class="stat-numero"><?php echo $stats['tickets_asignados'] ?? '0'; ?></span>
+                            <span class="stat-label">Tickets Asignados</span>
+                        </div>
+                    </a>
+                    <a href="todos_tickets.php?estado=Cerrado+Exitosamente" class="stat-link">
+                        <div class="stat-usuario cerrado">
+                            <span class="stat-numero"><?php echo $stats['tickets_cerrados'] ?? '0'; ?></span>
+                            <span class="stat-label">Tickets Cerrados</span>
+                        </div>
+                    </a>
                 
                 <?php elseif ($privilegio == 'director'): ?>
-                    <div class="stat-usuario" style="border-color: #6c757d;">
-                        <span class="stat-numero"><?php echo $stats['total_tickets'] ?? '0'; ?></span>
-                        <span class="stat-label">Tickets Totales</span>
-                    </div>
-                    <div class="stat-usuario nuevo">
-                        <span class="stat-numero"><?php echo $stats['tickets_nuevos'] ?? '0'; ?></span>
-                        <span class="stat-label">Tickets Nuevos</span>
-                    </div>
-                    <div class="stat-usuario proceso">
-                        <span class="stat-numero"><?php echo ($stats['tickets_asignados'] ?? 0) + ($stats['tickets_cerrados'] ?? 0); ?></span>
-                        <span class="stat-label">En Proceso/Cerrados</span>
-                    </div>
-                    <div class="stat-usuario cerrado">
-                        <span class="stat-numero"><?php echo $stats['tickets_cerrados'] ?? '0'; ?></span>
-                        <span class="stat-label">Tickets Cerrados</span>
-                    </div>
+                    <a href="todos_tickets.php" class="stat-link">
+                        <div class="stat-usuario" style="border-color: #6c757d;">
+                            <span class="stat-numero"><?php echo $stats['total_tickets'] ?? '0'; ?></span>
+                            <span class="stat-label">Tickets Totales</span>
+                        </div>
+                    </a>
+                    <a href="todos_tickets.php?estado=Nuevo" class="stat-link">
+                        <div class="stat-usuario nuevo">
+                            <span class="stat-numero"><?php echo $stats['tickets_nuevos'] ?? '0'; ?></span>
+                            <span class="stat-label">Tickets Nuevos</span>
+                        </div>
+                    </a>
+                    <a href="todos_tickets.php?estado=En+Proceso" class="stat-link">
+                        <div class="stat-usuario proceso">
+                            <span class="stat-numero"><?php echo ($stats['tickets_asignados'] ?? 0) + ($stats['tickets_en_proceso'] ?? 0); ?></span>
+                            <span class="stat-label">En Proceso</span>
+                        </div>
+                    </a>
+                    <a href="todos_tickets.php?estado=Cerrado+Exitosamente" class="stat-link">
+                        <div class="stat-usuario cerrado">
+                            <span class="stat-numero"><?php echo $stats['tickets_cerrados'] ?? '0'; ?></span>
+                            <span class="stat-label">Tickets Cerrados</span>
+                        </div>
+                    </a>
                 
                 <?php elseif ($privilegio == 'tecnico'): ?>
-                    <div class="stat-usuario asignado">
-                        <span class="stat-numero"><?php echo $stats['tickets_asignados'] ?? '0'; ?></span>
-                        <span class="stat-label">Asignados a Mí</span>
-                    </div>
-                    <div class="stat-usuario cerrado">
-                        <span class="stat-numero"><?php echo $stats['tickets_resueltos'] ?? '0'; ?></span>
-                        <span class="stat-label">Resueltos por Mí</span>
-                    </div>
-                    <div class="stat-usuario nuevo">
-                        <span class="stat-numero">
-                            <?php 
-                            try {
-                                $stmt = $conn->query("SELECT COUNT(*) as count FROM Tickets WHERE estado = 'Nuevo' AND tecnico_asignado IS NULL");
-                                $new = $stmt->fetch(PDO::FETCH_ASSOC);
-                                echo $new['count'] ?? '0';
-                            } catch (Exception $e) {
-                                echo '0';
-                            }
-                            ?>
-                        </span>
-                        <span class="stat-label">Disponibles</span>
-                    </div>
+                    <a href="tickets_asignados.php" class="stat-link">
+                        <div class="stat-usuario asignado">
+                            <span class="stat-numero"><?php echo $stats['tickets_asignados'] ?? '0'; ?></span>
+                            <span class="stat-label">Asignados a Mí</span>
+                        </div>
+                    </a>
+                    <a href="tickets_asignados.php?estado=Cerrado" class="stat-link">
+                        <div class="stat-usuario cerrado">
+                            <span class="stat-numero"><?php echo $stats['tickets_resueltos'] ?? '0'; ?></span>
+                            <span class="stat-label">Resueltos por Mí</span>
+                        </div>
+                    </a>
+                    <a href="aceptar_ticket.php" class="stat-link">
+                        <div class="stat-usuario nuevo">
+                            <span class="stat-numero">
+                                <?php 
+                                try {
+                                    $stmt = $conn->query("SELECT COUNT(*) as count FROM Tickets WHERE estado = 'Nuevo' AND tecnico_asignado IS NULL");
+                                    $new = $stmt->fetch(PDO::FETCH_ASSOC);
+                                    echo $new['count'] ?? '0';
+                                } catch (Exception $e) {
+                                    echo '0';
+                                }
+                                ?>
+                            </span>
+                            <span class="stat-label">Disponibles</span>
+                        </div>
+                    </a>
                 
                 <?php else: ?>
-                    <div class="stat-usuario total">
-                        <span class="stat-numero"><?php echo $stats['mis_tickets'] ?? '0'; ?></span>
-                        <span class="stat-label">Mis Tickets</span>
-                    </div>
-                    <div class="stat-usuario abierto">
-                        <span class="stat-numero"><?php echo $stats['tickets_abiertos'] ?? '0'; ?></span>
-                        <span class="stat-label">Tickets Abiertos</span>
-                    </div>
-                    <div class="stat-usuario cerrado">
-                        <span class="stat-numero">
-                            <?php 
-                            try {
-                                $stmt = $conn->prepare("SELECT COUNT(*) as count FROM Tickets WHERE usuario_id = ? AND estado LIKE 'Cerrado%'");
-                                $stmt->execute([$id_usuario]);
-                                $closed = $stmt->fetch(PDO::FETCH_ASSOC);
-                                echo $closed['count'] ?? '0';
-                            } catch (Exception $e) {
-                                echo '0';
-                            }
-                            ?>
-                        </span>
-                        <span class="stat-label">Resueltos</span>
-                    </div>
+                    <a href="mis_tickets.php" class="stat-link">
+                        <div class="stat-usuario total">
+                            <span class="stat-numero"><?php echo $stats['mis_tickets'] ?? '0'; ?></span>
+                            <span class="stat-label">Mis Tickets</span>
+                        </div>
+                    </a>
+                    <a href="mis_tickets.php?estado=abierto" class="stat-link">
+                        <div class="stat-usuario abierto">
+                            <span class="stat-numero"><?php echo $stats['tickets_abiertos'] ?? '0'; ?></span>
+                            <span class="stat-label">Tickets Abiertos</span>
+                        </div>
+                    </a>
+                    <a href="mis_tickets.php?estado=cerrado" class="stat-link">
+                        <div class="stat-usuario cerrado">
+                            <span class="stat-numero">
+                                <?php 
+                                try {
+                                    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM Tickets WHERE usuario_id = ? AND estado LIKE 'Cerrado%'");
+                                    $stmt->execute([$id_usuario]);
+                                    $closed = $stmt->fetch(PDO::FETCH_ASSOC);
+                                    echo $closed['count'] ?? '0';
+                                } catch (Exception $e) {
+                                    echo '0';
+                                }
+                                ?>
+                            </span>
+                            <span class="stat-label">Resueltos</span>
+                        </div>
+                    </a>
                 <?php endif; ?>
             </div>
             

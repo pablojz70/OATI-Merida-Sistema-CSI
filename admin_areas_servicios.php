@@ -570,7 +570,6 @@ $servicios = $conn->query("
         
         .stat-usuario.total { border-color: #1a2980; }
         .stat-usuario.green { border-color: #27ae60; }
-        .stat-usuario.orange { border-color: #f39c12; }
         
         .stat-numero {
             font-size: 20px;
@@ -585,6 +584,21 @@ $servicios = $conn->query("
             margin-top: 4px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+        
+        .stat-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .stat-link:hover .stat-usuario {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+        
+        .stat-link .stat-usuario {
+            transition: all 0.2s ease;
         }
     </style>
 </head>
@@ -633,18 +647,18 @@ $servicios = $conn->query("
             
             <!-- ESTADÍSTICAS -->
             <div class="stats-usuarios">
-                <div class="stat-usuario total">
-                    <span class="stat-numero"><?php echo count($areas); ?></span>
-                    <span class="stat-label">Áreas de Soporte</span>
-                </div>
-                <div class="stat-usuario green">
-                    <span class="stat-numero"><?php echo count($servicios); ?></span>
-                    <span class="stat-label">Servicios</span>
-                </div>
-                <div class="stat-usuario orange">
-                    <span class="stat-numero"><?php echo count(array_filter($areas, fn($a) => !$a['activa'])); ?></span>
-                    <span class="stat-label">Áreas Inactivas</span>
-                </div>
+                <a href="#" onclick="showTab('areas'); return false;" class="stat-link">
+                    <div class="stat-usuario total">
+                        <span class="stat-numero"><?php echo count($areas); ?></span>
+                        <span class="stat-label">Áreas de Soporte</span>
+                    </div>
+                </a>
+                <a href="#" onclick="showTab('servicios'); return false;" class="stat-link">
+                    <div class="stat-usuario green">
+                        <span class="stat-numero"><?php echo count($servicios); ?></span>
+                        <span class="stat-label">Servicios</span>
+                    </div>
+                </a>
             </div>
             
             <!-- TABS -->

@@ -278,6 +278,23 @@ if (!file_exists($menu_archivo)) {
         letter-spacing: 0.5px;
     }
     
+    /* Enlaces de estadísticas */
+    .stat-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        cursor: pointer;
+    }
+    
+    .stat-link:hover .stat-usuario {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+    
+    .stat-link .stat-usuario {
+        transition: all 0.2s ease;
+    }
+    
     @media (max-width: 768px) {
         .stats-usuarios {
             grid-template-columns: 1fr;
@@ -353,25 +370,33 @@ if (!file_exists($menu_archivo)) {
             
             <!-- ESTADÍSTICAS DE TICKETS -->
             <div class="stats-usuarios fade-in-custom">
-                <div class="stat-usuario total">
-                    <span class="stat-numero"><?php echo $total_tickets; ?></span>
-                    <span class="stat-label">Tickets Totales</span>
-                </div>
+                <a href="#" class="stat-link" onclick="filtrarTickets('todos'); return false;">
+                    <div class="stat-usuario total">
+                        <span class="stat-numero"><?php echo $total_tickets; ?></span>
+                        <span class="stat-label">Tickets Totales</span>
+                    </div>
+                </a>
                 
-                <div class="stat-usuario abierto">
-                    <span class="stat-numero"><?php echo $tickets_abiertos; ?></span>
-                    <span class="stat-label">Tickets Abiertos</span>
-                </div>
+                <a href="#" class="stat-link" onclick="filtrarTickets('abierto'); return false;">
+                    <div class="stat-usuario abierto">
+                        <span class="stat-numero"><?php echo $tickets_abiertos; ?></span>
+                        <span class="stat-label">Tickets Abiertos</span>
+                    </div>
+                </a>
                 
-                <div class="stat-usuario cerrado">
-                    <span class="stat-numero"><?php echo $tickets_cerrados; ?></span>
-                    <span class="stat-label">Tickets Cerrados</span>
-                </div>
+                <a href="#" class="stat-link" onclick="filtrarTickets('Cerrado'); return false;">
+                    <div class="stat-usuario cerrado">
+                        <span class="stat-numero"><?php echo $tickets_cerrados; ?></span>
+                        <span class="stat-label">Tickets Cerrados</span>
+                    </div>
+                </a>
                 
-                <div class="stat-usuario urgente">
-                    <span class="stat-numero"><?php echo $alta_prioridad; ?></span>
-                    <span class="stat-label">Alta/Urgente</span>
-                </div>
+                <a href="#" class="stat-link" onclick="filtrarTickets('urgente'); return false;">
+                    <div class="stat-usuario urgente">
+                        <span class="stat-numero"><?php echo $alta_prioridad; ?></span>
+                        <span class="stat-label">Alta/Urgente</span>
+                    </div>
+                </a>
             </div>
             
             <!-- ACCIONES RÁPIDAS -->
@@ -412,11 +437,17 @@ if (!file_exists($menu_archivo)) {
                     <button class="filter-btn" onclick="filtrarTickets('Nuevo')">
                         Nuevos (<?php echo $tickets_nuevos; ?>)
                     </button>
+                    <button class="filter-btn" onclick="filtrarTickets('Asignado')">
+                        Asignados (<?php echo $tickets_asignados; ?>)
+                    </button>
                     <button class="filter-btn" onclick="filtrarTickets('En Proceso')">
                         En Proceso (<?php echo $tickets_en_proceso; ?>)
                     </button>
                     <button class="filter-btn" onclick="filtrarTickets('Cerrado')">
                         Cerrados (<?php echo $tickets_cerrados; ?>)
+                    </button>
+                    <button class="filter-btn" onclick="filtrarTickets('urgente')">
+                        Alta/Urgente (<?php echo $alta_prioridad; ?>)
                     </button>
                 </div>
                 <?php endif; ?>
@@ -448,7 +479,7 @@ if (!file_exists($menu_archivo)) {
                                 // Determinar clase para prioridad
                                 $prioridad_clase = strtolower($ticket['prioridad']);
                                 ?>
-                                <tr class="ticket-row" data-estado="<?php echo htmlspecialchars($ticket['estado']); ?>">
+                                <tr class="ticket-row" data-estado="<?php echo htmlspecialchars($ticket['estado']); ?>" data-prioridad="<?php echo htmlspecialchars($ticket['prioridad']); ?>">
                                     <td>
                                         <span class="ticket-number">
                                             #<?php echo htmlspecialchars($ticket['numero_ticket']); ?>
@@ -585,29 +616,68 @@ if (!file_exists($menu_archivo)) {
     function filtrarTickets(estado) {
         const rows = document.querySelectorAll('.ticket-row');
         const filterButtons = document.querySelectorAll('.filter-btn');
+        const statLinks = document.querySelectorAll('.stat-link');
         
         // Actualizar botón activo
         filterButtons.forEach(btn => {
             btn.classList.remove('active');
+            if (btn.textContent.toLowerCase().includes(estado) || 
+                (estado === 'todos' && btn.textContent.includes('Todos'))) {
+                btn.classList.add('active');
+            }
         });
-        event.target.classList.add('active');
+        
+        // Actualizar estilo de enlaces de estadísticas
+        statLinks.forEach(link => {
+            link.style.opacity = '0.7';
+        });
+        
+        // Si viene de un enlace de estadística, resaltar el que se clickeó
+        if (event && event.target.closest('.stat-link')) {
+            event.target.closest('.stat-link').style.opacity = '1';
+        }
         
         // Filtrar filas
         rows.forEach(row => {
             const rowEstado = row.getAttribute('data-estado');
+            const rowPrioridad = row.getAttribute('data-prioridad');
             
-            if (estado === 'todos' || rowEstado.includes(estado)) {
+            let mostrar = false;
+            
+            if (estado === 'todos') {
+                mostrar = true;
+            } else if (estado === 'abierto') {
+                // Tickets abiertos: Nuevo, Asignado, En Proceso
+                if (rowEstado === 'Nuevo' || rowEstado === 'Asignado' || rowEstado === 'En Proceso') {
+                    mostrar = true;
+                }
+            } else if (estado === 'urgente') {
+                // Filtrar por prioridad alta o urgente
+                if (rowPrioridad === 'alta' || rowPrioridad === 'urgente') {
+                    mostrar = true;
+                }
+            } else if (rowEstado.includes(estado)) {
+                mostrar = true;
+            }
+            
+            if (mostrar) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';
             }
         });
+        
+        // Actualizar contador de resultados
+        const visibleRows = document.querySelectorAll('.ticket-row[style=""], .ticket-row:not([style])').length;
+        const headerCount = document.querySelector('.tickets-title span');
+        if (headerCount) {
+            headerCount.textContent = `Mostrando ${visibleRows} tickets`;
+        }
     }
     
     // Efectos hover en tarjetas
     document.addEventListener('DOMContentLoaded', function() {
         // Las tarjetas de estadísticas ahora usan CSS para los efectos hover
-        });
         // Filas de tabla
         document.querySelectorAll('.ticket-row').forEach(row => {
             row.addEventListener('mouseenter', function() {

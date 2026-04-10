@@ -82,7 +82,8 @@ $stats_sql = "SELECT
     COUNT(*) as total,
     SUM(CASE WHEN estado = 'Cerrado Exitosamente' THEN 1 ELSE 0 END) as cerrados,
     SUM(CASE WHEN estado != 'Cerrado Exitosamente' AND estado != 'Cerrado No Exitoso' THEN 1 ELSE 0 END) as pendientes,
-    SUM(CASE WHEN prioridad = 'alta' OR prioridad = 'urgente' THEN 1 ELSE 0 END) as criticos,
+    SUM(CASE WHEN prioridad = 'alta' THEN 1 ELSE 0 END) as prioridad_alta,
+    SUM(CASE WHEN prioridad = 'urgente' THEN 1 ELSE 0 END) as prioridad_urgente,
     SUM(CASE WHEN estado = 'Cerrado Exitosamente' THEN TIMESTAMPDIFF(HOUR, fecha_creacion, fecha_cierre) ELSE 0 END) as total_horas,
     AVG(CASE WHEN estado = 'Cerrado Exitosamente' THEN TIMESTAMPDIFF(HOUR, fecha_creacion, fecha_cierre) ELSE NULL END) as promedio_horas
 FROM Tickets t $where_sql";
@@ -96,10 +97,107 @@ try {
         'total' => 0,
         'cerrados' => 0,
         'pendientes' => 0,
-        'criticos' => 0,
+        'prioridad_alta' => 0,
+        'prioridad_urgente' => 0,
         'promedio_horas' => 0
     ];
 }
+
+// Datos para gráfico de tendencia mensual
+$tendencia_mensual = [];
+try {
+    $meses_sql = "SELECT 
+        DATE_FORMAT(t.fecha_creacion, '%Y-%m') as mes,
+        COUNT(*) as total,
+        SUM(CASE WHEN t.estado = 'Cerrado Exitosamente' THEN 1 ELSE 0 END) as resueltos
+    FROM Tickets t
+    $where_sql
+    GROUP BY DATE_FORMAT(t.fecha_creacion, '%Y-%m')
+    ORDER BY mes DESC
+    LIMIT 6";
+    $stmt_meses = $conn->prepare($meses_sql);
+    $stmt_meses->execute($params);
+    $tendencia_mensual = array_reverse($stmt_meses->fetchAll(PDO::FETCH_ASSOC));
+} catch (PDOException $e) {}
+
+// Datos para gráfico por prioridad
+$por_prioridad = [];
+try {
+    $prio_sql = "SELECT 
+        prioridad,
+        COUNT(*) as total
+    FROM Tickets t
+    $where_sql
+    GROUP BY prioridad";
+    $stmt_prio = $conn->prepare($prio_sql);
+    $stmt_prio->execute($params);
+    $por_prioridad = $stmt_prio->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {}
+
+// Top 5 técnicos con más tickets
+$top_tecnicos = [];
+try {
+    $top_tec_sql = "SELECT 
+        tec.nombre,
+        COUNT(t.id) as total
+    FROM Tickets t
+    LEFT JOIN Usuarios tec ON t.tecnico_asignado = tec.id
+    $where_sql
+    GROUP BY t.tecnico_asignado, tec.nombre
+    ORDER BY total DESC
+    LIMIT 5";
+    $stmt_top = $conn->prepare($top_tec_sql);
+    $stmt_top->execute($params);
+    $top_tecnicos = $stmt_top->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {}
+
+// Datos para gráfico por estado (detallado)
+$por_estado = [];
+try {
+    $estado_sql = "SELECT 
+        estado,
+        COUNT(*) as total
+    FROM Tickets t
+    $where_sql
+    GROUP BY estado";
+    $stmt_estado = $conn->prepare($estado_sql);
+    $stmt_estado->execute($params);
+    $por_estado = $stmt_estado->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {}
+
+// Datos para gráfico por área
+$por_area = [];
+try {
+    $area_sql = "SELECT 
+        a.nombre as area_nombre,
+        COUNT(t.id) as total
+    FROM Tickets t
+    LEFT JOIN AreasSoporte a ON t.area_id = a.id
+    $where_sql
+    GROUP BY t.area_id, a.nombre
+    ORDER BY total DESC
+    LIMIT 8";
+    $stmt_area = $conn->prepare($area_sql);
+    $stmt_area->execute($params);
+    $por_area = $stmt_area->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {}
+
+// Datos para gráfico por dependencia
+$por_dependencia = [];
+try {
+    $dep_sql = "SELECT 
+        d.nombre as dependencia_nombre,
+        COUNT(t.id) as total
+    FROM Tickets t
+    LEFT JOIN Dependencias d ON t.dependencia_id = d.id
+    $where_sql
+    GROUP BY t.dependencia_id, d.nombre
+    ORDER BY total DESC
+    LIMIT 8";
+    $stmt_dep = $conn->prepare($dep_sql);
+    $stmt_dep->execute($params);
+    $por_dependencia = $stmt_dep->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {}
 
 // Obtener datos según tipo de reporte
 $reporte_data = [];
@@ -200,9 +298,12 @@ try {
     <link rel="stylesheet" href="css/estilos2.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-    <!-- jQuery y DataTables en el header -->
+    <!-- Cargar jQuery primero (requerido por DataTables) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <!-- Cargar DataTables después de jQuery -->
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <!-- Cargar Chart.js al final (después de jQuery) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         /* ESTILOS ESPECÍFICOS PARA REPORTES COMPACTOS */
         .main-content-custom {
@@ -542,16 +643,6 @@ try {
             .filtros-actions-compact {
                 flex-direction: column;
             }
-            
-            .stats-usuarios {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .stats-usuarios {
-                grid-template-columns: 1fr;
-            }
         }
         
         /* BOTONES DE ACCIÓN */
@@ -583,6 +674,155 @@ try {
             padding: 4px 8px;
             font-size: 11px;
             margin: 0 2px;
+        }
+        
+        /* ESTADÍSTICAS UNIFORMES */
+        .stats-usuarios {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-usuario {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-top: 3px solid;
+            transition: transform 0.2s;
+        }
+        
+        .stat-usuario:hover {
+            transform: translateY(-3px);
+        }
+        
+        .stat-usuario.total { border-color: #1a2980; }
+        .stat-usuario.resueltos { border-color: #27ae60; }
+        .stat-usuario.pendientes { border-color: #f39c12; }
+        .stat-usuario.alta { border-color: #fd7e14; }
+        .stat-usuario.urgente { border-color: #dc3545; }
+        
+        .stat-numero {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #7f8c8d;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Enlaces de estadísticas */
+        .stat-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            cursor: pointer;
+        }
+        
+        .stat-link:hover .stat-usuario {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+        
+        .stat-link .stat-usuario {
+            transition: all 0.2s ease;
+        }
+        
+        .kpi-trend.up { background: #d4edda; color: #155724; }
+        .kpi-trend.down { background: #f8d7da; color: #721c24; }
+        
+        /* CHARTS SECTION */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid #eef2f7;
+        }
+        
+        .chart-card.full-width {
+            grid-column: span 2;
+        }
+        
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .chart-title i {
+            color: #3498db;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 200px;
+        }
+        
+        /* SECCIONES DE DATOS */
+        .data-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid #eef2f7;
+            margin-bottom: 20px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a2980;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .chart-card.full-width {
+                grid-column: span 2;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            .chart-card.full-width {
+                grid-column: span 1;
+            }
         }
     </style>
 </head>
@@ -683,29 +923,187 @@ try {
                 ?>
             </div>
             
-            <!-- ESTADÍSTICAS -->
+            <!-- ESTADÍSTICAS CON ENLACES -->
+            <?php 
+            // Construir URL base para mantener los filtros de fecha
+            $base_url = "todos_tickets.php?estado=todos";
+            if (!empty($filtros['fecha_desde'])) {
+                $base_url .= "&fecha_desde=" . $filtros['fecha_desde'];
+            }
+            if (!empty($filtros['fecha_hasta'])) {
+                $base_url .= "&fecha_hasta=" . $filtros['fecha_hasta'];
+            }
+            ?>
             <div class="stats-usuarios">
-                <div class="stat-usuario total">
-                    <span class="stat-numero"><?php echo $stats['total'] ?? 0; ?></span>
-                    <span class="stat-label">Total Tickets</span>
+                <a href="<?php echo $base_url; ?>" class="stat-link">
+                    <div class="stat-usuario total">
+                        <span class="stat-numero"><?php echo $stats['total'] ?? 0; ?></span>
+                        <span class="stat-label">Total Tickets</span>
+                    </div>
+                </a>
+                <a href="<?php echo str_replace('estado=todos', 'estado=Cerrado+Exitosamente', $base_url); ?>" class="stat-link">
+                    <div class="stat-usuario resueltos">
+                        <span class="stat-numero"><?php echo $stats['cerrados'] ?? 0; ?></span>
+                        <span class="stat-label">Resueltos</span>
+                    </div>
+                </a>
+                <a href="<?php echo $base_url; ?>" class="stat-link">
+                    <div class="stat-usuario pendientes">
+                        <span class="stat-numero"><?php echo $stats['pendientes'] ?? 0; ?></span>
+                        <span class="stat-label">Pendientes</span>
+                    </div>
+                </a>
+                <a href="<?php echo $base_url; ?>&prioridad=alta" class="stat-link">
+                    <div class="stat-usuario alta">
+                        <span class="stat-numero"><?php echo $stats['prioridad_alta'] ?? 0; ?></span>
+                        <span class="stat-label">Prioridad Alta</span>
+                    </div>
+                </a>
+                <a href="<?php echo $base_url; ?>&prioridad=urgente" class="stat-link">
+                    <div class="stat-usuario urgente">
+                        <span class="stat-numero"><?php echo $stats['prioridad_urgente'] ?? 0; ?></span>
+                        <span class="stat-label">Prioridad Urgente</span>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- GRÁFICOS DINÁMICOS SEGÚN TIPO DE REPORTE -->
+            <?php if ($filtros['tipo_reporte'] == 'general'): ?>
+            <!-- Reporte General: Estado + Áreas + Tendencia -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-pie" style="color:#f39c12;"></i>
+                        Estado de Tickets
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartEstado"></canvas>
+                    </div>
                 </div>
-                <div class="stat-usuario cerrados">
-                    <span class="stat-numero"><?php echo $stats['cerrados'] ?? 0; ?></span>
-                    <span class="stat-label">Resueltos</span>
+                
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fas fa-layer-group" style="color:#9b59b6;"></i>
+                        Tickets por Área
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartAreas"></canvas>
+                    </div>
                 </div>
-                <div class="stat-usuario pendientes">
-                    <span class="stat-numero"><?php echo $stats['pendientes'] ?? 0; ?></span>
-                    <span class="stat-label">Pendientes</span>
-                </div>
-                <div class="stat-usuario criticos">
-                    <span class="stat-numero"><?php echo $stats['criticos'] ?? 0; ?></span>
-                    <span class="stat-label">Críticos</span>
-                </div>
-                <div class="stat-usuario tiempo">
-                    <span class="stat-numero"><?php echo round($stats['promedio_horas'] ?? 0, 1); ?></span>
-                    <span class="stat-label">Horas Prom.</span>
+                
+                <div class="chart-card full-width">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-line" style="color:#27ae60;"></i>
+                        Tendencia Mensual
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartTendencia"></canvas>
+                    </div>
                 </div>
             </div>
+            
+            <?php elseif ($filtros['tipo_reporte'] == 'por_tecnico'): ?>
+            <!-- Reporte Por Técnico: Solo gráficos de técnicos -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fas fa-trophy" style="color:#f39c12;"></i>
+                        Ranking de Técnicos
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartDesempenio"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-bar" style="color:#1a2980;"></i>
+                        Tickets por Técnico
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartTecnicos"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card full-width">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-line" style="color:#27ae60;"></i>
+                        Tendencia de Tickets
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartTendencia"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <?php elseif ($filtros['tipo_reporte'] == 'por_area'): ?>
+            <!-- Reporte Por Área: Solo gráficos de áreas -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fas fa-layer-group" style="color:#9b59b6;"></i>
+                        Distribución por Área
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartAreas"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-bar" style="color:#1a2980;"></i>
+                        Comparativa de Áreas
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartAreasBarras"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card full-width">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-line" style="color:#27ae60;"></i>
+                        Tendencia por Área
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartTendencia"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <?php elseif ($filtros['tipo_reporte'] == 'por_dependencia'): ?>
+            <!-- Reporte Por Dependencia: Solo gráficos de dependencias -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fas fa-building" style="color:#3498db;"></i>
+                        Tickets por Dependencia
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartDependencias"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-bar" style="color:#1a2980;"></i>
+                        Comparativa Dependencias
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartDependenciasBarras"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card full-width">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-line" style="color:#27ae60;"></i>
+                        Tendencia por Dependencia
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartTendencia"></canvas>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
             
             <!-- FILTROS -->
             <div class="filtros-container-compact">
@@ -1012,6 +1410,527 @@ try {
     
     <!-- SCRIPTS -->
     <script>
+        // Datos para los gráficos
+        const datosTendencia = <?php echo json_encode($tendencia_mensual); ?>;
+        const datosPrioridad = <?php echo json_encode($por_prioridad); ?>;
+        const datosTopTecnicos = <?php echo json_encode($top_tecnicos); ?>;
+        const datosPorEstado = <?php echo json_encode($por_estado); ?>;
+        const datosPorArea = <?php echo json_encode($por_area); ?>;
+        const datosPorDependencia = <?php echo json_encode($por_dependencia); ?>;
+        const reporteData = <?php echo json_encode($reporte_data); ?>;
+        const tipoReporte = '<?php echo $filtros['tipo_reporte']; ?>';
+        const statsTotal = <?php echo $stats['total'] ?? 0; ?>;
+        const statsCerrados = <?php echo $stats['cerrados'] ?? 0; ?>;
+        const statsPendientes = <?php echo $stats['pendientes'] ?? 0; ?>;
+        
+        // Verificar si Chart.js está cargado
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js no está cargado. Cargando desde alternativa...');
+            document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');
+        }
+        
+        // Colores
+        const colores = {
+            azul: '#1a2980',
+            cyan: '#26d0ce',
+            verde: '#27ae60',
+            naranja: '#f39c12',
+            rojo: '#e74c3c',
+            gris: '#95a5a6',
+            morado: '#9b59b6',
+            rosa: '#e91e63',
+            teal: '#009688',
+            indigo: '#3f51b5'
+        };
+        
+        const coloresMulti = [
+            '#1a2980', '#27ae60', '#f39c12', '#e74c3c', '#9b59b6',
+            '#3498db', '#1abc9c', '#e91e63', '#009688', '#3f51b5'
+        ];
+        
+        // Función para crear gráfico de dona (estado)
+        function crearGraficoEstado() {
+            try {
+                const ctxEstado = document.getElementById('chartEstado');
+                if (!ctxEstado) return;
+                
+                if (typeof Chart === 'undefined') {
+                    console.error('Chart.js no disponible para chartEstado');
+                    return;
+                }
+                
+                if (datosPorEstado.length > 0) {
+                    const labels = datosPorEstado.map(d => d.estado.replace('Cerrado Exitosamente', 'Resuelto').replace('Cerrado No Exitoso', 'No Resuelto'));
+                    const data = datosPorEstado.map(d => d.total);
+                    
+                    new Chart(ctxEstado, {
+                        type: 'doughnut',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: data,
+                                backgroundColor: data.map((_, i) => {
+                                    const estado = labels[i].toLowerCase();
+                                    if (estado.includes('cerrado') && estado.includes('exitoso')) return colores.verde;
+                                    if (estado.includes('cerrado') && estado.includes('exito')) return colores.rojo;
+                                    if (estado.includes('proceso')) return colores.naranja;
+                                    if (estado.includes('asignado')) return colores.cyan;
+                                    return colores.azul;
+                                }),
+                                borderWidth: 0,
+                                hoverOffset: 10
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '60%',
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        padding: 12,
+                                        usePointStyle: true,
+                                        font: { size: 10 }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error en crearGraficoEstado:', e);
+            }
+        }
+        
+        // Función para crear gráfico de áreas (barras horizontal)
+        function crearGraficoAreas() {
+            try {
+                const ctxAreas = document.getElementById('chartAreas');
+                if (!ctxAreas) return;
+                
+                if (typeof Chart === 'undefined') {
+                    console.error('Chart.js no disponible para chartAreas');
+                    return;
+                }
+                
+                if (datosPorArea.length > 0) {
+                    new Chart(ctxAreas, {
+                        type: 'bar',
+                        data: {
+                            labels: datosPorArea.map(d => d.area_nombre ? d.area_nombre.substring(0, 20) : 'Sin área'),
+                            datasets: [{
+                                label: 'Tickets',
+                                data: datosPorArea.map(d => d.total),
+                                backgroundColor: coloresMulti,
+                                borderRadius: 6,
+                                borderSkipped: false
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    grid: { display: false },
+                                    ticks: { font: { size: 10 } }
+                                },
+                                y: {
+                                    grid: { display: false },
+                                    ticks: { font: { size: 10 } }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error en crearGraficoAreas:', e);
+            }
+        }
+        
+        // Función para crear gráfico de dependencias
+        function crearGraficoDependencias() {
+            try {
+                const ctxDep = document.getElementById('chartDependencias');
+                if (!ctxDep) return;
+                
+                if (typeof Chart === 'undefined') {
+                    console.error('Chart.js no disponible para chartDependencias');
+                    return;
+                }
+                
+                if (datosPorDependencia.length > 0) {
+                    new Chart(ctxDep, {
+                        type: 'bar',
+                        data: {
+                            labels: datosPorDependencia.map(d => d.dependencia_nombre ? d.dependencia_nombre.substring(0, 18) : 'Sin dep.'),
+                            datasets: [{
+                                label: 'Tickets',
+                                data: datosPorDependencia.map(d => d.total),
+                                backgroundColor: coloresMulti,
+                                borderRadius: 6,
+                                borderSkipped: false
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    grid: { display: false },
+                                    ticks: { font: { size: 10 } }
+                                },
+                                y: {
+                                    grid: { display: false },
+                                    ticks: { font: { size: 10 } }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error en crearGraficoDependencias:', e);
+            }
+        }
+        
+        // Función para crear gráfico de técnicos
+        function crearGraficoTecnicos() {
+            try {
+                const ctxTecnicos = document.getElementById('chartTecnicos');
+                if (!ctxTecnicos) return;
+                
+                if (typeof Chart === 'undefined') {
+                    console.error('Chart.js no disponible para chartTecnicos');
+                    return;
+                }
+                
+                if (datosTopTecnicos.length > 0) {
+                    new Chart(ctxTecnicos, {
+                        type: 'bar',
+                        data: {
+                            labels: datosTopTecnicos.map(d => d.nombre ? d.nombre.substring(0, 15) : 'Sin asignar'),
+                            datasets: [{
+                                label: 'Tickets',
+                                data: datosTopTecnicos.map(d => d.total),
+                                backgroundColor: coloresMulti,
+                                borderRadius: 6,
+                                borderSkipped: false
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    grid: { display: false },
+                                    ticks: { font: { size: 10 } }
+                                },
+                                y: {
+                                    grid: { display: false },
+                                    ticks: { font: { size: 10 } }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error en crearGraficoTecnicos:', e);
+            }
+        }
+        
+        // Función para crear gráfico de desempeño por técnico
+        function crearGraficoDesempenio() {
+            try {
+                const ctxDes = document.getElementById('chartDesempenio');
+                if (!ctxDes) return;
+                
+                if (typeof Chart === 'undefined') {
+                    console.error('Chart.js no disponible para chartDesempenio');
+                    return;
+                }
+                
+                if (reporteData.length > 0) {
+                    const datos = reporteData.map(d => {
+                        const eficiencia = d.total_tickets > 0 ? Math.round((d.cerrados / d.total_tickets) * 100) : 0;
+                        return {
+                            nombre: d.tecnico_nombre || 'Sin asignar',
+                            eficiencia: eficiencia
+                        };
+                    });
+                    
+                    new Chart(ctxDes, {
+                        type: 'doughnut',
+                        data: {
+                            labels: datos.map(d => d.nombre.substring(0, 15)),
+                            datasets: [{
+                                data: datos.map(d => d.eficiencia),
+                                backgroundColor: coloresMulti,
+                                borderWidth: 0,
+                                hoverOffset: 10
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '50%',
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        padding: 10,
+                                        usePointStyle: true,
+                                        font: { size: 9 }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error en crearGraficoDesempenio:', e);
+            }
+        }
+        
+        // Función para crear gráfico de áreas en barras (vertical)
+        function crearGraficoAreasBarras() {
+            try {
+                const ctxBarras = document.getElementById('chartAreasBarras');
+                if (!ctxBarras) return;
+                
+                if (typeof Chart === 'undefined') {
+                    console.error('Chart.js no disponible para chartAreasBarras');
+                    return;
+                }
+                
+                if (datosPorArea.length > 0) {
+                    new Chart(ctxBarras, {
+                        type: 'bar',
+                        data: {
+                            labels: datosPorArea.map(d => d.area_nombre ? d.area_nombre.substring(0, 12) : 'Sin área'),
+                            datasets: [{
+                                label: 'Tickets',
+                                data: datosPorArea.map(d => d.total),
+                                backgroundColor: [
+                                    colores.azul,
+                                    colores.verde,
+                                    colores.naranja,
+                                    colores.morado,
+                                    colores.cyan,
+                                    colores.rojo,
+                                    colores.rosa,
+                                    colores.teal
+                                ],
+                                borderRadius: 6,
+                                borderSkipped: false
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: '#f0f0f0' },
+                                    ticks: { font: { size: 10 } }
+                                },
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { font: { size: 9, maxRotation: 45 } }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error en crearGraficoAreasBarras:', e);
+            }
+        }
+        
+        // Función para crear gráfico de dependencias en barras (vertical)
+        function crearGraficoDependenciasBarras() {
+            try {
+                const ctxBarras = document.getElementById('chartDependenciasBarras');
+                if (!ctxBarras) return;
+                
+                if (typeof Chart === 'undefined') {
+                    console.error('Chart.js no disponible para chartDependenciasBarras');
+                    return;
+                }
+                
+                if (datosPorDependencia.length > 0) {
+                    new Chart(ctxBarras, {
+                        type: 'bar',
+                        data: {
+                            labels: datosPorDependencia.map(d => d.dependencia_nombre ? d.dependencia_nombre.substring(0, 12) : 'Sin dep.'),
+                            datasets: [{
+                                label: 'Tickets',
+                                data: datosPorDependencia.map(d => d.total),
+                                backgroundColor: [
+                                    colores.azul,
+                                    colores.verde,
+                                    colores.naranja,
+                                    colores.morado,
+                                    colores.cyan,
+                                    colores.rojo,
+                                    colores.rosa,
+                                    colores.teal
+                                ],
+                                borderRadius: 6,
+                                borderSkipped: false
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: '#f0f0f0' },
+                                    ticks: { font: { size: 10 } }
+                                },
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { font: { size: 9, maxRotation: 45 } }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error en crearGraficoDependenciasBarras:', e);
+            }
+        }
+        
+        // Función para crear gráfico de tendencia
+        function crearGraficoTendencia() {
+            try {
+                const ctxTendencia = document.getElementById('chartTendencia');
+                if (!ctxTendencia) return;
+                
+                if (typeof Chart === 'undefined') {
+                    console.error('Chart.js no disponible para chartTendencia');
+                    return;
+                }
+                
+                if (datosTendencia.length > 0) {
+                    new Chart(ctxTendencia, {
+                        type: 'line',
+                        data: {
+                            labels: datosTendencia.map(d => {
+                                const [year, month] = d.mes.split('-');
+                                const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                                return meses[parseInt(month) - 1] + ' ' + year.substring(2);
+                            }),
+                            datasets: [
+                                {
+                                    label: 'Total',
+                                    data: datosTendencia.map(d => d.total),
+                                    borderColor: colores.azul,
+                                    backgroundColor: 'rgba(26, 41, 128, 0.1)',
+                                    fill: true,
+                                    tension: 0.4,
+                                    pointRadius: 4,
+                                    pointBackgroundColor: colores.azul
+                                },
+                                {
+                                    label: 'Resueltos',
+                                    data: datosTendencia.map(d => d.resueltos),
+                                    borderColor: colores.verde,
+                                    backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                                    fill: true,
+                                    tension: 0.4,
+                                    pointRadius: 4,
+                                    pointBackgroundColor: colores.verde
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {
+                                intersect: false,
+                                mode: 'index'
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        padding: 15,
+                                        usePointStyle: true,
+                                        font: { size: 11 }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: '#f0f0f0' },
+                                    ticks: { font: { size: 10 } }
+                                },
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { font: { size: 10 } }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error en crearGraficoTendencia:', e);
+            }
+        }
+        
+        // Inicializar gráficos según tipo de reporte
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si Chart.js está disponible
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js no está disponible');
+                document.querySelectorAll('.chart-container').forEach(function(container) {
+                    container.innerHTML = '<div style="text-align:center;padding:40px;color:#e74c3c;font-size:14px;"><i class="fas fa-exclamation-triangle" style="font-size:24px;"></i><br>Error al cargar gráficos. Verifique la conexión a internet.</div>';
+                });
+                return;
+            }
+            
+            if (tipoReporte === 'general') {
+                crearGraficoEstado();
+                crearGraficoAreas();
+                crearGraficoTendencia();
+            } else if (tipoReporte === 'por_tecnico') {
+                crearGraficoDesempenio();
+                crearGraficoTecnicos();
+                crearGraficoTendencia();
+            } else if (tipoReporte === 'por_area') {
+                crearGraficoAreas();
+                crearGraficoAreasBarras();
+                crearGraficoTendencia();
+            } else if (tipoReporte === 'por_dependencia') {
+                crearGraficoDependencias();
+                crearGraficoDependenciasBarras();
+                crearGraficoTendencia();
+            }
+        });
+        
         // Inicializar DataTables
         $(document).ready(function() {
             <?php if ($filtros['tipo_reporte'] == 'por_tecnico'): ?>
@@ -1167,7 +2086,7 @@ try {
             });
         }
         
-        // Auto-establecer fechas
+        // Auto-establecer fechas - 1 mes por defecto
         document.addEventListener('DOMContentLoaded', function() {
             const fechaHastaInput = document.getElementById('fecha_hasta');
             if (!fechaHastaInput.value) {
@@ -1177,9 +2096,10 @@ try {
             
             const fechaDesdeInput = document.getElementById('fecha_desde');
             if (!fechaDesdeInput.value) {
-                const hace30Dias = new Date();
-                hace30Dias.setDate(hace30Dias.getDate() - 30);
-                fechaDesdeInput.value = hace30Dias.toISOString().split('T')[0];
+                const haceUnMes = new Date();
+                haceUnMes.setMonth(haceUnMes.getMonth() - 1);
+                haceUnMes.setDate(haceUnMes.getDate() + 1);
+                fechaDesdeInput.value = haceUnMes.toISOString().split('T')[0];
             }
         });
         

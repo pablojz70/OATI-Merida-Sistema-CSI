@@ -64,7 +64,8 @@ $filtros = [
 ];
 
 // MODIFICACIÓN: Determinar el comportamiento según el filtro de estado
-$mostrar_solo_activos = empty($filtros['estado']);
+// Si hay filtro de prioridad, mostrar todos los estados (no solo activos)
+$mostrar_solo_activos = empty($filtros['estado']) && empty($filtros['prioridad']);
 $mostrar_todos_estados = ($filtros['estado'] === 'todos');
 
 // Construir consulta con filtros - MODIFICADO para obtener nombre_corto
@@ -302,6 +303,22 @@ $total_activos = $activos_data['total_activos'] ?? 0;
             margin-top: 4px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+        
+        /* Enlaces de estadísticas */
+        .stat-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .stat-link:hover .stat-usuario {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+        
+        .stat-link .stat-usuario {
+            transition: all 0.2s ease;
         }
         
         /* INDICADOR DE FILTRO ACTIVO */
@@ -853,30 +870,42 @@ $total_activos = $activos_data['total_activos'] ?? 0;
             
             <!-- ESTADÍSTICAS -->
             <div class="stats-usuarios">
-                <div class="stat-usuario total">
-                    <span class="stat-numero"><?php echo $stats['total'] ?? 0; ?></span>
-                    <span class="stat-label">Total Tickets</span>
-                </div>
-                <div class="stat-usuario nuevo">
-                    <span class="stat-numero"><?php echo $stats['nuevos'] ?? 0; ?></span>
-                    <span class="stat-label">Nuevos</span>
-                </div>
-                <div class="stat-usuario asignado">
-                    <span class="stat-numero"><?php echo $stats['asignados'] ?? 0; ?></span>
-                    <span class="stat-label">Asignados</span>
-                </div>
-                <div class="stat-usuario proceso">
-                    <span class="stat-numero"><?php echo $stats['en_proceso'] ?? 0; ?></span>
-                    <span class="stat-label">En Proceso</span>
-                </div>
-                <div class="stat-usuario cerrado">
-                    <span class="stat-numero"><?php echo $stats['cerrados'] ?? 0; ?></span>
-                    <span class="stat-label">Cerrados</span>
-                </div>
-                <div class="stat-usuario urgente">
-                    <span class="stat-numero"><?php echo $stats['urgentes'] ?? 0; ?></span>
-                    <span class="stat-label">Urgentes</span>
-                </div>
+                <a href="todos_tickets.php?estado=todos" class="stat-link">
+                    <div class="stat-usuario total">
+                        <span class="stat-numero"><?php echo $stats['total'] ?? 0; ?></span>
+                        <span class="stat-label">Total Tickets</span>
+                    </div>
+                </a>
+                <a href="todos_tickets.php?estado=Nuevo" class="stat-link">
+                    <div class="stat-usuario nuevo">
+                        <span class="stat-numero"><?php echo $stats['nuevos'] ?? 0; ?></span>
+                        <span class="stat-label">Nuevos</span>
+                    </div>
+                </a>
+                <a href="todos_tickets.php?estado=Asignado" class="stat-link">
+                    <div class="stat-usuario asignado">
+                        <span class="stat-numero"><?php echo $stats['asignados'] ?? 0; ?></span>
+                        <span class="stat-label">Asignados</span>
+                    </div>
+                </a>
+                <a href="todos_tickets.php?estado=En+Proceso" class="stat-link">
+                    <div class="stat-usuario proceso">
+                        <span class="stat-numero"><?php echo $stats['en_proceso'] ?? 0; ?></span>
+                        <span class="stat-label">En Proceso</span>
+                    </div>
+                </a>
+                <a href="todos_tickets.php?estado=Cerrado+Exitosamente" class="stat-link">
+                    <div class="stat-usuario cerrado">
+                        <span class="stat-numero"><?php echo $stats['cerrados'] ?? 0; ?></span>
+                        <span class="stat-label">Cerrados</span>
+                    </div>
+                </a>
+                <a href="todos_tickets.php?prioridad=urgente" class="stat-link">
+                    <div class="stat-usuario urgente">
+                        <span class="stat-numero"><?php echo $stats['urgentes'] ?? 0; ?></span>
+                        <span class="stat-label">Urgentes</span>
+                    </div>
+                </a>
             </div>
             
             <!-- INDICADOR DE FILTRO ACTIVO -->

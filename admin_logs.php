@@ -186,6 +186,21 @@ $estadisticas = $stmt_stats->fetch(PDO::FETCH_ASSOC);
             letter-spacing: 0.5px;
         }
         
+        .stat-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .stat-link:hover .stat-usuario {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+        
+        .stat-link .stat-usuario {
+            transition: all 0.2s ease;
+        }
+        
         .card {
             background: white;
             border-radius: 8px;
@@ -421,10 +436,12 @@ $estadisticas = $stmt_stats->fetch(PDO::FETCH_ASSOC);
                     <span class="stat-numero"><?php echo number_format($estadisticas['total_logs'] ?? 0); ?></span>
                     <span class="stat-label">Total Logs</span>
                 </div>
-                <div class="stat-usuario active">
-                    <span class="stat-numero"><?php echo $estadisticas['usuarios_activos'] ?? 0; ?></span>
-                    <span class="stat-label">Usuarios Activos</span>
-                </div>
+                <a href="admin_usuarios.php" class="stat-link">
+                    <div class="stat-usuario active">
+                        <span class="stat-numero"><?php echo $estadisticas['usuarios_activos'] ?? 0; ?></span>
+                        <span class="stat-label">Usuarios Activos</span>
+                    </div>
+                </a>
                 <div class="stat-usuario days">
                     <span class="stat-numero"><?php echo $estadisticas['dias_registrados'] ?? 0; ?></span>
                     <span class="stat-label">Días Registrados</span>

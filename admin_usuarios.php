@@ -101,7 +101,36 @@ if (isset($_GET['eliminar'])) {
     }
 }
 
-// Obtener lista de usuarios - MODIFICADO para mostrar nombre_corto
+// Obtener parámetros de búsqueda
+$buscar = trim($_GET['buscar'] ?? '');
+$filtro_tipo = $_GET['filtro_tipo'] ?? '';
+$filtro_estado = $_GET['filtro_estado'] ?? '';
+
+// Construir condiciones de búsqueda
+$where_conditions = [];
+$params = [];
+
+if (!empty($buscar)) {
+    $where_conditions[] = "(u.nombre LIKE ? OR u.usuario LIKE ? OR u.correo LIKE ?)";
+    $params[] = "%$buscar%";
+    $params[] = "%$buscar%";
+    $params[] = "%$buscar%";
+}
+
+if (!empty($filtro_tipo) && in_array($filtro_tipo, ['admin', 'director', 'tecnico', 'usuario'])) {
+    $where_conditions[] = "u.privilegio = ?";
+    $params[] = $filtro_tipo;
+}
+
+if ($filtro_estado === '1') {
+    $where_conditions[] = "u.activo = 1";
+} elseif ($filtro_estado === '0') {
+    $where_conditions[] = "u.activo = 0";
+}
+
+$where_sql = !empty($where_conditions) ? "WHERE " . implode(" AND ", $where_conditions) : "";
+
+// Obtener lista de usuarios con filtros
 $usuarios_query = "
     SELECT 
         u.id,
@@ -115,16 +144,18 @@ $usuarios_query = "
         IFNULL(d.nombre, '') as dependencia_nombre_completo 
     FROM Usuarios u 
     LEFT JOIN Dependencias d ON u.dependencia_id = d.id 
+    $where_sql
     ORDER BY u.nombre
 ";
-$usuarios_stmt = $conn->query($usuarios_query);
+$usuarios_stmt = $conn->prepare($usuarios_query);
+$usuarios_stmt->execute($params);
 $usuarios = $usuarios_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtener dependencias para el formulario - MODIFICADO para nombre_corto
 $dependencias_stmt = $conn->query("SELECT id, nombre_corto, nombre FROM Dependencias ORDER BY nombre_corto");
 $dependencias = $dependencias_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Estadísticas
+// Estadísticas generales (sin filtros)
 $stats_query = "
     SELECT 
         COUNT(*) as total,
@@ -132,11 +163,19 @@ $stats_query = "
         SUM(CASE WHEN privilegio = 'tecnico' THEN 1 ELSE 0 END) as tecnicos,
         SUM(CASE WHEN privilegio = 'director' THEN 1 ELSE 0 END) as directores,
         SUM(CASE WHEN privilegio = 'usuario' THEN 1 ELSE 0 END) as usuarios,
-        SUM(CASE WHEN activo = 1 THEN 1 ELSE 0 END) as activos
+        SUM(CASE WHEN activo = 1 THEN 1 ELSE 0 END) as activos,
+        SUM(CASE WHEN activo = 0 THEN 1 ELSE 0 END) as inactivos
     FROM Usuarios
 ";
 $stats_stmt = $conn->query($stats_query);
 $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
+
+// Estadísticas filtradas (para mostrar resultados)
+$stats_filtradas = $conn->prepare("
+    SELECT COUNT(*) as total_filtrados FROM Usuarios u $where_sql
+");
+$stats_filtradas->execute($params);
+$stats_filtradas = $stats_filtradas->fetch(PDO::FETCH_ASSOC);
 
 // Obtener datos de sesión
 $id_usuario = $_SESSION['usuario_id'] ?? $_SESSION['id_usuario'] ?? null;
@@ -636,6 +675,188 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
             max-width: 180px;
             cursor: help;
         }
+        
+        /* ESTILOS DEL BUSCADOR */
+        .buscador-container {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #eef2f7;
+        }
+        
+        .buscador-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .buscador-input {
+            flex: 2;
+            min-width: 250px;
+            position: relative;
+        }
+        
+        .buscador-input i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+        
+        .buscador-input input {
+            width: 100%;
+            padding: 10px 10px 10px 38px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        
+        .buscador-input input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .buscador-select {
+            flex: 1;
+            min-width: 180px;
+        }
+        
+        .buscador-select select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .buscador-select select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .btn-buscar {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+        
+        .btn-buscar:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+        
+        .btn-limpiar {
+            padding: 10px 16px;
+            background: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+        
+        .btn-limpiar:hover {
+            background: #7f8c8d;
+            transform: translateY(-1px);
+        }
+        
+        .resultados-info {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: #e8f4fc;
+            border-radius: 6px;
+            color: #2c3e50;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .filtro-activo-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .filtro-activo-info i {
+            font-size: 16px;
+        }
+        
+        .filtro-activo-info .resultado-count {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-left: auto;
+            font-weight: 600;
+        }
+        
+        /* Enlaces de estadísticas */
+        .stat-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .stat-link:hover .stat-usuario {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+        
+        .stat-link .stat-usuario {
+            transition: all 0.2s ease;
+        }
+        
+        /* Responsive buscador */
+        @media (max-width: 768px) {
+            .buscador-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .buscador-input {
+                min-width: 100%;
+            }
+            
+            .buscador-select {
+                min-width: 100%;
+            }
+            
+            .btn-buscar, .btn-limpiar {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -696,30 +917,94 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
                 
                 <!-- Estadísticas -->
                 <div class="stats-usuarios fade-in">
-                    <div class="stat-usuario total">
-                        <span class="stat-numero"><?php echo $stats['total']; ?></span>
-                        <span class="stat-label">Total Usuarios</span>
-                    </div>
-                    <div class="stat-usuario admin">
-                        <span class="stat-numero"><?php echo $stats['admins']; ?></span>
-                        <span class="stat-label">Administradores</span>
-                    </div>
-                    <div class="stat-usuario tecnico">
-                        <span class="stat-numero"><?php echo $stats['tecnicos']; ?></span>
-                        <span class="stat-label">Técnicos</span>
-                    </div>
-                    <div class="stat-usuario director">
-                        <span class="stat-numero"><?php echo $stats['directores'] ?? 0; ?></span>
-                        <span class="stat-label">Directores</span>
-                    </div>
-                    <div class="stat-usuario usuario">
-                        <span class="stat-numero"><?php echo $stats['usuarios']; ?></span>
-                        <span class="stat-label">Usuarios Normales</span>
-                    </div>
-                    <div class="stat-usuario activo">
-                        <span class="stat-numero"><?php echo $stats['activos']; ?></span>
-                        <span class="stat-label">Usuarios Activos</span>
-                    </div>
+                    <a href="admin_usuarios.php" class="stat-link">
+                        <div class="stat-usuario total">
+                            <span class="stat-numero"><?php echo $stats['total']; ?></span>
+                            <span class="stat-label">Total Usuarios</span>
+                        </div>
+                    </a>
+                    <a href="admin_usuarios.php?filtro_tipo=admin" class="stat-link">
+                        <div class="stat-usuario admin">
+                            <span class="stat-numero"><?php echo $stats['admins']; ?></span>
+                            <span class="stat-label">Administradores</span>
+                        </div>
+                    </a>
+                    <a href="admin_usuarios.php?filtro_tipo=tecnico" class="stat-link">
+                        <div class="stat-usuario tecnico">
+                            <span class="stat-numero"><?php echo $stats['tecnicos']; ?></span>
+                            <span class="stat-label">Técnicos</span>
+                        </div>
+                    </a>
+                    <a href="admin_usuarios.php?filtro_tipo=director" class="stat-link">
+                        <div class="stat-usuario director">
+                            <span class="stat-numero"><?php echo $stats['directores'] ?? 0; ?></span>
+                            <span class="stat-label">Directores</span>
+                        </div>
+                    </a>
+                    <a href="admin_usuarios.php?filtro_tipo=usuario" class="stat-link">
+                        <div class="stat-usuario usuario">
+                            <span class="stat-numero"><?php echo $stats['usuarios']; ?></span>
+                            <span class="stat-label">Usuarios Normales</span>
+                        </div>
+                    </a>
+                    <a href="admin_usuarios.php?filtro_estado=1" class="stat-link">
+                        <div class="stat-usuario activo">
+                            <span class="stat-numero"><?php echo $stats['activos']; ?></span>
+                            <span class="stat-label">Usuarios Activos</span>
+                        </div>
+                    </a>
+                    <a href="admin_usuarios.php?filtro_estado=0" class="stat-link">
+                        <div class="stat-usuario" style="border-color: #e74c3c;">
+                            <span class="stat-numero"><?php echo $stats['inactivos']; ?></span>
+                            <span class="stat-label">Usuarios Inactivos</span>
+                        </div>
+                    </a>
+                </div>
+                
+                <?php if (!empty($buscar) || !empty($filtro_tipo) || !empty($filtro_estado)): ?>
+                <div class="filtro-activo-info">
+                    <i class="fas fa-filter"></i> 
+                    <strong>Filtros activos:</strong>
+                    <?php 
+                    $filtros_activos = [];
+                    if (!empty($buscar)) $filtros_activos[] = "Búsqueda: \"$buscar\"";
+                    if (!empty($filtro_tipo)) {
+                        $nombres_tipo = ['admin' => 'Administradores', 'director' => 'Directores', 'tecnico' => 'Técnicos', 'usuario' => 'Usuarios Normales'];
+                        $filtros_activos[] = "Tipo: " . ($nombres_tipo[$filtro_tipo] ?? $filtro_tipo);
+                    }
+                    if ($filtro_estado === '1') $filtros_activos[] = "Estado: Activos";
+                    if ($filtro_estado === '0') $filtros_activos[] = "Estado: Inactivos";
+                    echo implode(" | ", $filtros_activos);
+                    ?>
+                    <span class="resultado-count">→ <?php echo $stats_filtradas['total_filtrados']; ?> resultado(s)</span>
+                </div>
+                <?php endif; ?>
+                
+                <!-- Buscador -->
+                <div class="buscador-container fade-in">
+                    <form method="GET" action="admin_usuarios.php" class="buscador-form">
+                        <div class="buscador-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" name="buscar" placeholder="Buscar por nombre, usuario o correo..." value="<?php echo htmlspecialchars($buscar); ?>">
+                        </div>
+                        <div class="buscador-select">
+                            <select name="filtro_tipo">
+                                <option value="">Todos los tipos</option>
+                                <option value="admin" <?php echo $filtro_tipo == 'admin' ? 'selected' : ''; ?>>Administradores</option>
+                                <option value="director" <?php echo $filtro_tipo == 'director' ? 'selected' : ''; ?>>Directores</option>
+                                <option value="tecnico" <?php echo $filtro_tipo == 'tecnico' ? 'selected' : ''; ?>>Técnicos</option>
+                                <option value="usuario" <?php echo $filtro_tipo == 'usuario' ? 'selected' : ''; ?>>Usuarios Normales</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-buscar">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                        <?php if (!empty($buscar) || !empty($filtro_tipo) || !empty($filtro_estado)): ?>
+                            <a href="admin_usuarios.php" class="btn-limpiar">
+                                <i class="fas fa-times"></i> Limpiar
+                            </a>
+                        <?php endif; ?>
+                    </form>
                 </div>
                 
                 <!-- Tabla de usuarios -->

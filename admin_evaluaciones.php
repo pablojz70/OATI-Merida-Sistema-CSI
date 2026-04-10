@@ -203,52 +203,52 @@ try {
             color: #f39c12;
         }
         
-        /* ESTADISTICAS */
-        .stats-evaluaciones {
+        /* ESTADÍSTICAS UNIFORMES */
+        .stats-usuarios {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
-        .stat-eval {
+        .stat-usuario {
             background: white;
             border-radius: 8px;
-            padding: 15px;
+            padding: 12px;
             text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             border-top: 3px solid;
             transition: transform 0.2s;
         }
         
-        .stat-eval:hover {
+        .stat-usuario:hover {
             transform: translateY(-3px);
         }
         
-        .stat-eval.total { border-color: #1a2980; }
-        .stat-eval.promedio { border-color: #f39c12; }
-        .stat-eval.excelente { border-color: #27ae60; }
-        .stat-eval.bueno { border-color: #3498db; }
-        .stat-eval.regular { border-color: #f39c12; }
-        .stat-eval.malo { border-color: #dc3545; }
-        .stat-eval.comentarios { border-color: #9b59b6; }
+        .stat-usuario.total { border-color: #1a2980; }
+        .stat-usuario.promedio { border-color: #f39c12; }
+        .stat-usuario.excelente { border-color: #27ae60; }
+        .stat-usuario.regular { border-color: #3498db; }
+        .stat-usuario.malo { border-color: #dc3545; }
+        .stat-usuario.comentarios { border-color: #9b59b6; }
         
-        .stat-eval .numero {
-            font-size: 24px;
+        .stat-numero {
+            font-size: 20px;
             font-weight: 700;
             color: #2c3e50;
+            display: block;
         }
         
-        .stat-eval .label {
-            font-size: 10px;
+        .stat-label {
+            font-size: 11px;
             color: #7f8c8d;
             margin-top: 4px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         
-        .stat-eval .estrellas {
-            font-size: 14px;
+        .stat-usuario .estrellas {
+            font-size: 12px;
             color: #ffc107;
             margin-top: 5px;
         }
@@ -537,14 +537,14 @@ try {
             </div>
             
             <!-- ESTADISTICAS -->
-            <div class="stats-evaluaciones">
-                <div class="stat-eval total">
-                    <div class="numero"><?php echo $stats['total'] ?? 0; ?></div>
-                    <div class="label">Total Evaluaciones</div>
+            <div class="stats-usuarios">
+                <div class="stat-usuario total">
+                    <span class="stat-numero"><?php echo $stats['total'] ?? 0; ?></span>
+                    <span class="stat-label">Total Evaluaciones</span>
                 </div>
-                <div class="stat-eval promedio">
-                    <div class="numero"><?php echo number_format($stats['promedio'] ?? 0, 1); ?></div>
-                    <div class="label">Promedio</div>
+                <div class="stat-usuario promedio">
+                    <span class="stat-numero"><?php echo number_format($stats['promedio'] ?? 0, 1); ?></span>
+                    <span class="stat-label">Promedio</span>
                     <div class="estrellas">
                         <?php
                         $promedio = round($stats['promedio'] ?? 0);
@@ -554,21 +554,21 @@ try {
                         ?>
                     </div>
                 </div>
-                <div class="stat-eval excelente">
-                    <div class="numero"><?php echo ($stats['cinco_estrellas'] ?? 0) + ($stats['cuatro_estrellas'] ?? 0); ?></div>
-                    <div class="label">Excelente/Bueno</div>
+                <div class="stat-usuario excelente">
+                    <span class="stat-numero"><?php echo ($stats['cinco_estrellas'] ?? 0) + ($stats['cuatro_estrellas'] ?? 0); ?></span>
+                    <span class="stat-label">Excelente/Bueno</span>
                 </div>
-                <div class="stat-eval regular">
-                    <div class="numero"><?php echo ($stats['tres_estrellas'] ?? 0) + ($stats['dos_estrellas'] ?? 0); ?></div>
-                    <div class="label">Regular</div>
+                <div class="stat-usuario regular">
+                    <span class="stat-numero"><?php echo ($stats['tres_estrellas'] ?? 0) + ($stats['dos_estrellas'] ?? 0); ?></span>
+                    <span class="stat-label">Regular</span>
                 </div>
-                <div class="stat-eval malo">
-                    <div class="numero"><?php echo $stats['una_estrella'] ?? 0; ?></div>
-                    <div class="label">Malo</div>
+                <div class="stat-usuario malo">
+                    <span class="stat-numero"><?php echo $stats['una_estrella'] ?? 0; ?></span>
+                    <span class="stat-label">Malo</span>
                 </div>
-                <div class="stat-eval comentarios">
-                    <div class="numero"><?php echo $stats['con_comentario'] ?? 0; ?></div>
-                    <div class="label">Con Comentario</div>
+                <div class="stat-usuario comentarios">
+                    <span class="stat-numero"><?php echo $stats['con_comentario'] ?? 0; ?></span>
+                    <span class="stat-label">Con Comentario</span>
                 </div>
             </div>
             

@@ -1,4 +1,16 @@
 <!-- MENÚ PARA TÉCNICOS -->
+<?php
+// Incluir conexión a la base de datos
+require_once __DIR__ . '/../config/database.php';
+
+// Obtener cantidad de tickets disponibles (Nuevo sin técnico asignado)
+$disponibles_count = 0;
+try {
+    $stmt_disponibles = $conn->prepare("SELECT COUNT(*) as total FROM Tickets WHERE estado = 'Nuevo' AND tecnico_asignado IS NULL");
+    $stmt_disponibles->execute();
+    $disponibles_count = $stmt_disponibles->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+} catch (Exception $e) {}
+?>
 <nav class="sidebar-menu">
     <ul class="menu-list">
         <li>
@@ -18,7 +30,7 @@
         <li>
             <a href="aceptar_ticket.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'aceptar_ticket.php' ? 'active' : ''; ?>">
                 <img src="imagen/Accept.png" alt="Aceptar Tickets" class="menu-icon">
-                <span>Aceptar Tickets</span>
+                <span>Aceptar Tickets <?php if ($disponibles_count > 0): ?>(<?php echo $disponibles_count; ?>)<?php endif; ?></span>
             </a>
         </li>
         
