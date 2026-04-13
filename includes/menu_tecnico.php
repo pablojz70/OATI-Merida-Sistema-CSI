@@ -54,5 +54,12 @@ try {
                 <span>Mi Perfil</span>
             </a>
         </li>
+        
+        <li>
+            <a href="docs/ManualTecnico.html" target="_blank" class="<?php echo basename($_SERVER['PHP_SELF']) == 'ManualTecnico.html' ? 'active' : ''; ?>">
+                <img src="imagen/manual.png" alt="Manual" class="menu-icon">
+                <span>Manual de Técnico</span>
+            </a>
+        </li>
     </ul>
 </nav>

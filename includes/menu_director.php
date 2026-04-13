@@ -49,5 +49,12 @@
                 <span>Mi Perfil</span>
             </a>
         </li>
+        
+        <li>
+            <a href="docs/ManualUsuario.html" target="_blank" class="<?php echo basename($_SERVER['PHP_SELF']) == 'ManualUsuario.html' ? 'active' : ''; ?>">
+                <img src="imagen/manual.png" alt="Manual" class="menu-icon">
+                <span>Manual de Usuario</span>
+            </a>
+        </li>
     </ul>
 </nav>

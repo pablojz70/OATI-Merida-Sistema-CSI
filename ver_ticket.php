@@ -1103,11 +1103,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
             transform: scale(1.1);
         }
         
-        .estrella-btn:hover ~ .estrella-btn,
-        .estrella-btn.active ~ .estrella-btn {
-            color: #ddd;
-        }
-        
         .evaluacion-textarea {
             width: 100%;
             padding: 12px;
@@ -1638,12 +1633,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                         
                         <div class="estrellas-selector">
                             <?php for ($i = 1; $i <= 5; $i++): ?>
-                                <button type="button" class="estrella-btn" data-value="<?php echo $i; ?>" onclick="setCalificacion(<?php echo $i; ?>)">
-                                    <i class="far fa-star"></i>
+                                <button type="button" class="estrella-btn<?php echo $i === 1 ? ' active' : ''; ?>" data-value="<?php echo $i; ?>" onclick="setCalificacion(<?php echo $i; ?>)">
+                                    <i class="<?php echo $i === 1 ? 'fas fa-star' : 'far fa-star'; ?>"></i>
                                 </button>
                             <?php endfor; ?>
                         </div>
-                        <input type="hidden" name="calificacion" id="calificacion" value="0">
+                        <input type="hidden" name="calificacion" id="calificacion" value="1">
                         
                         <div style="margin-top: 15px;">
                             <label for="comentario">Comentario (opcional):</label>

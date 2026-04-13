@@ -607,37 +607,8 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
                         <!-- ESTADO -->
                         <div class="form-group">
                             <label class="form-label">Estado del Ticket:</label>
-                            <select name="estado" class="form-control" required>
-                                <?php
-                                $estados_disponibles = ['Nuevo', 'Asignado', 'En Proceso'];
-                                
-                                // Solo admin puede cerrar tickets
-                                if ($privilegio == 'admin') {
-                                    $estados_disponibles[] = 'Cerrado Exitosamente';
-                                    $estados_disponibles[] = 'Cerrado No Exitoso';
-                                }
-                                
-                                // Técnicos solo pueden poner "En Proceso" o mantener
-                                if ($privilegio == 'tecnico') {
-                                    $estados_disponibles = ['Asignado', 'En Proceso'];
-                                }
-                                
-                                foreach ($estados_disponibles as $estado_opt):
-                                    $estado_class = strtolower(str_replace(' ', '_', $estado_opt));
-                                    // Si es GET, seleccionar "En Proceso" por defecto; si es POST, mantener el valor enviado
-                                    if ($_SERVER['REQUEST_METHOD'] == 'GET' && $estado_opt == 'En Proceso') {
-                                        $selected = 'selected';
-                                    } elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                                        $selected = ($estado_opt == ($_POST['estado'] ?? '')) ? 'selected' : '';
-                                    } else {
-                                        $selected = ($estado_opt == $ticket['estado']) ? 'selected' : '';
-                                    }
-                                ?>
-                                <option value="<?php echo $estado_opt; ?>" <?php echo $selected; ?>>
-                                    <?php echo $estado_opt; ?>
-                                </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <input type="text" class="form-control" value="En Proceso" readonly style="background-color: #e8f5e9; font-weight: bold; color: #2e7d32;">
+                            <input type="hidden" name="estado" value="En Proceso">
                         </div>
                         
                         <!-- PRIORIDAD -->
