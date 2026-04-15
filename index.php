@@ -155,9 +155,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 30px 20px;
         }
         
-        .login-logo {
-            max-width: 120px;
+.login-logo {
+            width: 240px;
+            height: auto;
             margin-bottom: 15px;
+        }
+        
+        .login-logo-container {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 10px;
         }
         
         .login-header h1 {
@@ -270,7 +279,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="login-container">
         <div class="login-box">
             <div class="login-header">
-                <img src="imagen/DAR.png" alt="Logo DAR" class="login-logo">
+                <div class="login-logo-container">
+                    <img src="imagen/DAR.png" alt="Logo DAR" class="login-logo">
+                </div>
                 <h1>Sistema CSI</h1>
                 <p>Centro de Soporte Informático</p>
             </div>
@@ -310,8 +321,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </form>
                 
                 <div class="login-footer">
-                    <p>¿Problemas para ingresar? <a href="#">Contacta al administrador</a></p>
-                    <p>Versión 1.0</p>
+                    <p>¿Problemas para ingresar? Dirígete a la oficina de Informática de la DAR (OATI)</p>
+                    <p>Versión 1.1</p>
                 </div>
             </div>
         </div>

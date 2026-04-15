@@ -164,7 +164,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $sql_update = "UPDATE Tickets SET 
                           estado = :estado,
                           prioridad = :prioridad,
-                          tecnico_asignado = :tecnico_asignado";
+                          tecnico_asignado = :tecnico_asignado,
+                          compartido_bienes = :compartido_bienes";
             
             // Agregar solución solo si no está vacía
             if (!empty($solucion)) {
@@ -183,6 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 ':estado' => $nuevo_estado,
                 ':prioridad' => $prioridad,
                 ':tecnico_asignado' => $tecnico_asignado ?: null,
+                ':compartido_bienes' => !empty($_POST['compartido_bienes']) ? 1 : 0,
                 ':id' => $ticket_id
             ];
             
@@ -642,6 +644,17 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
                                 <?php endforeach; ?>
                             </select>
                             <small style="font-size: 10px; color: #666;">Selecciona un técnico o asígnalo a ti mismo (⭐)</small>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <!-- COMPARTIR CON BIENES (solo admin) -->
+                        <?php if ($privilegio == 'admin'): ?>
+                        <div class="form-group">
+                            <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" name="compartido_bienes" value="1" <?php echo !empty($ticket['compartido_bienes']) ? 'checked' : ''; ?>>
+                                <span>Compartir con Bienes</span>
+                            </label>
+                            <small style="font-size: 10px; color: #666;">Bienes podrá ver este ticket en su Bandeja</small>
                         </div>
                         <?php endif; ?>
                         

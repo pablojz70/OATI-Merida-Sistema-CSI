@@ -1208,11 +1208,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                     </a>
                     
                     <?php if ($privilegio != 'director'): ?>
-                    <!-- Botón EDITAR (solo para el creador si NO está asignado y NO está cerrado) -->
+                    <!-- Botón EDITAR (solo para el creador si está en estado Nuevo, o admin) -->
                     <?php if (
-                        $ticket['usuario_id'] == $id_usuario && 
+                        ($ticket['usuario_id'] == $id_usuario && 
                         empty($ticket['tecnico_asignado']) && 
-                        $ticket['estado'] == 'Nuevo'
+                        $ticket['estado'] == 'Nuevo') ||
+                        ($privilegio == 'admin')
                     ): ?>
                         <a href="editar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action edit" title="Editar ticket">
                             <i class="fas fa-edit"></i>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual de Bienes - Sistema CSI</title>
+    <style>
+        @page { size: A4; margin: 2cm; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background: white; }
+        .portada { text-align: center; padding: 60px 20px; page-break-after: always; }
+        .portada img { width: 100px; height: 100px; margin-bottom: 20px; }
+        .portada h1 { font-size: 28pt; color: #1a2980; margin-bottom: 10px; text-transform: uppercase; }
+        .portada h2 { font-size: 18pt; color: #0d6e6e; margin-bottom: 20px; }
+        .portada .subtitulo { font-size: 14pt; color: #666; margin-top: 30px; }
+        .portada .version { font-size: 10pt; color: #999; margin-top: 50px; }
+        h1 { font-size: 18pt; color: #1a2980; border-bottom: 3px solid #0d6e6e; padding-bottom: 10px; margin: 30px 0 20px; page-break-after: avoid; }
+        h2 { font-size: 14pt; color: #1a2980; margin: 25px 0 15px; page-break-after: avoid; }
+        p { margin-bottom: 10px; text-align: justify; }
+        ul, ol { margin: 10px 0 10px 30px; }
+        li { margin-bottom: 5px; }
+        .captura { margin: 20px 0; text-align: center; page-break-inside: avoid; }
+        .captura img { max-width: 100%; height: auto; }
+        .captura .titulo { font-size: 11pt; font-weight: bold; color: #3498db; margin-bottom: 10px; }
+        .nota-importante { background: #f8f9fa; border-left: 4px solid #6c757d; padding: 15px; margin: 15px 0; page-break-inside: avoid; }
+        .nota-importante strong { color: #495057; }
+        .nota-info { background: #f8f9fa; border-left: 4px solid #6c757d; padding: 15px; margin: 15px 0; page-break-inside: avoid; }
+        .nota-info strong { color: #495057; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; page-break-inside: avoid; }
+        th { background: #1a2980; color: white; padding: 10px; text-align: left; font-size: 10pt; }
+        td { padding: 8px 10px; border-bottom: 1px solid #ddd; font-size: 10pt; }
+        tr:nth-child(even) { background: #f8f9fa; }
+        .toc { background: #f8f9fa; padding: 20px; margin: 20px 0; border: 1px solid #ddd; }
+        .toc h2 { margin-top: 0; }
+        .toc-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dotted #ccc; }
+        .toc-item a { color: #3498db; text-decoration: none; }
+        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; font-size: 9pt; color: #666; }
+        .menu-img { height: 20px; width: auto; margin-right: 8px; vertical-align: middle; }
+    </style>
+</head>
+<body>
+<div class="portada">
+    <img src="../imagen/DAR.png" alt="Logo DAR" style="width: 120px; height: auto; margin-bottom: 20px;">
+    <h1>Manual de Bienes</h1>
+    <h2>Centro de Soporte Informático</h2>
+    <p class="subtitulo">Guía para Usuarios de Bienes del Sistema CSI</p>
+    <p class="version"><strong>Versión 1.0</strong><br>Abril 2026</p>
+</div>
+
+<div class="toc">
+    <h2>Contenido</h2>
+    <div class="toc-item"><a href="#ini">1. Inicio de Sesión</a><span>1</span></div>
+    <div class="toc-item"><a href="#menu">2. Menú de Bienes</a><span>2</span></div>
+    <div class="toc-item"><a href="#bandeja">3. Bandeja de Bienes</a><span>3</span></div>
+    <div class="toc-item"><a href="#crear">4. Crear un Ticket</a><span>4</span></div>
+    <div class="toc-item"><a href="#seguir">5. Seguimiento de Tickets</a><span>5</span></div>
+    <div class="toc-item"><a href="#perfil">6. Mi Perfil</a><span>6</span></div>
+</div>
+
+<h1 id="ini">1. Inicio de Sesión</h1>
+<p>Para acceder al sistema como usuario de Bienes, abra su navegador web y diríjase a la dirección del sistema CSI.</p>
+<ol>
+    <li>Ingrese su <strong>Usuario</strong> y <strong>Contraseña</strong></li>
+    <li>Haga clic en <strong>"Iniciar Sesión"</strong></li>
+</ol>
+<div class="captura">
+    <img src="../imagen/Pantalla1.png" alt="Pantalla 1">
+    <div class="titulo">PANTALLA 1: Login</div>
+</div>
+<div class="nota-importante"><strong>Importante:</strong> Sus credenciales son personales. No las comparta con terceros.</div>
+
+<h1 id="menu">2. Menú de Bienes</h1>
+<p>Al iniciar sesión, verá las siguientes opciones:</p>
+<table>
+    <tr><th>Opción</th><th>Descripción</th></tr>
+    <tr><td><img src="../imagen/Home.png" class="menu-img"> Inicio</td><td>Dashboard con estadísticas</td></tr>
+    <tr><td><img src="../imagen/Add Ticket.png" class="menu-img"> Nuevo Ticket</td><td>Crear un nuevo ticket</td></tr>
+    <tr><td><img src="../imagen/Cabinet.png" class="menu-img"> Mis Tickets</td><td>Ver tickets creados</td></tr>
+    <tr><td><img src="../imagen/bienes.png" class="menu-img"> Bandeja</td><td>Ver tickets compartiados</td></tr>
+    <tr><td><img src="../imagen/User.png" class="menu-img"> Mi Perfil</td><td>Editar datos personales</td></tr>
+    <tr><td><img src="../imagen/manual.png" class="menu-img"> Manual de Bienes</td><td>Ver este manual</td></tr>
+</table>
+<div class="captura">
+    <img src="../imagen/Pantalla2.png" alt="Pantalla 2">
+    <div class="titulo">PANTALLA 2: Menú Lateral</div>
+</div>
+
+<h1 id="bandeja">3. Bandeja de Bienes</h1>
+<p>La Bandeja es una sección especial donde podrá ver los tickets que los técnicos o administradores han compartidos con usted para su seguimiento.</p>
+
+<h2>3.1 ¿Cómo llega un ticket a la Bandeja?</h2>
+<ul>
+    <li>Un técnico o administrador procesa un ticket</li>
+    <li>Al procesar, marca la opción <strong>"Compartir con Bienes"</strong></li>
+    <li>El ticket aparecerá automáticamente en su Bandeja</li>
+</ul>
+
+<div class="nota-info"><strong>Nota:</strong> Solo los tickets marcados por técnicos o administradores aparecerán en la Bandeja.</div>
+
+<h2>3.2 Ver detalles del ticket</h2>
+<ol>
+    <li>En la Bandeja, busque el ticket que desea ver</li>
+    <li>Haga clic en el botón <strong>"Ver"</strong></li>
+    <li>Podrá ver toda la información del ticket</li>
+</ol>
+
+<h2>3.3 Filtros disponibles</h2>
+<ul>
+    <li>Filtrar por estado (Nuevo, Asignado, En Proceso, Cerrado)</li>
+    <li>Buscar por número, asunto o descripción</li>
+</ul>
+
+<h1 id="crear">4. Crear un Ticket</h1>
+<h2>4.1 Pasos para crear un ticket</h2>
+<ol>
+    <li>Haga clic en <strong>"Nuevo Ticket"</strong></li>
+    <li>Complete todos los campos obligatorios</li>
+    <li>Haga clic en <strong>"Crear Ticket"</strong></li>
+</ol>
+
+<h2>4.2 Campos del formulario</h2>
+<table>
+    <tr><th>Campo</th><th>Descripción</th></tr>
+    <tr><td>Dependencia</td><td>Lugar físico donde está el problema</td></tr>
+    <tr><td>Área de Soporte</td><td>Tipo de soporte necesario</td></tr>
+    <tr><td>Servicio Específico</td><td>Servicio particular</td></tr>
+    <tr><td>Asunto</td><td>Título breve del problema</td></tr>
+    <tr><td>Descripción</td><td>Detalle completo del problema</td></tr>
+    <tr><td>Prioridad</td><td>Urgente, Alta, Media, Baja</td></tr>
+</table>
+
+<div class="captura">
+    <img src="../imagen/Pantalla3.png" alt="Pantalla 3">
+    <div class="titulo">PANTALLA 3: Formulario de Nuevo Ticket</div>
+</div>
+
+<div class="nota-info"><strong>Nota:</strong> La "Dependencia" indica el lugar FÍSICO del problema, no su área de trabajo.</div>
+
+<h1 id="seguir">5. Seguimiento de Tickets</h1>
+<h2>5.1 Ver mis tickets</h2>
+<ol>
+    <li>Haga clic en <strong>"Mis Tickets"</strong></li>
+    <li>Verá todos los tickets que ha creado</li>
+    <li>Cada ticket muestra: número, asunto, estado, fecha</li>
+</ol>
+<div class="captura">
+    <img src="../imagen/Pantalla4.png" alt="Pantalla 4">
+    <div class="titulo">PANTALLA 4: Mis Tickets</div>
+</div>
+
+<h2>5.2 Ver detalle</h2>
+<ol>
+    <li>Haga clic en el ticket que desea ver</li>
+    <li>Podrá ver: estado, técnico asignado, solución aplicada, archivos</li>
+</ol>
+
+<h2>5.3 Estados de un ticket</h2>
+<table>
+    <tr><th>Estado</th><th>Descripción</th></tr>
+    <tr><td>Nuevo</td><td>Ticket creado, sin asignar</td></tr>
+    <tr><td>Asignado</td><td>Técnico asignado</td></tr>
+    <tr><td>En Proceso</td><td>Técnico trabajando</td></tr>
+    <tr><td>Cerrado Exitosamente</td><td>Problema resuelto</td></tr>
+    <tr><td>Cerrado No Exitoso</td><td>No se pudo resolver</td></tr>
+</table>
+
+<h1 id="perfil">6. Mi Perfil</h1>
+<ol>
+    <li>Haga clic en <strong>"Mi Perfil"</strong></li>
+    <li>Actualice: nombre, correo electrónico</li>
+    <li>Cambiar contraseña: ingrese contraseña actual y nueva</li>
+    <li>Guarde los cambios</li>
+</ol>
+<div class="captura">
+    <img src="../imagen/Pantalla6.png" alt="Pantalla 6">
+    <div class="titulo">PANTALLA 6: Mi Perfil</div>
+</div>
+
+
+<div class="footer">
+    <p><strong>Sistema CSI</strong> - Centro de Soporte Informático</p>
+    <p>Manual de Bienes | Versión 1.0 | Abril 2026</p>
+    <p style="margin-top: 15px; font-style: italic;">TSU. Pedagogo. Pablo Zambrano</p>
+</div>
+</body>
+</html>

@@ -51,17 +51,17 @@ try {
         exit();
     }
     
-    if ($ticket['usuario_id'] != $id_usuario) {
+    if ($ticket['usuario_id'] != $id_usuario && $privilegio != 'admin') {
         header('Location: mis_tickets.php?error=permiso_denegado');
         exit();
     }
     
-    if (!empty($ticket['tecnico_asignado'])) {
+    if (!empty($ticket['tecnico_asignado']) && $privilegio != 'admin') {
         header('Location: ver_ticket.php?id=' . $ticket_id . '?error=no_editable');
         exit();
     }
     
-    if ($ticket['estado'] != 'Nuevo') {
+    if ($ticket['estado'] != 'Nuevo' && $privilegio != 'admin') {
         header('Location: ver_ticket.php?id=' . $ticket_id . '?error=no_editable');
         exit();
     }

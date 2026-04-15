@@ -425,7 +425,7 @@ function formatBytes($bytes, $precision = 2) {
                                         <a href="detalle_ticket.php?id=<?php echo $ticket['id']; ?>" class="btn-action btn-view" title="Ver detalles">
                                             <i class="fas fa-eye"></i> Ver
                                         </a>
-                                        <?php if ($ticket['estado'] == 'Nuevo'): ?>
+                                        <?php if ($ticket['estado'] == 'Nuevo' || obtenerPrivilegio() == 'admin'): ?>
                                         <a href="editar_ticket.php?id=<?php echo $ticket['id']; ?>" class="btn-action btn-edit" title="Editar ticket">
                                             <i class="fas fa-edit"></i> Editar
                                         </a>
@@ -517,8 +517,11 @@ function formatBytes($bytes, $precision = 2) {
         // Confirmación para acciones
         document.addEventListener('click', function(e) {
             if (e.target.closest('.btn-edit')) {
-                if (!confirm('¿Está seguro de que desea editar este ticket? Solo puede editar tickets en estado "Nuevo".')) {
-                    e.preventDefault();
+                var privilegio = '<?php echo obtenerPrivilegio(); ?>';
+                if (privilegio !== 'admin') {
+                    if (!confirm('¿Está seguro de que desea editar este ticket? Solo puede editar tickets en estado "Nuevo".')) {
+                        e.preventDefault();
+                    }
                 }
             }
         });

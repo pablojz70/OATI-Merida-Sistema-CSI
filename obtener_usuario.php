@@ -663,6 +663,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
                                 <select id="privilegio" name="privilegio" required>
                                     <option value="usuario" <?php echo ($usuario['privilegio'] ?? '') == 'usuario' ? 'selected' : ''; ?>>Usuario Normal</option>
                                     <option value="tecnico" <?php echo ($usuario['privilegio'] ?? '') == 'tecnico' ? 'selected' : ''; ?>>Técnico</option>
+                                    <option value="bienes" <?php echo ($usuario['privilegio'] ?? '') == 'bienes' ? 'selected' : ''; ?>>Bienes</option>
                                     <option value="director" <?php echo ($usuario['privilegio'] ?? '') == 'director' ? 'selected' : ''; ?>>Director</option>
                                     <option value="admin" <?php echo ($usuario['privilegio'] ?? '') == 'admin' ? 'selected' : ''; ?>>Administrador</option>
                                 </select>
