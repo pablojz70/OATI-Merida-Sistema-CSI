@@ -117,7 +117,7 @@ if (!empty($buscar)) {
     $params[] = "%$buscar%";
 }
 
-if (!empty($filtro_tipo) && in_array($filtro_tipo, ['admin', 'director', 'tecnico', 'usuario'])) {
+if (!empty($filtro_tipo) && in_array($filtro_tipo, ['admin', 'director', 'tecnico', 'usuario', 'bienes'])) {
     $where_conditions[] = "u.privilegio = ?";
     $params[] = $filtro_tipo;
 }
@@ -162,6 +162,7 @@ $stats_query = "
         SUM(CASE WHEN privilegio = 'admin' THEN 1 ELSE 0 END) as admins,
         SUM(CASE WHEN privilegio = 'tecnico' THEN 1 ELSE 0 END) as tecnicos,
         SUM(CASE WHEN privilegio = 'director' THEN 1 ELSE 0 END) as directores,
+        SUM(CASE WHEN privilegio = 'bienes' THEN 1 ELSE 0 END) as bienes,
         SUM(CASE WHEN privilegio = 'usuario' THEN 1 ELSE 0 END) as usuarios,
         SUM(CASE WHEN activo = 1 THEN 1 ELSE 0 END) as activos,
         SUM(CASE WHEN activo = 0 THEN 1 ELSE 0 END) as inactivos
@@ -269,6 +270,7 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
         .stat-usuario.admin { border-color: #e74c3c; }
         .stat-usuario.tecnico { border-color: #f39c12; }
         .stat-usuario.director { border-color: #2e7d32; }
+        .stat-usuario.bienes { border-color: #9b59b6; }
         .stat-usuario.usuario { border-color: #3498db; }
         .stat-usuario.activo { border-color: #27ae60; }
         
@@ -941,6 +943,12 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
                             <span class="stat-label">Directores</span>
                         </div>
                     </a>
+                    <a href="admin_usuarios.php?filtro_tipo=bienes" class="stat-link">
+                        <div class="stat-usuario bienes">
+                            <span class="stat-numero"><?php echo $stats['bienes'] ?? 0; ?></span>
+                            <span class="stat-label">Bienes</span>
+                        </div>
+                    </a>
                     <a href="admin_usuarios.php?filtro_tipo=usuario" class="stat-link">
                         <div class="stat-usuario usuario">
                             <span class="stat-numero"><?php echo $stats['usuarios']; ?></span>
@@ -969,7 +977,7 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
                     $filtros_activos = [];
                     if (!empty($buscar)) $filtros_activos[] = "Búsqueda: \"$buscar\"";
                     if (!empty($filtro_tipo)) {
-                        $nombres_tipo = ['admin' => 'Administradores', 'director' => 'Directores', 'tecnico' => 'Técnicos', 'usuario' => 'Usuarios Normales'];
+                        $nombres_tipo = ['admin' => 'Administradores', 'director' => 'Directores', 'tecnico' => 'Técnicos', 'bienes' => 'Bienes', 'usuario' => 'Usuarios Normales'];
                         $filtros_activos[] = "Tipo: " . ($nombres_tipo[$filtro_tipo] ?? $filtro_tipo);
                     }
                     if ($filtro_estado === '1') $filtros_activos[] = "Estado: Activos";
@@ -993,6 +1001,7 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
                                 <option value="admin" <?php echo $filtro_tipo == 'admin' ? 'selected' : ''; ?>>Administradores</option>
                                 <option value="director" <?php echo $filtro_tipo == 'director' ? 'selected' : ''; ?>>Directores</option>
                                 <option value="tecnico" <?php echo $filtro_tipo == 'tecnico' ? 'selected' : ''; ?>>Técnicos</option>
+                                <option value="bienes" <?php echo $filtro_tipo == 'bienes' ? 'selected' : ''; ?>>Bienes</option>
                                 <option value="usuario" <?php echo $filtro_tipo == 'usuario' ? 'selected' : ''; ?>>Usuarios Normales</option>
                             </select>
                         </div>

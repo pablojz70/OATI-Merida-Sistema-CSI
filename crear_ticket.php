@@ -95,7 +95,8 @@ $datos_formulario = [
     'prioridad' => 'media',
     'tecnico_asignado' => '',
     'dependencia_id' => $dependencia_id,
-    'lugar_area' => ''
+    'lugar_area' => '',
+    'fecha_ticket' => ''
 ];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -108,8 +109,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Usuarios normales siempre tienen prioridad media
     if ($privilegio == 'admin' || $privilegio == 'tecnico') {
         $datos_formulario['prioridad'] = $_POST['prioridad'] ?? 'media';
+        $datos_formulario['fecha_ticket'] = $_POST['fecha_ticket'] ?? '';
     } else {
         $datos_formulario['prioridad'] = 'media'; // Forzar media para usuarios normales
+        $datos_formulario['fecha_ticket'] = '';
     }
     
     $datos_formulario['lugar_area'] = trim($_POST['lugar_area'] ?? '');
@@ -211,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 numero_ticket, usuario_id, dependencia_id, lugar_area, area_id, 
                 servicio_id, asunto, descripcion, prioridad, estado, 
                 tecnico_asignado, fecha_creacion
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, NOW()))";
             
             $params = [
                 $numero_ticket,
@@ -224,7 +227,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $datos_formulario['descripcion'],
                 $datos_formulario['prioridad'],
                 $estado_inicial,
-                (($privilegio == 'admin' || $privilegio == 'tecnico') && $datos_formulario['tecnico_asignado']) ? $datos_formulario['tecnico_asignado'] : null
+                (($privilegio == 'admin' || $privilegio == 'tecnico') && $datos_formulario['tecnico_asignado']) ? $datos_formulario['tecnico_asignado'] : null,
+                !empty($datos_formulario['fecha_ticket']) ? $datos_formulario['fecha_ticket'] : null
             ];
             
             $stmt = $conn->prepare($sql);
@@ -813,6 +817,13 @@ if (!file_exists($menu_archivo)) {
                                 <option value="urgente" <?php echo $datos_formulario['prioridad'] == 'urgente' ? 'selected' : ''; ?>>Urgente</option>
                             </select>
                             <small style="color: #666; font-size: 11px;">Solo administradores y técnicos pueden modificar la prioridad</small>
+                        </div>
+                        
+                        <!-- Fecha editable para admin y técnicos -->
+                        <div class="form-group">
+                            <label for="fecha_ticket"><i class="fas fa-calendar"></i> Fecha del Ticket</label>
+                            <input type="datetime-local" class="form-control" id="fecha_ticket" name="fecha_ticket" value="">
+                            <small style="color: #666; font-size: 11px;">Opcional: Dejar vacío para usar fecha actual</small>
                         </div>
                         <?php else: ?>
                         <!-- Prioridad fija para usuarios normales -->
