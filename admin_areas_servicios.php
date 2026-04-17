@@ -753,7 +753,7 @@ $servicios = $conn->query("
                                                     <input type="hidden" name="accion" value="eliminar_area">
                                                     <input type="hidden" name="id" value="<?php echo $area['id']; ?>">
                                                     <button type="submit" class="btn btn-sm btn-danger">
-                                                        <i class="fas fa-trash"></i>
+                                                        <img src="imagen/borrar.png" alt="Eliminar" style="width:12px;height:12px;">
                                                     </button>
                                                 </form>
                                                 <?php endif; ?>
@@ -847,7 +847,7 @@ $servicios = $conn->query("
                                                     <input type="hidden" name="accion" value="eliminar_servicio">
                                                     <input type="hidden" name="id" value="<?php echo $servicio['id']; ?>">
                                                     <button type="submit" class="btn btn-sm btn-danger">
-                                                        <i class="fas fa-trash"></i>
+                                                        <img src="imagen/borrar.png" alt="Eliminar" style="width:12px;height:12px;">
                                                     </button>
                                                 </form>
                                             </div>

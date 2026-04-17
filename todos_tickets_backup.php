@@ -1167,7 +1167,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                             <a href="ver_ticket.php?id=<?php echo $ticket['id']; ?>" 
                                                class="btn-accion-ticket btn-ver-ticket" 
                                                title="Ver detalle del ticket <?php echo htmlspecialchars($ticket['numero_ticket'] ?? ''); ?>">
-                                                <i class="fas fa-eye"></i>
+                                                <img src="imagen/ojo.png" alt="Ver" style="width:12px;height:12px;">
                                             </a>
                                             
                                             <?php if (!$es_solo_lectura): ?>

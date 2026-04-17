@@ -423,7 +423,7 @@ function formatBytes($bytes, $precision = 2) {
                                 <td>
                                     <div class="ticket-actions">
                                         <a href="detalle_ticket.php?id=<?php echo $ticket['id']; ?>" class="btn-action btn-view" title="Ver detalles">
-                                            <i class="fas fa-eye"></i> Ver
+                                            <img src="imagen/ojo.png" alt="Ver" style="width:12px;height:12px;"> Ver
                                         </a>
                                         <?php if ($ticket['estado'] == 'Nuevo' || obtenerPrivilegio() == 'admin'): ?>
                                         <a href="editar_ticket.php?id=<?php echo $ticket['id']; ?>" class="btn-action btn-edit" title="Editar ticket">

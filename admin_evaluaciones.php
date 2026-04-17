@@ -742,7 +742,7 @@ try {
                                     </td>
                                     <td>
                                         <a href="ver_ticket.php?id=<?php echo $eval['ticket_id']; ?>" class="btn-ver-ticket">
-                                            <i class="fas fa-eye"></i> Ver
+                                            <img src="imagen/ojo.png" alt="Ver" style="width:12px;height:12px;"> Ver
                                         </a>
                                     </td>
                                 </tr>

@@ -1382,7 +1382,7 @@ try {
                                         <a href="ver_ticket.php?id=<?php echo $ticket['id']; ?>" 
                                            class="btn-header-action btn-action-small" 
                                            style="background: #3498db; color: white;">
-                                            <i class="fas fa-eye"></i> Ver
+                                            <img src="imagen/ojo.png" alt="Ver" style="width:12px;height:12px;"> Ver
                                         </a>
                                     </td>
                                 </tr>

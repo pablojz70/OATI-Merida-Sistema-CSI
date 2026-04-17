@@ -78,6 +78,8 @@ try {
         $puede_ver = ($ticket['tecnico_asignado'] == $id_usuario);
     } elseif ($privilegio == 'usuario') {
         $puede_ver = ($ticket['usuario_id'] == $id_usuario);
+    } elseif ($privilegio == 'bienes') {
+        $puede_ver = ($ticket['compartido_bienes'] == 1);
     }
     
     if (!$puede_ver) {
@@ -85,6 +87,8 @@ try {
             $redirect_url = 'todos_tickets.php';
         } elseif ($privilegio == 'tecnico') {
             $redirect_url = 'tickets_asignados.php';
+        } elseif ($privilegio == 'bienes') {
+            $redirect_url = 'bandeja_bienes.php';
         } else {
             $redirect_url = 'mis_tickets.php';
         }

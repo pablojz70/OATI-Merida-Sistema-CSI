@@ -1104,7 +1104,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                     <td>
                                         <?php if (!empty($ticket['tecnico_nombre'])): ?>
                                             <div style="display: flex; align-items: center; gap: 4px;">
-                                                <i class="fas fa-user-check" style="color: #27ae60; font-size: 10px;"></i>
+                                                <img src="imagen/TecnicoAsignado.png" alt="Asignado" style="width:12px;height:12px;">
                                                 <span style="font-weight: 600;">
                                                     <?php echo htmlspecialchars(substr($ticket['tecnico_nombre'], 0, 12)); ?>
                                                     <?php if (strlen($ticket['tecnico_nombre']) > 12): ?>...<?php endif; ?>
@@ -1115,7 +1115,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                             </div>
                                         <?php else: ?>
                                             <div style="display: flex; align-items: center; gap: 4px;">
-                                                <i class="fas fa-user-clock" style="color: #dc3545; font-size: 10px;"></i>
+                                                <img src="imagen/TecnicoAsignar.png" alt="Sin asignar" style="width:12px;height:12px;">
                                                 <span style="color:#dc3545; font-size:9px; font-weight:600;">Sin asignar</span>
                                             </div>
                                             <div style="font-size: 8px; color: #666; margin-top: 2px;">
@@ -1167,7 +1167,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                             <a href="ver_ticket.php?id=<?php echo $ticket['id']; ?>" 
                                                class="btn-accion-ticket btn-ver-ticket" 
                                                title="Ver detalle del ticket <?php echo htmlspecialchars($ticket['numero_ticket'] ?? ''); ?>">
-                                                <i class="fas fa-eye"></i>
+                                                <img src="imagen/ojo.png" alt="Ver" style="width:12px;height:12px;">
                                             </a>
                                             
                                             <?php if (!$es_solo_lectura): ?>
@@ -1181,7 +1181,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                                         class="btn-accion-ticket btn-asignar-ticket <?php echo $ticketAsignado ? 'disabled' : ''; ?>" 
                                                         title="<?php echo $ticketAsignado ? 'Ticket ya asignado a: '.htmlspecialchars($ticket['tecnico_nombre'] ?? '') : 'Asignar técnico'; ?>"
                                                         <?php echo $ticketAsignado ? 'disabled' : ''; ?>>
-                                                    <i class="fas <?php echo $ticketAsignado ? 'fa-user-check' : 'fa-user-plus'; ?>"></i>
+                                                    <img src="imagen/<?php echo $ticketAsignado ? 'TecnicoAsignado.png' : 'TecnicoAsignar.png'; ?>" alt="<?php echo $ticketAsignado ? 'Asignado' : 'Asignar'; ?>" style="width:12px;height:12px;">
                                                 </button>
                                             <?php endif; ?>
                                             
@@ -1190,7 +1190,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                                 <button onclick="verificarAntesDeCerrar(<?php echo $ticket['id']; ?>)" 
                                                         class="btn-accion-ticket btn-cerrar-ticket" 
                                                         title="Cerrar ticket">
-                                                    <i class="fas fa-check"></i>
+                                                    <img src="imagen/CerrarTicket.png" alt="Cerrar" style="width:12px;height:12px;">
                                                 </button>
                                             <?php endif; ?>
                                             
@@ -1199,7 +1199,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                                class="btn-accion-ticket btn-eliminar-ticket" 
                                                title="Eliminar ticket"
                                                onclick="return confirm('¿Eliminar ticket #<?php echo htmlspecialchars($ticket['numero_ticket'] ?? ''); ?>?\n\nEsta acción no se puede deshacer.');">
-                                                <i class="fas fa-trash"></i>
+                                                <img src="imagen/borrar.png" alt="Eliminar" style="width:12px;height:12px;">
                                             </a>
                                             <?php endif; ?>
                                         </div>
@@ -1242,7 +1242,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
     <div id="modal-asignar" class="modal-custom">
         <div class="modal-content-custom">
             <div class="modal-header-custom">
-                <h3><i class="fas fa-user-plus"></i> Asignar Ticket</h3>
+                <h3><img src="imagen/TecnicoAsignado.png" alt="Asignar" style="width:16px;height:16px;"> Asignar Ticket</h3>
             </div>
             
             <form id="form-asignar" method="POST" class="modal-form-custom">

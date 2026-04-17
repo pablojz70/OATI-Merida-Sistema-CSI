@@ -169,6 +169,8 @@ img {
     color: white;
     background-color: var(--gray-color);
     border-color: var(--gray-color);
+    line-height: 1;
+    padding: 6px 10px;
 }
 
 .btn-success {
@@ -181,6 +183,8 @@ img {
     color: white;
     background-color: var(--danger-color);
     border-color: var(--danger-color);
+    line-height: 1;
+    padding: 6px 10px;
 }
 
 .btn-warning {

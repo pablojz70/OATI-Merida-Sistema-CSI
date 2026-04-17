@@ -728,7 +728,7 @@ $stats = $stats_stmt->fetch();
     <!-- Ver Detalle (SIEMPRE visible) -->
     <a href="ver_ticket.php?id=<?php echo $ticket['id']; ?>" 
        class="btn-accion-tecnico btn-ver-ticket">
-        <i class="fas fa-eye"></i> Ver
+        <img src="imagen/ojo.png" alt="Ver" style="width:12px;height:12px;"> Ver
     </a>
     
     <?php 

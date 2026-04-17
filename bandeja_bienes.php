@@ -112,6 +112,17 @@ $cerrados = $stmt_count->fetch()['total'];
         .buscador-select select:focus { outline: none; border-color: #1a2980; }
         .btn-buscar { padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
         .btn-buscar:hover { background: #2980b9; transform: translateY(-1px); }
+        
+        .table-tickets { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .table-tickets th { background: #f8f9fa; padding: 8px 10px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6; white-space: nowrap; }
+        .table-tickets td { padding: 6px 10px; border-bottom: 1px solid #dee2e6; vertical-align: middle; }
+        .table-tickets tr:hover { background: #f8f9fa; }
+        .table-tickets th:first-child, .table-tickets td:first-child { width: 60px; text-align: center; }
+        .table-tickets th:nth-child(2), .table-tickets td:nth-child(2) { width: 80px; }
+        .table-tickets th:last-child, .table-tickets td:last-child { width: 50px; text-align: center; }
+        
+        .btn-view { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #17a2b8; color: white; border-radius: 4px; text-decoration: none; font-size: 12px; }
+        .btn-view:hover { background: #138496; }
     </style>
 </head>
 <body>
@@ -195,32 +206,22 @@ $cerrados = $stmt_count->fetch()['total'];
                                 <th>Fecha</th>
                                 <th>Asunto</th>
                                 <th>Dependencia</th>
-                                <th>Área</th>
-                                <th>Solicitante</th>
-                                <th>Técnico</th>
                                 <th>Estado</th>
-                                <th>Prioridad</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($tickets as $ticket): ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($ticket['numero_ticket']); ?></td>
+                                <td><?php echo htmlspecialchars(substr($ticket['numero_ticket'], -5)); ?></td>
                                 <td><?php echo date('d/m/Y', strtotime($ticket['fecha_creacion'])); ?></td>
                                 <td><?php echo htmlspecialchars($ticket['asunto']); ?></td>
                                 <td><?php echo htmlspecialchars($ticket['dependencia_nombre']); ?></td>
-                                <td><?php echo htmlspecialchars($ticket['area_nombre']); ?></td>
-                                <td><?php echo htmlspecialchars($ticket['usuario_nombre']); ?></td>
-                                <td><?php echo htmlspecialchars($ticket['tecnico_nombre'] ?? '-'); ?></td>
                                 <td><span class="badge-estado-ticket badge-<?php echo strtolower(str_replace(' ', '-', $ticket['estado'])); ?>"><?php echo $ticket['estado']; ?></span></td>
-                                <td><span class="priority-indicator prioridad-<?php echo strtolower($ticket['prioridad']); ?>"><?php echo strtoupper($ticket['prioridad'][0]); ?></span></td>
                                 <td>
-                                    <div class="acciones-rapidas-tickets">
-                                        <a href="detalle_ticket.php?id=<?php echo $ticket['id']; ?>" class="btn-accion-ticket btn-view-ticket" title="Ver ticket">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </div>
+                                    <a href="ver_ticket.php?id=<?php echo $ticket['id']; ?>" class="btn-view" title="Ver ticket">
+                                        <img src="imagen/ojo.png" alt="Ver" style="width:15px;height:10px;">
+                                    </a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

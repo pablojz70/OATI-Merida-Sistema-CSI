@@ -570,7 +570,7 @@ if (!file_exists($menu_archivo)) {
                                             </button>
                                             
                                             <button class="btn-custom btn-danger-custom btn-sm-custom" onclick="confirmarEliminar(<?php echo $dep['id']; ?>, '<?php echo addslashes($dep['nombre']); ?>')">
-                                                <i class="fas fa-trash"></i> Eliminar
+                                                <img src="imagen/borrar.png" alt="Eliminar" style="width:12px;height:12px;"> Eliminar
                                             </button>
                                         </td>
                                     </tr>
@@ -723,7 +723,7 @@ if (!file_exists($menu_archivo)) {
                         <i class="fas fa-times"></i> Cancelar
                     </button>
                     <button type="submit" class="btn-custom btn-danger-custom">
-                        <i class="fas fa-trash"></i> Eliminar Dependencia
+                        <img src="imagen/borrar.png" alt="Eliminar" style="width:12px;height:12px;"> Eliminar Dependencia
                     </button>
                 </div>
             </form>

@@ -540,7 +540,7 @@ try {
                 <!-- CREAR BACKUP MANUAL -->
                 <div class="card">
                     <div class="card-header">
-                        <i class="fas fa-download"></i> Crear Backup Manual
+                        <img src="imagen/descarga.png" alt="Backup" style="width:18px;height:18px;"> Crear Backup Manual
                     </div>
                     
                     <form method="POST">
@@ -621,7 +621,7 @@ try {
                             <small style="color: #666; font-size: 11px;">Los backups más antiguos se eliminarán automáticamente</small>
                         </div>
                         
-                        <button type="submit" class="btn-secondary">
+                        <button type="submit" class="btn-backup">
                             <i class="fas fa-save"></i> Guardar Configuración
                         </button>
                     </form>
@@ -658,17 +658,17 @@ try {
                                 </td>
                                 <td><?php echo date('d/m/Y H:i:s', strtotime($backup['fecha'])); ?></td>
                                 <td><?php echo $backup['tamano']; ?> MB</td>
-                                <td>
+                                <td style="white-space: nowrap;">
                                     <a href="descargar_backup.php?archivo=<?php echo urlencode($backup['nombre']); ?>" 
-                                       class="btn-secondary" style="text-decoration: none;">
-                                        <i class="fas fa-download"></i> Descargar
+                                       class="btn-secondary" style="text-decoration: none; height: 28px; line-height: 16px; display: inline-flex; align-items: center; justify-content: center;">
+                                        <img src="imagen/descarga.png" alt="Descargar" style="width:18px;height:18px;">
                                     </a>
-                                    <form method="POST" style="display: inline;" 
+                                    <form method="POST" style="display: inline; margin-left: 5px;" 
                                           onsubmit="return confirm('¿Eliminar este backup?');">
                                         <input type="hidden" name="accion" value="eliminar_backup">
                                         <input type="hidden" name="archivo" value="<?php echo htmlspecialchars($backup['nombre']); ?>">
-                                        <button type="submit" class="btn-danger">
-                                            <i class="fas fa-trash"></i>
+                                        <button type="submit" class="btn-danger" style="height: 28px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">
+                                            <img src="imagen/borrar.png" alt="Eliminar" style="width:18px;height:18px;">
                                         </button>
                                     </form>
                                 </td>

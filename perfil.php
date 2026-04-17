@@ -743,7 +743,7 @@ if (!file_exists($menu_archivo)) {
                                     </div>
                                     <div style="margin-top: 10px;">
                                         <a href="ver_ticket.php?id=<?php echo $ticket['id']; ?>" class="btn" style="padding:5px 10px; font-size:12px;">
-                                            <i class="fas fa-eye"></i> Ver Detalles
+                                            <img src="imagen/ojo.png" alt="Ver" style="width:12px;height:12px;"> Ver Detalles
                                         </a>
                                     </div>
                                 </div>
