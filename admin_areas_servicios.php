@@ -738,13 +738,13 @@ $servicios = $conn->query("
                                         <td><?php echo $count_servicios; ?></td>
                                         <td>
                                             <div class="btn-group">
-                                                <button class="btn btn-sm btn-warning" onclick="editarArea(<?php echo htmlspecialchars(json_encode($area)); ?>)">
-                                                    <i class="fas fa-edit"></i>
+                                                <button class="btn btn-sm btn-warning" onclick="editarArea(<?php echo htmlspecialchars(json_encode($area)); ?>)" title="Editar área">
+                                                    <img src="imagen/Document.png" alt="Editar" style="width:12px;height:12px;">
                                                 </button>
                                                 <form method="POST" style="display: inline;">
                                                     <input type="hidden" name="accion" value="toggle_area">
                                                     <input type="hidden" name="id" value="<?php echo $area['id']; ?>">
-                                                    <button type="submit" class="btn btn-sm <?php echo $area['activa'] ? 'btn-secondary' : 'btn-success'; ?>">
+                                                    <button type="submit" class="btn btn-sm <?php echo $area['activa'] ? 'btn-secondary' : 'btn-success'; ?>" title="<?php echo $area['activa'] ? 'Desactivar área' : 'Activar área'; ?>">
                                                         <i class="fas fa-<?php echo $area['activa'] ? 'ban' : 'check'; ?>"></i>
                                                     </button>
                                                 </form>
@@ -752,7 +752,7 @@ $servicios = $conn->query("
                                                 <form method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar esta área?');">
                                                     <input type="hidden" name="accion" value="eliminar_area">
                                                     <input type="hidden" name="id" value="<?php echo $area['id']; ?>">
-                                                    <button type="submit" class="btn btn-sm btn-danger">
+                                                    <button type="submit" class="btn btn-sm btn-danger" title="Eliminar área">
                                                         <img src="imagen/borrar.png" alt="Eliminar" style="width:12px;height:12px;">
                                                     </button>
                                                 </form>
@@ -833,20 +833,20 @@ $servicios = $conn->query("
                                         </td>
                                         <td>
                                             <div class="btn-group">
-                                                <button class="btn btn-sm btn-warning" onclick="editarServicio(<?php echo htmlspecialchars(json_encode($servicio)); ?>)">
-                                                    <i class="fas fa-edit"></i>
+                                                <button class="btn btn-sm btn-warning" onclick="editarServicio(<?php echo htmlspecialchars(json_encode($servicio)); ?>)" title="Editar servicio">
+                                                    <img src="imagen/Document.png" alt="Editar" style="width:12px;height:12px;">
                                                 </button>
                                                 <form method="POST" style="display: inline;">
                                                     <input type="hidden" name="accion" value="toggle_servicio">
                                                     <input type="hidden" name="id" value="<?php echo $servicio['id']; ?>">
-                                                    <button type="submit" class="btn btn-sm <?php echo $servicio['activo'] ? 'btn-secondary' : 'btn-success'; ?>">
+                                                    <button type="submit" class="btn btn-sm <?php echo $servicio['activo'] ? 'btn-secondary' : 'btn-success'; ?>" title="<?php echo $servicio['activo'] ? 'Desactivar servicio' : 'Activar servicio'; ?>">
                                                         <i class="fas fa-<?php echo $servicio['activo'] ? 'ban' : 'check'; ?>"></i>
                                                     </button>
                                                 </form>
                                                 <form method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar este servicio?');">
                                                     <input type="hidden" name="accion" value="eliminar_servicio">
                                                     <input type="hidden" name="id" value="<?php echo $servicio['id']; ?>">
-                                                    <button type="submit" class="btn btn-sm btn-danger">
+                                                    <button type="submit" class="btn btn-sm btn-danger" title="Eliminar servicio">
                                                         <img src="imagen/borrar.png" alt="Eliminar" style="width:12px;height:12px;">
                                                     </button>
                                                 </form>
