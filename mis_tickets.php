@@ -77,7 +77,7 @@ if (!file_exists($menu_archivo)) {
     <title>Mis Tickets - Centro de Soporte Informático</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/estilos2.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
     <style>
     /* Estilos adicionales específicos para mis_tickets */
     .tickets-container {

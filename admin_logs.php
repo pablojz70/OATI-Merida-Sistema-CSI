@@ -100,7 +100,7 @@ $estadisticas = $stmt_stats->fetch(PDO::FETCH_ASSOC);
     <title>Logs del Sistema - CSI</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/estilos2.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
     <style>
         .logs-container {
             margin-left: 190px;

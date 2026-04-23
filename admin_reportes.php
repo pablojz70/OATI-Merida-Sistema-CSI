@@ -296,14 +296,14 @@ try {
     <title>Reportes - CSI</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/estilos2.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
+    <link rel="stylesheet" href="vendor/datatables/jquery.dataTables.min.css">
     <!-- Cargar jQuery primero (requerido por DataTables) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="vendor/jquery.min.js"></script>
     <!-- Cargar DataTables después de jQuery -->
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="vendor/datatables/jquery.dataTables.min.js"></script>
     <!-- Cargar Chart.js al final (después de jQuery) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="vendor/chart.js/chart.umd.min.js"></script>
     <style>
         /* ESTILOS ESPECÍFICOS PARA REPORTES COMPACTOS */
         .main-content-custom {
@@ -1433,12 +1433,12 @@ try {
         const colores = {
             azul: '#1a2980',
             cyan: '#26d0ce',
-            verde: '#27ae60',
-            naranja: '#f39c12',
-            rojo: '#e74c3c',
+            verde: '#00b894',
+            naranja: '#e17055',
+            rojo: '#d63031',
             gris: '#95a5a6',
             morado: '#9b59b6',
-            rosa: '#e91e63',
+            rosa: '#fd79a8',
             teal: '#009688',
             indigo: '#3f51b5'
         };
@@ -1471,11 +1471,12 @@ try {
                                 data: data,
                                 backgroundColor: data.map((_, i) => {
                                     const estado = labels[i].toLowerCase();
-                                    if (estado.includes('cerrado') && estado.includes('exitoso')) return colores.verde;
-                                    if (estado.includes('cerrado') && estado.includes('exito')) return colores.rojo;
-                                    if (estado.includes('proceso')) return colores.naranja;
-                                    if (estado.includes('asignado')) return colores.cyan;
-                                    return colores.azul;
+                                    if (estado.includes('no resuelto')) return '#e74c3c';
+                                    if (estado.includes('resuelto')) return '#1a2980';
+                                    if (estado.includes('proceso')) return '#f39c12';
+                                    if (estado.includes('asignado')) return '#3498db';
+                                    if (estado.includes('nuevo')) return '#9b59b6';
+                                    return '#1a2980';
                                 }),
                                 borderWidth: 0,
                                 hoverOffset: 10
@@ -1938,7 +1939,7 @@ try {
                     "pageLength": 10,
                     "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
                     "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+                        "url": "vendor/datatables/es-ES.json"
                     },
                     "order": [[1, "desc"]],
                     "dom": '<"top"f>rt<"bottom"lip><"clear">',
@@ -1951,7 +1952,7 @@ try {
                     "pageLength": 10,
                     "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
                     "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+                        "url": "vendor/datatables/es-ES.json"
                     },
                     "order": [[1, "desc"]],
                     "dom": '<"top"f>rt<"bottom"lip><"clear">'
@@ -1961,7 +1962,7 @@ try {
                     "pageLength": 10,
                     "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
                     "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+                        "url": "vendor/datatables/es-ES.json"
                     },
                     "order": [[3, "desc"]],
                     "dom": '<"top"f>rt<"bottom"lip><"clear">',
@@ -1981,7 +1982,7 @@ try {
                     "pageLength": 25,
                     "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Todos"]],
                     "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+                        "url": "vendor/datatables/es-ES.json"
                     },
                     "order": [[0, "desc"]],
                     "dom": '<"top"f>rt<"bottom"lip><"clear">',

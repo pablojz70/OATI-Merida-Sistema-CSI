@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aceptar Tickets - Sistema CSI</title>
     <link rel="stylesheet" href="css/estilos.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
     <style>
         /* ESTILOS ESPECÍFICOS PARA ACEPTAR TICKETS */
         body {

@@ -262,7 +262,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
     <title>Ticket #<?php echo htmlspecialchars($ticket['numero_ticket']); ?> - CSI</title>
     <link rel="stylesheet" href="css/estilos.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="css/estilos2.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
     <style>
         /* ESTILOS ESPECÍFICOS PARA VER TICKET */
         .ticket-detail-container {

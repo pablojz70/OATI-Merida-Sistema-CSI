@@ -66,7 +66,6 @@ class BackupManager {
         $fecha = date('Y-m-d H:i:s');
         $log_mensaje = "[$fecha] $mensaje\n";
         file_put_contents($this->log_file, $log_mensaje, FILE_APPEND);
-        echo $log_mensaje;
     }
     
     public function hacerBackup($opciones = []) {

@@ -287,7 +287,7 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
     <title><?php echo $titulo; ?> - CSI</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/estilos2.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
     <style>
         /* ESTILOS ESPECÍFICOS PARA PROCESAR TICKET */
         .process-container {

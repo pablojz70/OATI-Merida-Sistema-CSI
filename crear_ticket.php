@@ -427,9 +427,9 @@ if (!file_exists($menu_archivo)) {
     <title>Crear Nuevo Ticket - CSI</title>
     <link rel="stylesheet" href="css/estilos.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="css/estilos2.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
     <!-- jQuery en el header para evitar problemas de carga -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="vendor/jquery.min.js"></script>
     <style>
         .crear-ticket-container {
             margin-left: 190px;

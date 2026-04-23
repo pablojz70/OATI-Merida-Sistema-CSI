@@ -208,7 +208,7 @@ if (!file_exists($menu_archivo)) {
     <title>CSI - Centro de Soporte Informático</title>
     <link rel="stylesheet" href="css/estilos.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="css/estilos2.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
     <style>
     /* Estilos adicionales para consistencia */
     .session-warning {
