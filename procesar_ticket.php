@@ -153,6 +153,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $tecnico_asignado = $_POST['tecnico_asignado'] ?? $ticket['tecnico_asignado'];
         $prioridad = $_POST['prioridad'] ?? $ticket['prioridad'];
         $solucion = trim($_POST['solucion'] ?? '');
+        $numero_bien = trim($_POST['numero_bien'] ?? '');
+        $serial = trim($_POST['serial'] ?? '');
         
         // Validaciones básicas
         if (($nuevo_estado == 'Cerrado Exitosamente' || $nuevo_estado == 'Cerrado No Exitoso') && empty($solucion)) {
@@ -165,7 +167,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                           estado = :estado,
                           prioridad = :prioridad,
                           tecnico_asignado = :tecnico_asignado,
-                          compartido_bienes = :compartido_bienes";
+                          compartido_bienes = :compartido_bienes,
+                          numero_bien = :numero_bien,
+                          serial = :serial";
             
             // Agregar solución solo si no está vacía
             if (!empty($solucion)) {
@@ -185,6 +189,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 ':prioridad' => $prioridad,
                 ':tecnico_asignado' => $tecnico_asignado ?: null,
                 ':compartido_bienes' => !empty($_POST['compartido_bienes']) ? 1 : 0,
+                ':numero_bien' => $numero_bien ?: null,
+                ':serial' => $serial ?: null,
                 ':id' => $ticket_id
             ];
             
@@ -287,7 +293,7 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
         .process-container {
             margin-left: 190px;
             padding: 10px;
-            max-height: calc(100vh - 50px);
+            width: 800px;
             overflow-y: auto;
             background: #f8fafc;
         }
@@ -583,9 +589,20 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
                     <?php endif; ?>
                     - #<?php echo htmlspecialchars($ticket['numero_ticket']); ?>
                 </h1>
-                <a href="ver_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-form secondary">
-                    <i class="fas fa-arrow-left"></i> Volver al Ticket
-                </a>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <a href="ver_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-form secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al Ticket
+                    </a>
+                    <?php if (!empty($ticket['numero_bien']) || !empty($ticket['serial'])): ?>
+                    <a href="ficha_mantenimiento.php?ticket_id=<?php echo $ticket_id; ?>" class="btn-form secondary" target="_blank">
+                        <i class="fas fa-file-alt"></i> Cédula
+                    </a>
+                    <?php else: ?>
+                    <span class="btn-form secondary" style="opacity: 0.5; cursor: not-allowed; pointer-events: none;" title="Ingrese Número de Bien o Serial para activar">
+                        <i class="fas fa-file-alt"></i> Cédula
+                    </span>
+                    <?php endif; ?>
+                </div>
             </div>
             
             <!-- MENSAJES -->
@@ -607,7 +624,7 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
                 <div class="form-container" style="flex: 2;">
                     <form method="POST" action="">
                         <!-- ESTADO -->
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 25px;">
                             <label class="form-label">Estado del Ticket:</label>
                             <input type="text" class="form-control" value="En Proceso" readonly style="background-color: #e8f5e9; font-weight: bold; color: #2e7d32;">
                             <input type="hidden" name="estado" value="En Proceso">
@@ -657,6 +674,23 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
                             <small style="font-size: 10px; color: #666;">Bienes podrá ver este ticket en su Bandeja</small>
                         </div>
                         <?php endif; ?>
+                        
+                        <!-- DATOS DEL BIEN NACIONAL -->
+                        <div class="form-group">
+                            <label class="form-label"><i class="fas fa-barcode"></i> Datos del Bien Nacional (opcional):</label>
+                            <div style="display: flex; gap: 15px; align-items: flex-end;">
+                                <div style="flex: 1;">
+                                    <input type="text" name="numero_bien" class="form-control" 
+                                           value="<?php echo htmlspecialchars($ticket['numero_bien'] ?? ''); ?>" 
+                                           maxlength="15" placeholder="Número de Bien (Ej: 03-28-7258)">
+                                </div>
+                                <div style="flex: 1;">
+                                    <input type="text" name="serial" class="form-control" 
+                                           value="<?php echo htmlspecialchars($ticket['serial'] ?? ''); ?>" 
+                                           maxlength="50" placeholder="Serial del equipo">
+                                </div>
+                            </div>
+                        </div>
                         
                         <!-- SOLUCIÓN (requerida solo para cerrar) -->
                         <div class="form-group">

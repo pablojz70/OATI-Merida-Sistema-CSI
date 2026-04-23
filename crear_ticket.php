@@ -96,7 +96,9 @@ $datos_formulario = [
     'tecnico_asignado' => '',
     'dependencia_id' => $dependencia_id,
     'lugar_area' => '',
-    'fecha_ticket' => ''
+    'fecha_ticket' => '',
+    'numero_bien' => '',
+    'serial' => ''
 ];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -213,8 +215,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $sql = "INSERT INTO Tickets (
                 numero_ticket, usuario_id, dependencia_id, lugar_area, area_id, 
                 servicio_id, asunto, descripcion, prioridad, estado, 
-                tecnico_asignado, fecha_creacion
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, NOW()))";
+                tecnico_asignado, fecha_creacion, numero_bien, serial
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, NOW()), ?, ?)";
             
             $params = [
                 $numero_ticket,
@@ -228,7 +230,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $datos_formulario['prioridad'],
                 $estado_inicial,
                 (($privilegio == 'admin' || $privilegio == 'tecnico') && $datos_formulario['tecnico_asignado']) ? $datos_formulario['tecnico_asignado'] : null,
-                !empty($datos_formulario['fecha_ticket']) ? $datos_formulario['fecha_ticket'] : null
+                !empty($datos_formulario['fecha_ticket']) ? $datos_formulario['fecha_ticket'] : null,
+                !empty($datos_formulario['numero_bien']) ? $datos_formulario['numero_bien'] : null,
+                !empty($datos_formulario['serial']) ? $datos_formulario['serial'] : null
             ];
             
             $stmt = $conn->prepare($sql);
@@ -790,6 +794,35 @@ if (!file_exists($menu_archivo)) {
                                       placeholder="Describa el problema con todo detalle"><?php echo htmlspecialchars($datos_formulario['descripcion']); ?></textarea>
                         </div>
                         
+                        <div class="form-group" style="display: flex; gap: 15px; align-items: flex-end;">
+                            <div style="flex: 1;">
+                                <label for="numero_bien">Número de Bien:</label>
+                                <div style="display: flex; align-items: center; gap: 5px;">
+                                    <input type="text" class="form-control" id="numero_bien" name="numero_bien" 
+                                           value="<?php echo htmlspecialchars($datos_formulario['numero_bien'] ?? ''); ?>" 
+                                           maxlength="15" placeholder="03-28-7258" style="width: 100%;">
+                                    <button type="button" onclick="buscarEnIntradar('numero_bien')" title="Buscar en INTRADAR">
+                                        <img src="imagen/Search.png" alt="Buscar" style="width: 28px; height: 28px;">
+                                    </button>
+                                </div>
+                                <img id="icon_bien_ok" src="imagen/Accept.png" alt="Encontrado" style="width: 22px; height: 22px; display: none; margin-top: 2px;">
+                            </div>
+                            
+                            <div style="flex: 1;">
+                                <label for="serial">Serial:</label>
+                                <div style="display: flex; align-items: center; gap: 5px;">
+                                    <input type="text" class="form-control" id="serial" name="serial" 
+                                           value="<?php echo htmlspecialchars($datos_formulario['serial'] ?? ''); ?>" 
+                                           maxlength="50" placeholder="Serial" style="width: 100%;">
+                                    <button type="button" onclick="buscarEnIntradar('serial')" title="Buscar en INTRADAR">
+                                        <img src="imagen/Search.png" alt="Buscar" style="width: 28px; height: 28px;">
+                                    </button>
+                                </div>
+                                <img id="icon_serial_ok" src="imagen/Accept.png" alt="Encontrado" style="width: 22px; height: 22px; display: none; margin-top: 2px;">
+                                <div id="bien_descripcion" style="font-size: 10px; color: #666; margin-top: 3px; display: none;"></div>
+                            </div>
+                        </div>
+                        
                         <!-- CAMPO PARA ADJUNTAR ARCHIVOS -->
                         <div class="form-group">
                             <label for="archivos">Adjuntar archivos (opcional):</label>
@@ -930,6 +963,64 @@ if (!file_exists($menu_archivo)) {
             }
         }
     })();
+    
+    // Función para buscar en INTRADAR
+    function buscarEnIntradar(campo) {
+        var numeroBien = document.getElementById('numero_bien').value.trim();
+        var serial = document.getElementById('serial').value.trim();
+        var iconBienOk = document.getElementById('icon_bien_ok');
+        var iconSerialOk = document.getElementById('icon_serial_ok');
+        
+        if (campo === 'numero_bien') {
+            if (!numeroBien) {
+                alert('Ingrese el Número de Bien para buscar');
+                return;
+            }
+            numeroBien = numeroBien.replace(/[^0-9]/g, '');
+        } else if (campo === 'serial') {
+            if (!serial) {
+                alert('Ingrese el Serial para buscar');
+                return;
+            }
+        }
+        
+        var formData = new FormData();
+        formData.append('tipo', campo);
+        formData.append('numero_bien', numeroBien);
+        formData.append('serial', serial);
+        
+        fetch('buscar_intradar.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.encontrado) {
+                if (data.numero_bien) {
+                    document.getElementById('numero_bien').value = data.numero_bien;
+                    iconBienOk.style.display = 'inline-block';
+                }
+                if (data.serial) {
+                    document.getElementById('serial').value = data.serial;
+                    iconSerialOk.style.display = 'inline-block';
+                }
+                if (data.descripcion) {
+                    var descDiv = document.getElementById('bien_descripcion');
+                    descDiv.textContent = data.descripcion;
+                    descDiv.style.display = 'block';
+                }
+            } else {
+                iconBienOk.style.display = 'none';
+                iconSerialOk.style.display = 'none';
+                document.getElementById('bien_descripcion').style.display = 'none';
+                alert('No se encontró el bien en INTRADAR');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al buscar en INTRADAR');
+        });
+    }
     </script>
     
     <!-- jQuery Scripts (se ejecutan si jQuery está disponible) -->

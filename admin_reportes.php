@@ -186,12 +186,12 @@ try {
 $por_dependencia = [];
 try {
     $dep_sql = "SELECT 
-        d.nombre as dependencia_nombre,
+        COALESCE(d.nombre_corto, d.nombre) as dependencia_nombre,
         COUNT(t.id) as total
     FROM Tickets t
     LEFT JOIN Dependencias d ON t.dependencia_id = d.id
     $where_sql
-    GROUP BY t.dependencia_id, d.nombre
+    GROUP BY t.dependencia_id, d.nombre_corto, d.nombre
     ORDER BY total DESC
     LIMIT 8";
     $stmt_dep = $conn->prepare($dep_sql);
@@ -1568,7 +1568,7 @@ try {
                     new Chart(ctxDep, {
                         type: 'bar',
                         data: {
-                            labels: datosPorDependencia.map(d => d.dependencia_nombre ? d.dependencia_nombre.substring(0, 18) : 'Sin dep.'),
+                            labels: datosPorDependencia.map(d => d.dependencia_nombre || 'Sin dep.'),
                             datasets: [{
                                 label: 'Tickets',
                                 data: datosPorDependencia.map(d => d.total),
@@ -1779,7 +1779,7 @@ try {
                     new Chart(ctxBarras, {
                         type: 'bar',
                         data: {
-                            labels: datosPorDependencia.map(d => d.dependencia_nombre ? d.dependencia_nombre.substring(0, 12) : 'Sin dep.'),
+                            labels: datosPorDependencia.map(d => d.dependencia_nombre || 'Sin dep.'),
                             datasets: [{
                                 label: 'Tickets',
                                 data: datosPorDependencia.map(d => d.total),

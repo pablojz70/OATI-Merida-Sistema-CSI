@@ -1212,7 +1212,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                     </a>
                     
                     <?php if ($privilegio != 'director'): ?>
-                    <!-- Botón EDITAR (solo para el creador si está en estado Nuevo, o admin) -->
+                    <!-- Botón EDITAR (solo para el creador si está en estado Nuevo, o admin, o director) -->
                     <?php if (
                         ($ticket['usuario_id'] == $id_usuario && 
                         empty($ticket['tecnico_asignado']) && 
@@ -1402,6 +1402,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                     <?php echo nl2br(htmlspecialchars($ticket['descripcion'])); ?>
                 </div>
             </div>
+            
+            <?php if ($ticket['numero_bien'] || $ticket['serial']): ?>
+            <!-- DATOS DEL BIEN NACIONAL -->
+            <div class="content-card">
+                <h3><i class="fas fa-barcode"></i> Datos del Bien Nacional</h3>
+                <div class="content-text" style="display: flex; gap: 30px;">
+                    <?php if ($ticket['numero_bien']): ?>
+                    <p><strong>Número de Bien:</strong> <?php echo htmlspecialchars($ticket['numero_bien']); ?></p>
+                    <?php endif; ?>
+                    <?php if ($ticket['serial']): ?>
+                    <p><strong>Serial:</strong> <?php echo htmlspecialchars($ticket['serial']); ?></p>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php endif; ?>
             
             <!-- ============================================
                  SECCIÓN DE ARCHIVOS ADJUNTOS CON VISTA PREVIA

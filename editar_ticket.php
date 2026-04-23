@@ -51,17 +51,17 @@ try {
         exit();
     }
     
-    if ($ticket['usuario_id'] != $id_usuario && $privilegio != 'admin') {
+    if ($ticket['usuario_id'] != $id_usuario && !in_array($privilegio, ['admin', 'director'])) {
         header('Location: mis_tickets.php?error=permiso_denegado');
         exit();
     }
     
-    if (!empty($ticket['tecnico_asignado']) && $privilegio != 'admin') {
+    if (!empty($ticket['tecnico_asignado']) && $privilegio != 'admin' && $privilegio != 'director') {
         header('Location: ver_ticket.php?id=' . $ticket_id . '?error=no_editable');
         exit();
     }
     
-    if ($ticket['estado'] != 'Nuevo' && $privilegio != 'admin') {
+    if ($ticket['estado'] != 'Nuevo' && $privilegio != 'admin' && $privilegio != 'director') {
         header('Location: ver_ticket.php?id=' . $ticket_id . '?error=no_editable');
         exit();
     }
@@ -130,7 +130,10 @@ $datos = [
     'area_id' => $ticket['area_id'],
     'servicio_id' => $ticket['servicio_id'],
     'asunto' => $ticket['asunto'],
-    'descripcion' => $ticket['descripcion']
+    'descripcion' => $ticket['descripcion'],
+    'prioridad' => $ticket['prioridad'] ?? 'Media',
+    'numero_bien' => $ticket['numero_bien'] ?? '',
+    'serial' => $ticket['serial'] ?? ''
 ];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -140,6 +143,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $datos['lugar_area'] = trim($_POST['lugar_area'] ?? '');
     $datos['asunto'] = trim($_POST['asunto'] ?? '');
     $datos['descripcion'] = trim($_POST['descripcion'] ?? '');
+    $datos['prioridad'] = trim($_POST['prioridad'] ?? '');
+    $datos['numero_bien'] = trim($_POST['numero_bien'] ?? '');
+    $datos['serial'] = trim($_POST['serial'] ?? '');
     
     if (empty($datos['asunto']) || strlen($datos['asunto']) < 5) {
         $errores[] = "El asunto debe tener al menos 5 caracteres";
@@ -167,25 +173,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     if (empty($errores)) {
         try {
-            $sql_update = "UPDATE Tickets SET 
-                          dependencia_id = ?, 
-                          lugar_area = ?, 
-                          area_id = ?, 
-                          servicio_id = ?, 
-                          asunto = ?, 
-                          descripcion = ?
-                          WHERE id = ?";
-            
-            $stmt_update = $conn->prepare($sql_update);
-            $stmt_update->execute([
+            $campos_update = "dependencia_id = ?, lugar_area = ?, area_id = ?, servicio_id = ?, asunto = ?, descripcion = ?";
+            $valores_update = [
                 $datos['dependencia_id'],
                 $datos['lugar_area'],
                 $datos['area_id'],
                 $datos['servicio_id'],
                 $datos['asunto'],
-                $datos['descripcion'],
-                $ticket_id
-            ]);
+                $datos['descripcion']
+            ];
+            
+            if ($privilegio == 'admin' && !empty($datos['prioridad'])) {
+                $campos_update .= ", prioridad = ?";
+                $valores_update[] = $datos['prioridad'];
+            }
+            
+            if ($privilegio == 'admin') {
+                if (isset($_POST['numero_bien'])) {
+                    $campos_update .= ", numero_bien = ?";
+                    $valores_update[] = $datos['numero_bien'] ?: null;
+                }
+                if (isset($_POST['serial'])) {
+                    $campos_update .= ", serial = ?";
+                    $valores_update[] = $datos['serial'] ?: null;
+                }
+            }
+            
+            $sql_update = "UPDATE Tickets SET $campos_update WHERE id = ?";
+            $valores_update[] = $ticket_id;
+            
+            $stmt_update = $conn->prepare($sql_update);
+            $stmt_update->execute($valores_update);
             
             if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
                 $ruta_base = "/opt/lampp/htdocs/sistema_csi/adjuntos/tickets/";
@@ -517,6 +535,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             <form method="POST" action="" id="formEditarTicket" enctype="multipart/form-data">
                 <div class="form-grid">
+                    <?php if ($privilegio == 'admin'): ?>
+                    <div class="form-card">
+                        <h3><i class="fas fa-star"></i> Datos del Ticket</h3>
+                        
+                        <div class="form-group">
+                            <label for="prioridad">Prioridad</label>
+                            <select class="form-control" id="prioridad" name="prioridad">
+                                <option value="Baja" <?php echo ($datos['prioridad'] ?? '') == 'Baja' ? 'selected' : ''; ?>>Baja</option>
+                                <option value="Media" <?php echo ($datos['prioridad'] ?? '') == 'Media' ? 'selected' : ''; ?>>Media</option>
+                                <option value="Alta" <?php echo ($datos['prioridad'] ?? '') == 'Alta' ? 'selected' : ''; ?>>Alta</option>
+                                <option value="Urgente" <?php echo ($datos['prioridad'] ?? '') == 'Urgente' ? 'selected' : ''; ?>>Urgente</option>
+                            </select>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    
                     <div class="form-card">
                         <h3><i class="fas fa-map-marker-alt"></i> Ubicación de la Falla</h3>
                         
@@ -589,6 +623,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <textarea class="form-control" id="descripcion" name="descripcion" 
                                       rows="6" required><?php echo htmlspecialchars($datos['descripcion']); ?></textarea>
                         </div>
+                        
+                        <?php if ($privilegio == 'admin'): ?>
+                        <div class="form-group" style="display: flex; gap: 15px; align-items: flex-end;">
+                            <div style="flex: 1;">
+                                <label for="numero_bien">Número de Bien:</label>
+                                <input type="text" class="form-control" id="numero_bien" name="numero_bien" 
+                                       value="<?php echo htmlspecialchars($datos['numero_bien'] ?? ''); ?>" 
+                                       maxlength="15" placeholder="03-28-7258" style="width: 100%;">
+                            </div>
+                            
+                            <div style="flex: 1;">
+                                <label for="serial">Serial:</label>
+                                <input type="text" class="form-control" id="serial" name="serial" 
+                                       value="<?php echo htmlspecialchars($datos['serial'] ?? ''); ?>" 
+                                       maxlength="50" placeholder="Serial" style="width: 100%;">
+                            </div>
+                        </div>
+                        <?php endif; ?>
                     </div>
                     
                     <div class="form-card" style="grid-column: 1 / -1;">
