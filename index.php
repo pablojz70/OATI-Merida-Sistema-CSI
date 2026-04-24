@@ -152,21 +152,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
             color: white;
             text-align: center;
-            padding: 30px 20px;
+            padding: 20px 20px;
         }
         
 .login-logo {
-            width: 240px;
+            width: 300px;
             height: auto;
-            margin-bottom: 15px;
         }
         
         .login-logo-container {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
             display: inline-block;
-            margin-bottom: 10px;
         }
         
         .login-header h1 {
@@ -321,8 +316,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </form>
                 
                 <div class="login-footer">
-                    <p>¿Problemas para ingresar? Dirígete a la oficina de Informática de la DAR (OATI)</p>
-                    <p>Versión 1.1</p>
+                    <p>¿Problemas para ingresar? Dirígete a la Oficina de Apoyo Técnico Informático de la Dirección Administrativa Regional de Mérida. OATI - DAR - Mérida</p>
+                    <p>Versión 1.1.20</p>
                 </div>
             </div>
         </div>
