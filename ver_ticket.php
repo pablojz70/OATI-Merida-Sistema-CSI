@@ -1243,9 +1243,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                     <!-- Botón ELIMINAR (solo admin) -->
                     <?php if ($privilegio == 'admin'): ?>
                         <a href="eliminar_ticket.php?id=<?php echo $ticket_id; ?>" 
-                           class="btn-ticket-action danger" 
+                           class="btn-ticket-action danger btn-eliminar-ticket" 
                            title="Eliminar ticket"
-                           onclick="return confirm('¿Está seguro de eliminar el ticket #<?php echo htmlspecialchars($ticket['numero_ticket']); ?>?\n\nEsta acción no se puede deshacer.');">
+                           data-id="<?php echo $ticket_id; ?>"
+                           data-numero="<?php echo htmlspecialchars($ticket['numero_ticket']); ?>">
                             <i class="fas fa-trash"></i>
                         </a>
                     <?php endif; ?>
@@ -2203,6 +2204,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
         if (calificacionInicial > 0) {
             setCalificacion(parseInt(calificacionInicial));
         }
+        
+        // Eliminar ticket con AJAX
+        document.querySelectorAll('.btn-eliminar-ticket').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                var ticketId = this.getAttribute('data-id');
+                var ticketNumero = this.getAttribute('data-numero');
+                
+                if (confirm('¿Eliminar ticket #' + ticketNumero + '?\n\nEsta acción no se puede deshacer.')) {
+                    window.location.href = 'eliminar_ticket.php?id=' + ticketId;
+                }
+            });
+        });
     });
     </script>
 </body>

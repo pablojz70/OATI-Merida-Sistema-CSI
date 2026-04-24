@@ -1194,13 +1194,8 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                                 </button>
                                             <?php endif; ?>
                                             
-                                            <!-- Botón Eliminar - Solo admin -->
-                                            <a href="eliminar_ticket.php?id=<?php echo $ticket['id']; ?>" 
-                                               class="btn-accion-ticket btn-eliminar-ticket" 
-                                               title="Eliminar ticket"
-                                               onclick="return confirm('¿Eliminar ticket #<?php echo htmlspecialchars($ticket['numero_ticket'] ?? ''); ?>?\n\nEsta acción no se puede deshacer.');">
-                                                <img src="imagen/borrar.png" alt="Eliminar" style="width:12px;height:12px;">
-                                            </a>
+                                            <!-- Botón Eliminar - Solo desde ver_ticket.php -->
+                                            <!-- El botón de eliminar está disponible en la página de ver_ticket.php -->
                                             <?php endif; ?>
                                         </div>
                                     </td>
@@ -1606,8 +1601,30 @@ $total_activos = $activos_data['total_activos'] ?? 0;
         
         // Log inicial
         console.log('=== TODOS_TICKETS.PHP CARGADO ===');
-        console.log('Botones de asignar encontrados:', document.querySelectorAll('.btn-asignar-ticket').length);
     });
+    </script>
+    
+    <!-- Script directo para eliminar -->
+    <script>
+    // Función global para eliminar ticket
+    window.eliminarTicket = function(ticketId, ticketNumero) {
+        if (confirm('¿Eliminar ticket #' + ticketNumero + '?\n\nEsta acción no se puede deshacer.')) {
+            window.location.href = 'eliminar_ticket.php?id=' + ticketId;
+        }
+    };
+    
+    // Asignar eventos inmediatamente
+    (function() {
+        var btns = document.querySelectorAll('.btn-eliminar-ticket');
+        for (var i = 0; i < btns.length; i++) {
+            btns[i].onclick = function() {
+                var id = this.getAttribute('data-id');
+                var num = this.getAttribute('data-numero');
+                window.eliminarTicket(id, num);
+                return false;
+            };
+        }
+    })();
     </script>
 </body>
 </html>

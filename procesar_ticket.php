@@ -680,14 +680,29 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
                             <label class="form-label"><i class="fas fa-barcode"></i> Datos del Bien Nacional (opcional):</label>
                             <div style="display: flex; gap: 15px; align-items: flex-end;">
                                 <div style="flex: 1;">
-                                    <input type="text" name="numero_bien" class="form-control" 
-                                           value="<?php echo htmlspecialchars($ticket['numero_bien'] ?? ''); ?>" 
-                                           maxlength="15" placeholder="Número de Bien (Ej: 03-28-7258)">
+                                    <label for="numero_bien">Número de Bien:</label>
+                                    <div style="display: flex; align-items: center; gap: 5px;">
+                                        <input type="text" name="numero_bien" id="numero_bien" class="form-control" 
+                                               value="<?php echo htmlspecialchars($ticket['numero_bien'] ?? ''); ?>" 
+                                               maxlength="15" placeholder="Número de Bien (Ej: 03-28-7258)" style="width: 100%;">
+                                        <button type="button" onclick="buscarEnIntradar('numero_bien')" title="Buscar en INTRADAR">
+                                            <img src="imagen/Search.png" alt="Buscar" style="width: 28px; height: 28px;">
+                                        </button>
+                                    </div>
+                                    <img id="icon_bien_ok" src="imagen/Accept.png" alt="Encontrado" style="width: 22px; height: 22px; display: none; margin-top: 2px;">
                                 </div>
                                 <div style="flex: 1;">
-                                    <input type="text" name="serial" class="form-control" 
-                                           value="<?php echo htmlspecialchars($ticket['serial'] ?? ''); ?>" 
-                                           maxlength="50" placeholder="Serial del equipo">
+                                    <label for="serial">Serial:</label>
+                                    <div style="display: flex; align-items: center; gap: 5px;">
+                                        <input type="text" name="serial" id="serial" class="form-control" 
+                                               value="<?php echo htmlspecialchars($ticket['serial'] ?? ''); ?>" 
+                                               maxlength="50" placeholder="Serial del equipo" style="width: 100%;">
+                                        <button type="button" onclick="buscarEnIntradar('serial')" title="Buscar en INTRADAR">
+                                            <img src="imagen/Search.png" alt="Buscar" style="width: 28px; height: 28px;">
+                                        </button>
+                                    </div>
+                                    <img id="icon_serial_ok" src="imagen/Accept.png" alt="Encontrado" style="width: 22px; height: 22px; display: none; margin-top: 2px;">
+                                    <div id="bien_descripcion" style="font-size: 10px; color: #666; margin-top: 3px; display: none;"></div>
                                 </div>
                             </div>
                         </div>
@@ -887,6 +902,66 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
             firstInput.focus();
         }
     });
+    
+    // Función para buscar en INTRADAR
+    function buscarEnIntradar(campo) {
+        console.log('Buscando en INTRADAR, campo:', campo);
+        alert('Buscando en INTRADAR, campo: ' + campo);
+        var numeroBien = document.getElementById('numero_bien').value.trim();
+        var serial = document.getElementById('serial').value.trim();
+        var iconBienOk = document.getElementById('icon_bien_ok');
+        var iconSerialOk = document.getElementById('icon_serial_ok');
+        
+        if (campo === 'numero_bien') {
+            if (!numeroBien) {
+                alert('Ingrese el Número de Bien para buscar');
+                return;
+            }
+            numeroBien = numeroBien.replace(/[^0-9]/g, '');
+        } else if (campo === 'serial') {
+            if (!serial) {
+                alert('Ingrese el Serial para buscar');
+                return;
+            }
+        }
+        
+        var formData = new FormData();
+        formData.append('tipo', campo);
+        formData.append('numero_bien', numeroBien);
+        formData.append('serial', serial);
+        
+        fetch('buscar_intradar.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.encontrado) {
+                if (data.numero_bien) {
+                    document.getElementById('numero_bien').value = data.numero_bien;
+                    iconBienOk.style.display = 'inline-block';
+                }
+                if (data.serial) {
+                    document.getElementById('serial').value = data.serial;
+                    iconSerialOk.style.display = 'inline-block';
+                }
+                if (data.descripcion) {
+                    var descDiv = document.getElementById('bien_descripcion');
+                    descDiv.textContent = data.descripcion;
+                    descDiv.style.display = 'block';
+                }
+            } else {
+                iconBienOk.style.display = 'none';
+                iconSerialOk.style.display = 'none';
+                document.getElementById('bien_descripcion').style.display = 'none';
+                alert('No se encontró el bien en INTRADAR');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al buscar en INTRADAR');
+        });
+    }
     </script>
 </body>
 </html>

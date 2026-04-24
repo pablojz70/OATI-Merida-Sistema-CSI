@@ -119,6 +119,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     $datos_formulario['lugar_area'] = trim($_POST['lugar_area'] ?? '');
     
+    // Número de Bien y Serial (opcionales)
+    $datos_formulario['numero_bien'] = trim($_POST['numero_bien'] ?? '');
+    $datos_formulario['serial'] = trim($_POST['serial'] ?? '');
+    
     // Obtener dependencia de donde se presenta la falla (PARA TODOS LOS USUARIOS)
     $datos_formulario['dependencia_id'] = isset($_POST['dependencia_id']) ? intval($_POST['dependencia_id']) : $dependencia_id;
     
