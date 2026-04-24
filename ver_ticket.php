@@ -1340,7 +1340,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                     
                     <!-- DEPENDENCIA DONDE SE PRESENTA LA FALLA -->
                     <div class="info-item-ticket">
-                        <span class="info-label-ticket"><i class="fas fa-map-marker-alt"></i> Dependencia donde se presenta la falla</span>
+                        <span class="info-label-ticket"><i class="fas fa-map-marker-alt"></i> Dependencia donde se desarrolla la Actividad</span>
                         <div class="info-value-ticket">
                             <div class="dependencia-dual-display">
                                 <span class="nombre-corto-badge" style="background: #e74c3c;">
@@ -1357,7 +1357,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                     
                     <!-- LUGAR/ÁREA -->
                     <div class="info-item-ticket">
-                        <span class="info-label-ticket"><i class="fas fa-location-dot"></i> Ubicación exacta de la falla</span>
+                        <span class="info-label-ticket"><i class="fas fa-location-dot"></i> Ubicación exacta</span>
                         <div class="info-value-ticket">
                             <div class="lugar-area-info">
                                 <?php 
@@ -1397,7 +1397,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
             
             <!-- DESCRIPCIÓN -->
             <div class="content-card">
-                <h3><i class="fas fa-file-alt"></i> Descripción del Problema</h3>
+                <h3><i class="fas fa-file-alt"></i> Descripción de la Actividad o del Problema</h3>
                 <div class="content-text">
                     <?php echo nl2br(htmlspecialchars($ticket['descripcion'])); ?>
                 </div>

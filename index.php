@@ -316,7 +316,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </form>
                 
                 <div class="login-footer">
-                    <p>¿Problemas para ingresar? Dirígete a la Oficina de Apoyo Técnico Informático de la Dirección Administrativa Regional de Mérida. OATI - DAR - Mérida</p>
+                    <p>¿Problemas para ingresar? Dirígete a la Oficina de Apoyo Técnico Informático de la Dirección Administrativa Regional de Mérida. <span style="font-size: 14px; font-weight: bold;">OATI - DAR - Mérida</span></p>
                     <p>Versión 1.1.20</p>
                 </div>
             </div>

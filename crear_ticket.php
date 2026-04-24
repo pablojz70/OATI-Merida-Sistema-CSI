@@ -108,12 +108,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $datos_formulario['asunto'] = trim($_POST['asunto'] ?? '');
     $datos_formulario['descripcion'] = trim($_POST['descripcion'] ?? '');
     
-    // Usuarios normales siempre tienen prioridad media
-    if ($privilegio == 'admin' || $privilegio == 'tecnico') {
+    // Solo admin puede modificar prioridad, otros usuarios tienen prioridad media
+    if ($privilegio == 'admin') {
         $datos_formulario['prioridad'] = $_POST['prioridad'] ?? 'media';
         $datos_formulario['fecha_ticket'] = $_POST['fecha_ticket'] ?? '';
     } else {
-        $datos_formulario['prioridad'] = 'media'; // Forzar media para usuarios normales
+        $datos_formulario['prioridad'] = 'media'; // Forzar media para usuarios normales y técnicos
         $datos_formulario['fecha_ticket'] = '';
     }
     
@@ -724,7 +724,7 @@ if (!file_exists($menu_archivo)) {
                         
                         <!-- LUGAR/ÁREA -->
                         <div class="form-group">
-                            <label for="lugar_area">Lugar/Área donde se presenta la falla *</label>
+                            <label for="lugar_area">Lugar/Área donde se presenta la falla o donde se desarrolla la Actividad:*</label>
                             <input type="text" 
                                    class="form-control" 
                                    id="lugar_area" 
@@ -777,7 +777,7 @@ if (!file_exists($menu_archivo)) {
                     
                     <!-- COLUMNA 2: DESCRIPCIÓN DEL PROBLEMA -->
                     <div class="form-section-card">
-                        <h4><i class="fas fa-bug"></i> Descripción del Problema</h4>
+                        <h4><i class="fas fa-bug"></i> Descripción de la Actividad o Problema</h4>
                         
                         <div class="form-group">
                             <label for="asunto">Asunto / Título *</label>
@@ -796,7 +796,7 @@ if (!file_exists($menu_archivo)) {
                         
                         <div class="form-group" style="display: flex; gap: 15px; align-items: flex-end;">
                             <div style="flex: 1;">
-                                <label for="numero_bien">Número de Bien:</label>
+                                <label for="numero_bien">Número de Bien (opcional):</label>
                                 <div style="display: flex; align-items: center; gap: 5px;">
                                     <input type="text" class="form-control" id="numero_bien" name="numero_bien" 
                                            value="<?php echo htmlspecialchars($datos_formulario['numero_bien'] ?? ''); ?>" 
@@ -809,7 +809,7 @@ if (!file_exists($menu_archivo)) {
                             </div>
                             
                             <div style="flex: 1;">
-                                <label for="serial">Serial:</label>
+                                <label for="serial">Serial (opcional):</label>
                                 <div style="display: flex; align-items: center; gap: 5px;">
                                     <input type="text" class="form-control" id="serial" name="serial" 
                                            value="<?php echo htmlspecialchars($datos_formulario['serial'] ?? ''); ?>" 
@@ -839,20 +839,20 @@ if (!file_exists($menu_archivo)) {
                     <div class="form-section-card">
                         <h4><i class="fas fa-cog"></i> Configuración</h4>
                         
-                        <?php if ($privilegio == 'admin' || $privilegio == 'tecnico'): ?>
-                        <!-- Prioridad editable para admin y técnicos -->
+                        <?php if ($privilegio == 'admin'): ?>
+                        <!-- Prioridad editable solo para admin -->
                         <div class="form-group">
                             <label for="prioridad"><i class="fas fa-exclamation-circle"></i> Nivel de Prioridad *</label>
                             <select class="form-control" id="prioridad" name="prioridad" required>
                                 <option value="baja" <?php echo $datos_formulario['prioridad'] == 'baja' ? 'selected' : ''; ?>>Baja</option>
-                                <option value="media" <?php echo $datos_formulario['prioridad'] == 'media' ? 'selected' : ''; ?>>Media</option>
+                                <option value="media" selected>Media</option>
                                 <option value="alta" <?php echo $datos_formulario['prioridad'] == 'alta' ? 'selected' : ''; ?>>Alta</option>
                                 <option value="urgente" <?php echo $datos_formulario['prioridad'] == 'urgente' ? 'selected' : ''; ?>>Urgente</option>
                             </select>
-                            <small style="color: #666; font-size: 11px;">Solo administradores y técnicos pueden modificar la prioridad</small>
+                            <small style="color: #666; font-size: 11px;">Solo administradores pueden modificar la prioridad</small>
                         </div>
                         
-                        <!-- Fecha editable para admin y técnicos -->
+                        <!-- Fecha editable solo para admin -->
                         <div class="form-group">
                             <label for="fecha_ticket"><i class="fas fa-calendar"></i> Fecha del Ticket</label>
                             <input type="datetime-local" class="form-control" id="fecha_ticket" name="fecha_ticket" value="">
