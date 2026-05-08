@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual de Administrador - Areas Operativas: Infraestructura - OATI</title>
+    <style>
+        @page { size: A4; margin: 2cm; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background: white; }
+        .portada { text-align: center; padding: 60px 20px; page-break-after: always; }
+        .portada img { width: 100px; height: 100px; margin-bottom: 20px; }
+        .portada h1 { font-size: 28pt; color: #1a2980; margin-bottom: 10px; text-transform: uppercase; }
+        .portada h2 { font-size: 18pt; color: #0d6e6e; margin-bottom: 20px; }
+        .portada .subtitulo { font-size: 14pt; color: #666; margin-top: 30px; }
+        .portada .version { font-size: 10pt; color: #999; margin-top: 50px; }
+        h1 { font-size: 18pt; color: #1a2980; border-bottom: 3px solid #0d6e6e; padding-bottom: 10px; margin: 30px 0 20px; page-break-after: avoid; }
+        h2 { font-size: 14pt; color: #1a2980; margin: 25px 0 15px; page-break-after: avoid; }
+        h3 { font-size: 12pt; color: #333; margin: 20px 0 10px; page-break-after: avoid; }
+        p { margin-bottom: 10px; text-align: justify; }
+        ul, ol { margin: 10px 0 10px 30px; }
+        li { margin-bottom: 5px; }
+        .captura { margin: 20px 0; text-align: center; page-break-inside: avoid; }
+        .captura img { max-width: 100%; height: auto; }
+        .captura .titulo { font-size: 11pt; font-weight: bold; color: #3498db; margin-bottom: 10px; }
+        .captura .descripcion { font-size: 10pt; color: #666; font-style: italic; }
+        .captura .indicaciones { font-size: 9pt; color: #e74c3c; margin-top: 10px; font-weight: bold; }
+        .nota-importante { background: #f8f9fa; border-left: 4px solid #6c757d; padding: 15px; margin: 15px 0; page-break-inside: avoid; }
+        .nota-importante strong { color: #495057; }
+        .nota-info { background: #f8f9fa; border-left: 4px solid #6c757d; padding: 15px; margin: 15px 0; page-break-inside: avoid; }
+        .nota-info strong { color: #495057; }
+        .nota-exito { background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 15px 0; page-break-inside: avoid; }
+        .nota-exito strong { color: #155724; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; page-break-inside: avoid; }
+        th { background: #1a2980; color: white; padding: 10px; text-align: left; font-size: 10pt; }
+        td { padding: 8px 10px; border-bottom: 1px solid #ddd; font-size: 10pt; }
+        tr:nth-child(even) { background: #f8f9fa; }
+        .toc { background: #f8f9fa; padding: 20px; margin: 20px 0; border: 1px solid #ddd; }
+        .toc h2 { margin-top: 0; }
+        .toc-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dotted #ccc; }
+        .toc-item a { color: #3498db; text-decoration: none; }
+        .flujo { font-family: monospace; background: #f8f9fa; padding: 15px; margin: 15px 0; border-radius: 5px; page-break-inside: avoid; }
+        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; font-size: 9pt; color: #666; }
+        .menu-img { height: 20px; width: auto; margin-right: 8px; vertical-align: middle; }
+        .estrellas { color: #f39c12; font-size: 14pt; }
+    </style>
+</head>
+<body>
+<div class="portada">
+    <img src="../imagen/logo2.png" alt="Logo DAR" style="width: 120px; height: auto; margin-bottom: 20px;">
+    <h1>Manual de Administrador</h1>
+    <h2>Centro de Soporte</h2>
+    <p class="subtitulo">Guía para Administradores del Areas Operativas: Infraestructura - OATI</p>
+    <p class="version"><strong>Versión 1.0</strong><br>Abril 2026</p>
+</div>
+
+<div class="toc">
+    <h2>Contenido</h2>
+    <div class="toc-item"><a href="#ini">1. Inicio de Sesión</a><span>1</span></div>
+    <div class="toc-item"><a href="#menu">2. Menú del Administrador</a><span>2</span></div>
+    <div class="toc-item"><a href="#dashboard">3. Inicio</a><span>3</span></div>
+    <div class="toc-item"><a href="#usuarios">4. Gestión de Usuarios</a><span>4</span></div>
+    <div class="toc-item"><a href="#tickets">5. Todos los Tickets</a><span>5</span></div>
+    <div class="toc-item"><a href="#reportes">6. Reportes</a><span>7</span></div>
+    <div class="toc-item"><a href="#dependencias">7. Dependencias</a><span>8</span></div>
+    <div class="toc-item"><a href="#areas">8. Áreas y Servicios</a><span>9</span></div>
+    <div class="toc-item"><a href="#backup">9. Backup</a><span>10</span></div>
+    <div class="toc-item"><a href="#logs">10. Logs</a><span>11</span></div>
+    <div class="toc-item"><a href="#evaluaciones">11. Evaluaciones</a><span>12</span></div>
+    <div class="toc-item"><a href="#perfil">12. Mi Perfil</a><span>13</span></div>
+</div>
+
+<h1 id="ini">1. Inicio de Sesión</h1>
+<p>Para acceder al sistema como administrador, abra su navegador web y diríjase a la dirección del sistema CSI.</p>
+<ol>
+    <li>Ingrese su <strong>Usuario</strong> y <strong>Contraseña</strong></li>
+    <li>Haga clic en <strong>"Iniciar Sesión"</strong></li>
+</ol>
+<div class="captura">
+    <img src="../imagen/Pantalla1.png" alt="Pantalla 1">
+    <div class="titulo">PANTALLA 1: Login</div>
+</div>
+<div class="nota-importante"><strong>Importante:</strong> Sus credenciales son personales. No las comparta con terceros.</div>
+
+<h1 id="menu">2. Menú del Administrador</h1>
+<p>Al iniciar sesión como administrador, verá las siguientes opciones:</p>
+<table>
+    <tr><th>Opción</th><th>Descripción</th></tr>
+    <tr><td><img src="../imagen/Home.png" class="menu-img"> Inicio</td><td>Inicio con estadísticas generales</td></tr>
+    <tr><td><img src="../imagen/Users.png" class="menu-img"> Usuarios</td><td>Administrar usuarios del sistema</td></tr>
+    <tr><td><img src="../imagen/Cabinet.png" class="menu-img"> Todos los Tickets</td><td>Ver todos los tickets del sistema</td></tr>
+    <tr><td><img src="../imagen/Ticket.png" class="menu-img"> Mis Tickets</td><td>Ver tickets que ha creado</td></tr>
+    <tr><td><img src="../imagen/Add Ticket.png" class="menu-img"> Nuevo Ticket</td><td>Crear un nuevo ticket</td></tr>
+    <tr><td><img src="../imagen/User.png" class="menu-img"> Mi Perfil</td><td>Editar datos personales</td></tr>
+    <tr><td><img src="../imagen/Bar Chart.png" class="menu-img"> Reportes</td><td>Ver reportes y estadísticas</td></tr>
+    <tr><td><img src="../imagen/Components.png" class="menu-img"> Dependencias</td><td>Administrar dependencias</td></tr>
+    <tr><td><img src="../imagen/Settings.png" class="menu-img"> Áreas y Servicios</td><td>Administrar áreas y servicios</td></tr>
+    <tr><td><img src="../imagen/Tools.png" class="menu-img"> Backup</td><td>Realizar respaldo de la base de datos</td></tr>
+    <tr><td><img src="../imagen/Document.png" class="menu-img"> Logs</td><td>Ver registros del sistema</td></tr>
+    <tr><td><img src="../imagen/estrella.png" class="menu-img"> Evaluaciones</td><td>Ver evaluaciones de usuarios</td></tr>
+</table>
+<div class="captura">
+    <img src="../imagen/Pantalla3-2.png" alt="Pantalla 2">
+    <div class="titulo">PANTALLA 2: Menú Lateral Administrador</div>
+</div>
+
+<h1 id="dashboard">3. Inicio</h1>
+<p>Aqui se muestra estadísticas generales del sistema:</p>
+<ul>
+    <li><strong>Total de Usuarios:</strong> Cantidad total de Usuarios en el sistema.</li>
+    <li><strong>Total de Tickets:</strong> Cantidad total de tickets en el sistema</li>
+    <li><strong>Tickets Nuevos:</strong> Tickets que recientemente se han creado.</li>
+    <li><strong>Tickets Asignados:</strong> Tickets que están en proceso y ya tienen un técnico Asignado</li>
+    <li><strong>Tickets Cerrados:</strong> Tickets que han sido resueltos</li>
+    <li>Tambien se mostrara una lista con las <strong>Actividades Recientes</strong></li>
+</ul>
+
+<div class="captura">
+    <img src="../imagen/Pantalla3-3.png" alt="Pantalla 3">
+    <div class="titulo">PANTALLA 3: Inicio Administrador</div>
+</div>
+
+<h1 id="usuarios">4. Gestión de Usuarios</h1>
+<p>En esta sección puede administrar todos los usuarios del sistema.</p>
+
+<h2>4.1 Ver usuarios</h2>
+<ol>
+    <li>Haga clic en <strong>"Usuarios"</strong></li>
+    <li>Verá la lista de todos los usuarios</li>
+    <li>Cada usuario muestra: nombre, usuario, rol, correo, estado</li>
+</ol>
+
+<div class="captura">
+    <img src="../imagen/Pantalla3-4.png" alt="Pantalla 4">
+    <div class="titulo">PANTALLA 4: Gestión de Usuarios</div>
+</div>
+
+<h2>4.2 Crear usuario</h2>
+<ol>
+    <li>En la página de usuarios, haga clic en <strong>"Nuevo Usuario"</strong></li>
+    <li>Complete los datos: nombre, usuario, correo, contraseña, rol</li>
+    <li>Los roles disponibles: Usuario, Técnico, Administrador</li>
+    <li>Guarde el usuario</li>
+</ol>
+
+<h2>4.3 Editar usuario</h2>
+<ol>
+    <li>Haga clic en el usuario que desea editar</li>
+    <li>Modifique los campos necesarios</li>
+    <li>Guarde los cambios</li>
+</ol>
+
+<h2>4.4 Eliminar usuario</h2>
+<ol>
+    <li>Haga clic en el botón de eliminar del usuario</li>
+    <li>Confirme la eliminación</li>
+</ol>
+
+<div class="nota-importante"><strong>Importante:</strong> Solo puede eliminar usuarios que no tengan tickets asociados.</div>
+
+<h2>4.5 Filtros de búsqueda</h2>
+<ul>
+    <li>Buscar por nombre o usuario</li>
+    <li>Filtrar por rol (Usuario, Técnico, Administrador)</li>
+    <li>Filtrar por estado (Activo, Inactivo)</li>
+</ul>
+
+<h1 id="tickets">5. Todos los Tickets</h1>
+<p>Esta sección muestra todos los tickets del sistema, independientemente de quien los haya creado o atendido.</p>
+
+<h2>5.1 Ver todos los tickets</h2>
+<ol>
+    <li>Haga clic en <strong>"Todos los Tickets"</strong></li>
+    <li>Verá la lista completa de tickets</li>
+    <li>Cada ticket muestra: número, solicitante, asunto, técnico, estado, prioridad, fecha</li>
+</ol>
+
+<div class="captura">
+    <img src="../imagen/Pantalla3-5.png" alt="Pantalla 5">
+    <div class="titulo">PANTALLA 5: Todos los Tickets</div>
+</div>
+
+<h2>5.2 Estados de un ticket</h2>
+<table>
+    <tr><th>Estado</th><th>Descripción</th></tr>
+    <tr><td>Nuevo</td><td>Ticket creado, sin asignar</td></tr>
+    <tr><td>Asignado</td><td>Ticket asignado a un técnico</td></tr>
+    <tr><td>En Proceso</td><td>Técnico trabajando en el ticket</td></tr>
+    <tr><td>Cerrado Exitosamente</td><td>Problema resuelto</td></tr>
+    <tr><td>Cerrado No Exitoso</td><td>No se pudo resolver</td></tr>
+</table>
+
+<h2>5.3 Número de Bien y Serial en Tickets</h2>
+<p>Los tickets pueden incluir información del bien nacional asociado:</p>
+<ul>
+    <li><strong>Número de Bien:</strong> Código del bien registrado en la institución (formato: 03-28-7258)</li>
+    <li><strong>Serial:</strong> Serial del equipo</li>
+    <li><strong>Búsqueda automática:</strong> Al hacer clic en la lupa <img src="../imagen/Search.png" style="width:20px;vertical-align:middle;">, el sistema busca en INTRADAR y completa automáticamente el otro campo junto con la descripción del bien</li>
+    <li>Si se encuentra el bien, aparece un <strong>check de confirmación</strong> <img src="../imagen/Accept.png" style="width:18px;vertical-align:middle;"></li>
+</ul>
+
+<h2>5.4 Filtros disponibles</h2>
+<ul>
+    <li>Filtrar por estado</li>
+    <li>Filtrar por prioridad</li>
+    <li>Filtrar por técnico</li>
+    <li>Filtrar por dependencia</li>
+    <li>Búsqueda por número de ticket o asunto</li>
+</ul>
+
+<h2>5.4 Asignar técnico</h2>
+<p>Como administrador, puede asignar tickets a técnicos:</p>
+<ol>
+    <li>Haga clic en un ticket</li>
+    <li>En la sección de asignación, seleccione el técnico</li>
+    <li>Guarde los cambios</li>
+</ol>
+
+<h1 id="reportes">6. Reportes</h1>
+<p>El sistema permite generar diversos reportes y gráficos estadísticos.</p>
+
+<h2>6.1 Tipos de reportes</h2>
+<ul>
+    <li><strong>Reporte General:</strong> Estadísticas globales del sistema</li>
+    <li><strong>Reporte por Técnico:</strong> Rendimiento de cada técnico</li>
+    <li><strong>Reporte por Dependencia:</strong> Tickets por dependencia</li>
+    <li><strong>Reporte por Área:</strong> Tickets por área de soporte</li>
+    <li><strong>Reporte de Evaluaciones:</strong> Calificaciones recibidas</li>
+</ul>
+
+<div class="captura">
+    <img src="../imagen/Pantalla3-6.png" alt="Pantalla 6">
+    <div class="titulo">PANTALLA 6: Reportes</div>
+</div>
+
+<h2>6.2 Gráficos disponibles</h2>
+<ul>
+    <li>Gráfico de pastel: Distribución por estado</li>
+    <li>Gráfico de barras: Tickets por prioridad</li>
+    <li>Gráfico de barras: Rendimiento por técnico</li>
+    <li>Gráfico de evaluaciones: Calificaciones recibidas</li>
+</ul>
+
+<h1 id="dependencias">7. Dependencias</h1>
+<p>Administre las dependencias (lugares físicos) del sistema.</p>
+
+<h2>7.1 Ver dependencias</h2>
+<ol>
+    <li>Haga clic en <strong>"Dependencias"</strong></li>
+    <li>Verá la lista de todas las dependencias</li>
+</ol>
+
+<div class="captura">
+    <img src="../imagen/Pantalla3-7.png" alt="Pantalla 7">
+    <div class="titulo">PANTALLA 7: Dependencias</div>
+</div>
+
+<h2>7.2 Crear dependencia</h2>
+<ol>
+    <li>Haga clic en <strong>"Nueva Dependencia"</strong></li>
+    <li>Ingrese el nombre de la dependencia</li>
+    <li>Guarde la dependencia</li>
+</ol>
+
+<h2>7.3 Editar dependencia</h2>
+<ol>
+    <li>Haga clic en la dependencia que desea editar</li>
+    <li>Modifique el nombre</li>
+    <li>Guarde los cambios</li>
+</ol>
+
+<h2>7.4 Eliminar dependencia</h2>
+<ol>
+    <li>Haga clic en el botón de eliminar de la dependencia</li>
+    <li>Confirme la eliminación</li>
+</ol>
+
+<div class="nota-importante"><strong>Importante:</strong> No puede eliminar dependencias que tengan tickets asociados.</div>
+
+<h1 id="areas">8. Áreas y Servicios</h1>
+<p>Administre las áreas de soporte y los servicios específicos.</p>
+
+<h2>8.1 Ver áreas y servicios</h2>
+<ol>
+    <li>Haga clic en <strong>"Áreas y Servicios"</strong></li>
+    <li>Verá la lista de áreas con sus servicios asociados</li>
+</ol>
+
+<div class="captura">
+    <img src="../imagen/Pantalla3-8.png" alt="Pantalla 8">
+    <div class="titulo">PANTALLA 8: Áreas y Servicios</div>
+</div>
+
+<h2>8.2 Crear área</h2>
+<ol>
+    <li>Haga clic en <strong>"Nueva Área"</strong></li>
+    <li>Ingrese el nombre del área</li>
+    <li>Guarde el área</li>
+</ol>
+
+<h2>8.3 Crear servicio</h2>
+<ol>
+    <li>Seleccione un área</li>
+    <li>Haga clic en <strong>"Agregar Servicio"</strong></li>
+    <li>Ingrese el nombre del servicio</li>
+    <li>Guarde el servicio</li>
+</ol>
+
+<h2>8.4 Editar y eliminar</h2>
+<p>Puede editar o eliminar áreas y servicios haciendo clic en los botones correspondientes.</p>
+
+<h1 id="backup">9. Backup</h1>
+<p>Realice respaldos de la base de datos del sistema.</p>
+
+<h2>9.1 Generar backup</h2>
+<ol>
+    <li>Haga clic en <strong>"Backup"</strong></li>
+    <li>Haga clic en el botón <strong>"Generar Backup"</strong></li>
+    <li>El sistema creará un archivo de respaldo</li>
+    <li>Guarde el archivo en su computadora</li>
+</ol>
+
+<div class="captura">
+    <img src="../imagen/Pantalla3-9.png" alt="Pantalla 9">
+    <div class="titulo">PANTALLA 9: Backup</div>
+</div>
+
+<div class="nota-info"><strong>Nota:</strong> Se recomienda realizar backups periódicos para mantener la seguridad de los datos.</div>
+
+<h1 id="logs">10. Logs</h1>
+<p>Consulte los registros de actividad del sistema.</p>
+
+<h2>10.1 Ver logs</h2>
+<ol>
+    <li>Haga clic en <strong>"Logs"</strong></li>
+    <li>Verá el historial de actividades del sistema</li>
+    <li>Cada registro muestra: fecha, usuario, acción, descripción</li>
+</ol>
+
+<div class="captura">
+    <img src="../imagen/Pantalla3-10.png" alt="Pantalla 10">
+    <div class="titulo">PANTALLA 10: Logs</div>
+</div>
+
+<h2>10.2 Filtrar logs</h2>
+<ul>
+    <li>Filtrar por fecha</li>
+    <li>Filtrar por usuario</li>
+    <li>Filtrar por tipo de acción</li>
+</ul>
+
+<h1 id="evaluaciones">11. Evaluaciones</h1>
+<p>Consulte las evaluaciones que los usuarios han realizado sobre los técnicos.</p>
+
+<h2>11.1 Ver evaluaciones</h2>
+<ol>
+    <li>Haga clic en <strong>"Evaluaciones"</strong></li>
+    <li>Verá la lista de todas las evaluaciones</li>
+    <li>Cada evaluación muestra: ticket, técnico, calificación, comentario, fecha</li>
+</ol>
+
+<div class="captura">
+    <img src="../imagen/Pantalla3-11.png" alt="Pantalla 11">
+    <div class="titulo">PANTALLA 11: Evaluaciones</div>
+</div>
+
+<h2>11.2 Estadísticas de evaluaciones</h2>
+<ul>
+    <li>Calificación promedio por técnico</li>
+    <li>Distribución de estrellas (5, 4, 3, 2, 1)</li>
+    <li>Total de evaluaciones por técnico</li>
+</ul>
+
+<h2>11.3 Filtros</h2>
+<ul>
+    <li>Filtrar por técnico</li>
+    <li>Filtrar por calificación (estrellas)</li>
+    <li>Filtrar por fecha</li>
+</ul>
+
+<h1 id="perfil">12. Mi Perfil</h1>
+<p>Administre sus datos personales:</p>
+<ol>
+    <li>Haga clic en <strong>"Mi Perfil"</strong></li>
+    <li>Actualice: nombre, correo electrónico</li>
+    <li>Cambiar contraseña: ingrese contraseña actual y nueva</li>
+    <li>Guarde los cambios</li>
+</ol>
+<div class="captura">
+    <img src="../imagen/Pantalla3-12.png" alt="Pantalla 12">
+    <div class="titulo">PANTALLA 12: Mi Perfil</div>
+</div>
+
+
+<div class="footer">
+    <p><strong>Areas Operativas: Infraestructura - OATI</strong> - Centro de Soporte</p>
+    <p>Manual de Administrador | Versión 1.0 | Abril 2026</p>
+    <p style="margin-top: 15px; font-style: italic;">TSU. Pedagogo. Pablo Zambrano</p>
+</div>
+</body>
+</html>
