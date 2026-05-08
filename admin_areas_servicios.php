@@ -14,7 +14,7 @@ $usuario_nombre = $_SESSION['nombre'] ?? 'Administrador';
 
 // Conexión PDO
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -23,6 +23,9 @@ try {
 
 $mensaje = '';
 $tipo_mensaje = 'success';
+
+// Obtener filtro de tipo (OATI / Infraestructura)
+$vista_tipo = $_GET['vista_tipo'] ?? '';
 
 // Procesar acciones
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -36,12 +39,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $descripcion = trim($_POST['descripcion'] ?? '');
                 $orden = intval($_POST['orden'] ?? 0);
                 $todosven = isset($_POST['todosven']) ? 1 : 0;
+                $tipo = $_POST['tipo'] ?? 'informatica';
                 
                 if (empty($nombre)) {
                     throw new Exception("El nombre del área es obligatorio");
                 }
                 
-                $stmt = $conn->prepare("INSERT INTO AreasSoporte (nombre, descripcion, orden, todosven, activa) VALUES (?, ?, ?, ?, 1)");
+                $stmt = $conn->prepare("INSERT INTO AreasSoporte (nombre, descripcion, orden, todosven, activa, tipo) VALUES (?, ?, ?, ?, 1, ?)");
+                $stmt->execute([$nombre, $descripcion, $orden, $todosven, $tipo]);
                 $stmt->execute([$nombre, $descripcion, $orden, $todosven]);
                 
                 $mensaje = "Área de soporte creada exitosamente";
@@ -54,13 +59,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $orden = intval($_POST['orden'] ?? 0);
                 $todosven = isset($_POST['todosven']) ? 1 : 0;
                 $activa = isset($_POST['activa']) ? 1 : 0;
+                $tipo = $_POST['tipo'] ?? 'informatica';
                 
                 if (empty($nombre) || $id <= 0) {
                     throw new Exception("Datos inválidos");
                 }
                 
-                $stmt = $conn->prepare("UPDATE AreasSoporte SET nombre = ?, descripcion = ?, orden = ?, todosven = ?, activa = ? WHERE id = ?");
-                $stmt->execute([$nombre, $descripcion, $orden, $todosven, $activa, $id]);
+                $stmt = $conn->prepare("UPDATE AreasSoporte SET nombre = ?, descripcion = ?, orden = ?, todosven = ?, activa = ?, tipo = ? WHERE id = ?");
+                $stmt->execute([$nombre, $descripcion, $orden, $todosven, $activa, $tipo, $id]);
                 
                 $mensaje = "Área de soporte actualizada";
                 break;
@@ -148,13 +154,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Obtener áreas
-$areas = $conn->query("SELECT * FROM AreasSoporte ORDER BY orden, nombre")->fetchAll();
+$where_tipo = '';
+if ($vista_tipo === 'oati') {
+    $where_tipo = " WHERE tipo = 'informatica'";
+} elseif ($vista_tipo === 'infraestructura') {
+    $where_tipo = " WHERE tipo = 'infraestructura'";
+}
+$areas = $conn->query("SELECT * FROM AreasSoporte{$where_tipo} ORDER BY orden, nombre")->fetchAll();
 
 // Obtener servicios con nombre del área
 $servicios = $conn->query("
-    SELECT s.*, a.nombre as area_nombre 
+    SELECT s.*, a.nombre as area_nombre, a.tipo as area_tipo 
     FROM Servicios s 
     JOIN AreasSoporte a ON s.area_id = a.id 
+    {$where_tipo}
     ORDER BY a.nombre, s.nombre
 ")->fetchAll();
 ?>
@@ -606,9 +619,9 @@ $servicios = $conn->query("
     <!-- HEADER -->
     <header class="top-header">
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img">
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
                 <p class="system-sub-custom">Administración - Áreas y Servicios</p>
             </div>
         </div>
@@ -635,6 +648,22 @@ $servicios = $conn->query("
             <div class="page-header">
                 <h1><i class="fas fa-cogs"></i> Gestión de Áreas de Soporte y Servicios</h1>
                 <p>Configura las categorías y servicios disponibles para los tickets</p>
+            </div>
+            
+            <!-- BOTONES DE NAVEGACIÓN POR TIPO -->
+            <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
+                <a href="admin_areas_servicios.php" class="btn-filter" 
+                   style="background: <?php echo empty($vista_tipo) ? '#1a2980' : '#6c757d'; ?>; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-list"></i> Todos
+                </a>
+                <a href="admin_areas_servicios.php?vista_tipo=oati" class="btn-filter" 
+                   style="background: <?php echo $vista_tipo == 'oati' ? '#3498db' : '#6c757d'; ?>; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-laptop-code"></i> OATI
+                </a>
+                <a href="admin_areas_servicios.php?vista_tipo=infraestructura" class="btn-filter" 
+                   style="background: <?php echo $vista_tipo == 'infraestructura' ? '#17a2b8' : '#6c757d'; ?>; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-tools"></i> Infraestructura
+                </a>
             </div>
             
             <!-- MENSAJE -->
@@ -687,6 +716,10 @@ $servicios = $conn->query("
                             <input type="checkbox" name="todosven" id="todosven" value="1" checked>
                             <label for="todosven" style="margin: 0; font-size: 11px;">Visible para usuarios</label>
                         </div>
+                        <select name="tipo" class="form-control" style="width: 140px;" required>
+                            <option value="informatica" <?php echo $vista_tipo == 'oati' ? 'selected' : ''; ?>>Informática (OATI)</option>
+                            <option value="infraestructura" <?php echo $vista_tipo == 'infraestructura' ? 'selected' : ''; ?>>Infraestructura</option>
+                        </select>
                         <button type="submit" class="btn btn-success">
                             <img src="imagen/Add Ticket.png" alt="Agregar" style="width:14px;height:14px;object-fit:contain;"> Agregar
                         </button>
@@ -704,6 +737,7 @@ $servicios = $conn->query("
                                 <tr>
                                     <th>Orden</th>
                                     <th>Nombre</th>
+                                    <th>Tipo</th>
                                     <th>Descripción</th>
                                     <th>Visible</th>
                                     <th>Estado</th>
@@ -720,6 +754,13 @@ $servicios = $conn->query("
                                     <tr>
                                         <td><?php echo $area['orden']; ?></td>
                                         <td><strong><?php echo htmlspecialchars($area['nombre']); ?></strong></td>
+                                        <td>
+                                            <?php if (($area['tipo'] ?? 'informatica') == 'infraestructura'): ?>
+                                                <span class="badge" style="background: #6c757d; color: white;">Infraestructura</span>
+                                            <?php else: ?>
+                                                <span class="badge" style="background: #3498db; color: white;">OATI</span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td><?php echo htmlspecialchars($area['descripcion'] ?? '-'); ?></td>
                                         <td>
                                             <?php if ($area['todosven']): ?>
@@ -913,6 +954,14 @@ $servicios = $conn->query("
                     </div>
                 </div>
                 
+                <div class="form-group">
+                    <label>Tipo:</label>
+                    <select name="tipo" id="edit_area_tipo" class="form-control" required>
+                        <option value="informatica">Informática (OATI)</option>
+                        <option value="infraestructura">Infraestructura</option>
+                    </select>
+                </div>
+                
                 <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
                     <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-area')">Cancelar</button>
                     <button type="submit" class="btn btn-primary">
@@ -986,6 +1035,7 @@ $servicios = $conn->query("
             document.getElementById('edit_area_orden').value = data.orden || 0;
             document.getElementById('edit_area_activa').checked = data.activa == 1;
             document.getElementById('edit_area_todosven').checked = data.todosven == 1;
+            document.getElementById('edit_area_tipo').value = data.tipo || 'informatica';
             
             document.getElementById('modal-area').classList.add('active');
         }

@@ -2,15 +2,15 @@
 session_start();
 require_once '../config/database.php';
 
-// Solo para técnicos
-if (!isset($_SESSION['privilegio']) || $_SESSION['privilegio'] != 'tecnico') {
+// Solo para OATI o Infraestructura
+if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['oati', 'infraestructura', 'admin'])) {
     echo json_encode(['count' => 0]);
     exit();
 }
 
 try {
     // Obtener conteo de tickets disponibles
-    $sql_count = "SELECT COUNT(*) as total FROM Tickets WHERE estado = 'Nuevo' AND tecnico_asignado IS NULL";
+    $sql_count = "SELECT COUNT(*) as total FROM Tickets WHERE estado = 'Nuevo' AND oati_asignado IS NULL";
     $stmt = $pdo->query($sql_count);
     $count_data = $stmt->fetch(PDO::FETCH_ASSOC);
     

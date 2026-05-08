@@ -379,11 +379,11 @@ function obtenerConfig($clave, $valorDefecto = '') {
     }
     
     $configs = [
-        'nombre_sistema' => 'Sistema CSI - Soporte Técnico',
+        'nombre_sistema' => 'Areas Operativas: Infraestructura - OATI - Soporte Técnico',
         'color_principal' => '#2c3e50',
         'color_secundario' => '#3498db',
         'items_por_pagina' => '20',
-        'logo_url' => 'logo.png',
+        'logo_url' => 'logo2.png',
         'timezone' => 'America/Mexico_City',
         'idioma' => 'es',
         'email_notificaciones' => '1',
@@ -415,8 +415,8 @@ function obtenerEstadisticasTickets($usuario_id, $privilegio = 'usuario') {
             $sql = "SELECT estado, COUNT(*) as cantidad FROM Tickets WHERE usuario_id = ? GROUP BY estado";
             $stmt = $conn->prepare($sql);
             $stmt->execute([$usuario_id]);
-        } elseif ($privilegio === 'tecnico') {
-            $sql = "SELECT estado, COUNT(*) as cantidad FROM Tickets WHERE tecnico_asignado = ? GROUP BY estado";
+        } elseif ($privilegio === 'oati' || $privilegio === 'infraestructura') {
+            $sql = "SELECT estado, COUNT(*) as cantidad FROM Tickets WHERE oati_asignado = ? GROUP BY estado";
             $stmt = $conn->prepare($sql);
             $stmt->execute([$usuario_id]);
         } else {

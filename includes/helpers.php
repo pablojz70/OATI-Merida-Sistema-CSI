@@ -34,9 +34,12 @@ function tienePrivilegio($privilegioRequerido) {
     }
     
     $privilegios = [
-        'admin' => 3,
-        'tecnico' => 2,
-        'usuario' => 1
+        'admin' => 5,
+        'infraestructura' => 4,
+        'oati' => 3,
+        'director' => 2,
+        'bienes' => 1,
+        'usuario' => 0
     ];
     
     $nivelUsuario = $privilegios[$_SESSION['privilegio']] ?? 0;

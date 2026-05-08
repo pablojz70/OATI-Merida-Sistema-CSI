@@ -21,174 +21,33 @@ global $conn;
 // 5. CARGAR FUNCIONES AUXILIARES SI EXISTEN
 if (file_exists('includes/functions.php')) {
     require_once 'includes/functions.php';
-} else {
-    // Funciones básicas si no existe functions.php
-    function getUserIdFromSession() {
-        return $_SESSION['usuario_id'] ?? $_SESSION['id_usuario'] ?? null;
-    }
-    
-    function getAdminStats($conn) {
-        try {
-            $stats = [];
-            
-            // Usuarios totales
-            $stmt = $conn->query("SELECT COUNT(*) as total FROM Usuarios WHERE activo = 1");
-            $stats['total_usuarios'] = $stmt->fetchColumn();
-            
-            // Tickets totales
-            $stmt = $conn->query("SELECT COUNT(*) as total FROM Tickets");
-            $stats['total_tickets'] = $stmt->fetchColumn();
-            
-            // Tickets nuevos
-            $stmt = $conn->query("SELECT COUNT(*) as total FROM Tickets WHERE estado = 'Nuevo'");
-            $stats['tickets_nuevos'] = $stmt->fetchColumn();
-            
-            // Tickets asignados o en proceso
-            $stmt = $conn->query("SELECT COUNT(*) as total FROM Tickets WHERE estado IN ('Asignado', 'En Proceso')");
-            $stats['tickets_asignados'] = $stmt->fetchColumn();
-            
-            // Tickets cerrados
-            $stmt = $conn->query("SELECT COUNT(*) as total FROM Tickets WHERE estado LIKE 'Cerrado%'");
-            $stats['tickets_cerrados'] = $stmt->fetchColumn();
-            
-            return $stats;
-        } catch (Exception $e) {
-            return [];
-        }
-    }
-    
-    function getTecnicoStats($conn, $tecnico_id) {
-        try {
-            $stats = [];
-            
-            // Tickets asignados a este técnico
-            $stmt = $conn->prepare("SELECT COUNT(*) as total FROM Tickets WHERE tecnico_asignado = ? AND estado IN ('Asignado', 'En Proceso')");
-            $stmt->execute([$tecnico_id]);
-            $stats['tickets_asignados'] = $stmt->fetchColumn();
-            
-            // Tickets resueltos por este técnico
-            $stmt = $conn->prepare("SELECT COUNT(*) as total FROM Tickets WHERE tecnico_asignado = ? AND estado = 'Cerrado Exitosamente'");
-            $stmt->execute([$tecnico_id]);
-            $stats['tickets_resueltos'] = $stmt->fetchColumn();
-            
-            return $stats;
-        } catch (Exception $e) {
-            return [];
-        }
-    }
-    
-    function getUsuarioStats($conn, $usuario_id) {
-        try {
-            $stats = [];
-            
-            // Total de tickets del usuario
-            $stmt = $conn->prepare("SELECT COUNT(*) as total FROM Tickets WHERE usuario_id = ?");
-            $stmt->execute([$usuario_id]);
-            $stats['mis_tickets'] = $stmt->fetchColumn();
-            
-            // Tickets abiertos del usuario
-            $stmt = $conn->prepare("SELECT COUNT(*) as total FROM Tickets WHERE usuario_id = ? AND estado NOT LIKE 'Cerrado%'");
-            $stmt->execute([$usuario_id]);
-            $stats['tickets_abiertos'] = $stmt->fetchColumn();
-            
-            return $stats;
-        } catch (Exception $e) {
-            return [];
-        }
-    }
-    
-    function getRecentTickets($conn, $user_id, $privilegio, $limit = 8) {
-        try {
-            if ($privilegio == 'admin') {
-                $sql = "SELECT t.*, 
-                               u.nombre as usuario_nombre,
-                               d.nombre as dependencia_nombre,
-                               d.nombre_corto as dependencia_corto
-                        FROM Tickets t 
-                        LEFT JOIN Usuarios u ON t.usuario_id = u.id 
-                        LEFT JOIN Dependencias d ON t.dependencia_id = d.id
-                        ORDER BY t.fecha_creacion DESC 
-                        LIMIT ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bindValue(1, $limit, PDO::PARAM_INT);
-                $stmt->execute();
-            } elseif ($privilegio == 'tecnico') {
-                $sql = "SELECT t.*, 
-                               u.nombre as usuario_nombre,
-                               d.nombre as dependencia_nombre,
-                               d.nombre_corto as dependencia_corto
-                        FROM Tickets t 
-                        LEFT JOIN Usuarios u ON t.usuario_id = u.id 
-                        LEFT JOIN Dependencias d ON t.dependencia_id = d.id
-                        WHERE t.tecnico_asignado = ? 
-                        ORDER BY t.fecha_creacion DESC 
-                        LIMIT ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bindValue(1, $user_id, PDO::PARAM_INT);
-                $stmt->bindValue(2, $limit, PDO::PARAM_INT);
-                $stmt->execute();
-            } else {
-                $sql = "SELECT t.*, 
-                               u.nombre as usuario_nombre,
-                               d.nombre as dependencia_nombre,
-                               d.nombre_corto as dependencia_corto
-                        FROM Tickets t 
-                        LEFT JOIN Usuarios u ON t.usuario_id = u.id 
-                        LEFT JOIN Dependencias d ON t.dependencia_id = d.id
-                        WHERE t.usuario_id = ? 
-                        ORDER BY t.fecha_creacion DESC 
-                        LIMIT ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bindValue(1, $user_id, PDO::PARAM_INT);
-                $stmt->bindValue(2, $limit, PDO::PARAM_INT);
-                $stmt->execute();
-            }
-            
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            error_log("Error getRecentTickets: " . $e->getMessage());
-            return [];
-        }
-    }
-}
-
-// 6. OBTENER ESTADÍSTICAS
-try {
-    if ($privilegio == 'admin') {
-        $stats = getAdminStats($conn);
-        $stats = array_merge([
-            'total_usuarios' => '0',
-            'total_tickets' => '0',
-            'tickets_nuevos' => '0',
-            'tickets_asignados' => '0',
-            'tickets_cerrados' => '0'
-        ], $stats);
-    } elseif ($privilegio == 'tecnico') {
-        $stats = getTecnicoStats($conn, $id_usuario);
-        $stats = array_merge([
-            'tickets_asignados' => '0',
-            'tickets_resueltos' => '0'
-        ], $stats);
-    } else {
-        $stats = getUsuarioStats($conn, $id_usuario);
-        $stats = array_merge([
-            'mis_tickets' => '0',
-            'tickets_abiertos' => '0'
-        ], $stats);
-    }
-} catch (Exception $e) {
-    $stats = [];
 }
 
 // 7. OBTENER TICKETS RECIENTES
 try {
     $recent_tickets = getRecentTickets($conn, $id_usuario, $privilegio, 8);
 } catch (Exception $e) {
+    error_log("Error al obtener tickets recientes: " . $e->getMessage());
     $recent_tickets = [];
 }
 
+// 7b. OBTENER ESTADÍSTICAS SEGÚN PRIVILEGIO
+$stats = [];
+try {
+    if ($privilegio == 'admin' || $privilegio == 'director') {
+        $stats = getAdminStats($conn);
+    } elseif ($privilegio == 'oati' || $privilegio == 'infraestructura') {
+        $stats = getOatiStats($conn, $id_usuario);
+    } else {
+        $stats = getUsuarioStats($conn, $id_usuario);
+    }
+} catch (Exception $e) {
+    error_log("Error al obtener estadísticas: " . $e->getMessage());
+    $stats = [];
+}
+
 // 8. ESTABLECER TÍTULO PARA LA CABECERA
-$titulo_pagina = "Dashboard - Sistema CSI";
+$titulo_pagina = "Dashboard - Areas Operativas: Infraestructura - OATI";
 
 // 9. INCLUIR CABECERA (config/config.php ya incluye database.php)
 include 'includes/header.php';
@@ -205,7 +64,7 @@ if (!file_exists($menu_archivo)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CSI - Centro de Soporte Informático</title>
+    <title>CSI - Centro de Soporte</title>
     <link rel="stylesheet" href="css/estilos.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="css/estilos2.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
@@ -246,6 +105,16 @@ if (!file_exists($menu_archivo)) {
     .stat-link .stat-usuario {
         transition: all 0.2s ease;
     }
+        .row-oati td {
+            background: #e3f2fd !important;
+        }
+        .row-infra td {
+            background: #f5f5f5 !important;
+        }
+        .table-custom tbody tr.row-oati:hover td,
+        .table-custom tbody tr.row-infra:hover td {
+            filter: brightness(0.97);
+        }
     </style>
 </head>
 <body>
@@ -260,11 +129,11 @@ if (!file_exists($menu_archivo)) {
     <header class="top-header">
         <!-- LOGO OATI Y TÍTULO -->
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img" 
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img" 
                  onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI1IiBmaWxsPSIjMWExYjk3Ii8+PHBhdGggZD0iTTEwIDE1SDMwTTEwIDIwSDI1TTEwIDI1SDIwIiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+';">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
-                <p class="system-sub-custom">Sistema CSI</p>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
+                <p class="system-sub-custom">Areas Operativas: Infraestructura - OATI</p>
             </div>
         </div>
         
@@ -292,7 +161,7 @@ if (!file_exists($menu_archivo)) {
             <div class="welcome-mini-custom fade-in-custom">
                 <div>
                     <h2>Bienvenido, <?php echo htmlspecialchars($usuario_nombre); ?></h2>
-                    <p>Sistema de Gestión de Tickets - Centro de Soporte Informático</p>
+                    <p>Sistema de Gestión de Tickets - Centro de Soporte</p>
                 </div>
                 <div id="current-time-custom" class="current-time-mini-custom">
                     <!-- Hora actual se actualizará con JS -->
@@ -359,35 +228,35 @@ if (!file_exists($menu_archivo)) {
                         </div>
                     </a>
                 
-                <?php elseif ($privilegio == 'tecnico'): ?>
-                    <a href="tickets_asignados.php" class="stat-link">
-                        <div class="stat-usuario asignado">
-                            <span class="stat-numero"><?php echo $stats['tickets_asignados'] ?? '0'; ?></span>
-                            <span class="stat-label">Asignados a Mí</span>
-                        </div>
-                    </a>
-                    <a href="tickets_asignados.php?estado=Cerrado" class="stat-link">
-                        <div class="stat-usuario cerrado">
-                            <span class="stat-numero"><?php echo $stats['tickets_resueltos'] ?? '0'; ?></span>
-                            <span class="stat-label">Resueltos por Mí</span>
-                        </div>
-                    </a>
-                    <a href="aceptar_ticket.php" class="stat-link">
-                        <div class="stat-usuario nuevo">
-                            <span class="stat-numero">
-                                <?php 
-                                try {
-                                    $stmt = $conn->query("SELECT COUNT(*) as count FROM Tickets WHERE estado = 'Nuevo' AND tecnico_asignado IS NULL");
-                                    $new = $stmt->fetch(PDO::FETCH_ASSOC);
-                                    echo $new['count'] ?? '0';
-                                } catch (Exception $e) {
-                                    echo '0';
-                                }
-                                ?>
-                            </span>
-                            <span class="stat-label">Disponibles</span>
-                        </div>
-                    </a>
+                <?php elseif ($privilegio == 'oati'): ?>
+                     <a href="tickets_asignados.php" class="stat-link">
+                         <div class="stat-usuario asignado">
+                             <span class="stat-numero"><?php echo $stats['tickets_asignados'] ?? '0'; ?></span>
+                             <span class="stat-label">Asignados a Mí</span>
+                         </div>
+                     </a>
+                     <a href="tickets_asignados.php?estado=Cerrado" class="stat-link">
+                         <div class="stat-usuario cerrado">
+                             <span class="stat-numero"><?php echo $stats['tickets_resueltos'] ?? '0'; ?></span>
+                             <span class="stat-label">Resueltos por Mí</span>
+                         </div>
+                     </a>
+                     <a href="aceptar_ticket.php" class="stat-link">
+                         <div class="stat-usuario nuevo">
+                             <span class="stat-numero">
+                                 <?php 
+                                 try {
+                                     $stmt = $conn->query("SELECT COUNT(*) as count FROM Tickets WHERE estado = 'Nuevo' AND oati_asignado IS NULL");
+                                     $new = $stmt->fetch(PDO::FETCH_ASSOC);
+                                     echo $new['count'] ?? '0';
+                                 } catch (Exception $e) {
+                                     echo '0';
+                                 }
+                                 ?>
+                             </span>
+                             <span class="stat-label">Disponibles</span>
+                         </div>
+                     </a>
                 
                 <?php else: ?>
                     <a href="mis_tickets.php" class="stat-link">
@@ -449,16 +318,16 @@ if (!file_exists($menu_archivo)) {
                         <img src="imagen/User.png" alt="Perfil" style="width:18px;height:18px;object-fit:contain;"> Mi Perfil
                     </a>
                 
-                <?php elseif ($privilegio == 'tecnico'): ?>
-                    <a href="tickets_asignados.php" class="action-btn-custom">
-                        <img src="imagen/MTasignados.png" alt="Asignados" style="width:18px;height:18px;object-fit:contain;"> Mis Tickets Asignados
-                    </a>
-                    <a href="crear_ticket.php" class="action-btn-custom success">
-                        <img src="imagen/Add Ticket.png" alt="Nuevo" style="width:18px;height:18px;object-fit:contain;"> Crear Nuevo Ticket
-                    </a>
-                    <a href="perfil.php" class="action-btn-custom warning">
-                        <img src="imagen/User.png" alt="Perfil" style="width:18px;height:18px;object-fit:contain;"> Editar Mi Perfil
-                    </a>
+                <?php elseif ($privilegio == 'oati'): ?>
+                     <a href="tickets_asignados.php" class="action-btn-custom">
+                         <img src="imagen/MTasignados.png" alt="Asignados" style="width:18px;height:18px;object-fit:contain;"> Mis Tickets Asignados
+                     </a>
+                     <a href="crear_ticket.php" class="action-btn-custom success">
+                         <img src="imagen/Add Ticket.png" alt="Nuevo" style="width:18px;height:18px;object-fit:contain;"> Crear Nuevo Ticket
+                     </a>
+                     <a href="perfil.php" class="action-btn-custom warning">
+                         <img src="imagen/User.png" alt="Perfil" style="width:18px;height:18px;object-fit:contain;"> Editar Mi Perfil
+                     </a>
                 
                 <?php else: ?>
                     <a href="crear_ticket.php" class="action-btn-custom success">
@@ -504,8 +373,9 @@ if (!file_exists($menu_archivo)) {
                                 $numero_ticket_completo = $ticket['numero_ticket'] ?? 'TICK-' . $ticket['id'];
                                 $numero_ticket_corto = substr($numero_ticket_completo, -5);
                                 $dependencia_corto = $ticket['dependencia_corto'] ?? $ticket['dependencia_nombre'] ?? 'N/A';
+                                $fila_clase = (($ticket['area_tipo'] ?? 'informatica') == 'infraestructura') ? 'row-infra' : 'row-oati';
                             ?>
-                            <tr>
+                            <tr class="<?php echo $fila_clase; ?>">
                                 <td nowrap style="font-weight: 600; font-size: 11px;">
                                     <span title="<?php echo htmlspecialchars($numero_ticket_completo); ?>">
                                         <i class="fas fa-hashtag" style="color: #3498db;"></i> <?php echo htmlspecialchars($numero_ticket_corto); ?>
@@ -556,7 +426,7 @@ if (!file_exists($menu_archivo)) {
             <div class="footer-custom">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        Centro de Soporte Informático CSI • 
+                        Centro de Soporte CSI • 
                         <span id="session-timer-custom">Sesión: 00:00</span>
                     </div>
                     <div id="system-status" style="font-size: 9px; color: #27ae60;">

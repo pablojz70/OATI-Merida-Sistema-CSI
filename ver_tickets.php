@@ -39,15 +39,15 @@ $where = implode(' AND ', $condiciones);
 
 // Obtener tickets
 $sql_tickets = "SELECT t.*, 
-                a.nombre as area_nombre,
-                s.nombre as servicio_nombre,
-                d.nombre as dependencia_nombre,
-                u_tecnico.nombre as tecnico_nombre
-                FROM Tickets t
-                JOIN AreasSoporte a ON t.area_id = a.id
-                JOIN Servicios s ON t.servicio_id = s.id
-                JOIN Dependencias d ON t.dependencia_id = d.id
-                LEFT JOIN Usuarios u_tecnico ON t.tecnico_asignado = u_tecnico.id
+                 a.nombre as area_nombre,
+                 s.nombre as servicio_nombre,
+                 d.nombre as dependencia_nombre,
+                 u_oati.nombre as oati_nombre
+                 FROM Tickets t
+                 JOIN AreasSoporte a ON t.area_id = a.id
+                 JOIN Servicios s ON t.servicio_id = s.id
+                 JOIN Dependencias d ON t.dependencia_id = d.id
+                 LEFT JOIN Usuarios u_oati ON t.oati_asignado = u_oati.id
                 WHERE $where
                 ORDER BY t.fecha_creacion DESC
                 LIMIT ? OFFSET ?";
@@ -57,34 +57,34 @@ $parametros_paginados = array_merge($parametros, [$por_pagina, $offset]);
 // Usuario normal - solo sus tickets
 if ($_SESSION['privilegio'] === 'usuario') {
     $usuario_id = $_SESSION['usuario_id'];
-    $query_tickets = "SELECT t.*, a.nombre as area_nombre, s.nombre as servicio_nombre, 
-                      d.nombre as dependencia_nombre, u.nombre as usuario_nombre,
-                      u.correo as usuario_email,
-                      u_tec.nombre as tecnico_nombre
-               FROM Tickets t
-               LEFT JOIN AreasSoporte a ON t.area_id = a.id
-               LEFT JOIN Servicios s ON t.servicio_id = s.id
-               LEFT JOIN Dependencias d ON t.dependencia_id = d.id
-               LEFT JOIN Usuarios u ON t.usuario_id = u.id
-               LEFT JOIN Usuarios u_tec ON t.tecnico_asignado = u_tec.id
-               WHERE t.usuario_id = $usuario_id
-               ORDER BY t.fecha_creacion DESC";
+$query_tickets = "SELECT t.*, a.nombre as area_nombre, s.nombre as servicio_nombre, 
+                       d.nombre as dependencia_nombre, u.nombre as usuario_nombre,
+                       u.correo as usuario_email,
+                       u_oati.nombre as oati_nombre
+                FROM Tickets t
+                LEFT JOIN AreasSoporte a ON t.area_id = a.id
+                LEFT JOIN Servicios s ON t.servicio_id = s.id
+                LEFT JOIN Dependencias d ON t.dependencia_id = d.id
+                LEFT JOIN Usuarios u ON t.usuario_id = u.id
+                LEFT JOIN Usuarios u_oati ON t.oati_asignado = u_oati.id
+                WHERE t.usuario_id = $usuario_id
+                ORDER BY t.fecha_creacion DESC";
 }
 
-// Técnico - tickets asignados o disponibles
-elseif ($_SESSION['privilegio'] === 'tecnico') {
-    $tecnico_id = $_SESSION['usuario_id'];
+// OATI - tickets asignados o disponibles
+elseif ($_SESSION['privilegio'] === 'oati') {
+    $oati_id = $_SESSION['usuario_id'];
     $query_tickets = "SELECT t.*, a.nombre as area_nombre, s.nombre as servicio_nombre,
-                      d.nombre as dependencia_nombre, u.nombre as usuario_nombre,
-                      u.correo as usuario_email, ta.tecnico_id
-               FROM Tickets t
-               LEFT JOIN AreasSoporte a ON t.area_id = a.id
-               LEFT JOIN Servicios s ON t.servicio_id = s.id
-               LEFT JOIN Dependencias d ON t.dependencia_id = d.id
-               LEFT JOIN Usuarios u ON t.usuario_id = u.id
-               LEFT JOIN TecnicosAsignados ta ON t.id = ta.ticket_id
-               WHERE (ta.tecnico_id = $tecnico_id OR t.estado = 'Nuevo')
-               ORDER BY FIELD(t.estado, 'Nuevo', 'Asignado', 'En Proceso'), t.fecha_creacion DESC";
+                       d.nombre as dependencia_nombre, u.nombre as usuario_nombre,
+                       u.correo as usuario_email, u_oati.nombre as oati_nombre
+                FROM Tickets t
+                LEFT JOIN AreasSoporte a ON t.area_id = a.id
+                LEFT JOIN Servicios s ON t.servicio_id = s.id
+                LEFT JOIN Dependencias d ON t.dependencia_id = d.id
+                LEFT JOIN Usuarios u ON t.usuario_id = u.id
+                LEFT JOIN Usuarios u_oati ON t.oati_asignado = u_oati.id
+                WHERE (t.oati_asignado = $oati_id OR t.estado = 'Nuevo')
+                ORDER BY FIELD(t.estado, 'Nuevo', 'Asignado', 'En Proceso'), t.fecha_creacion DESC";
 }
 // Admin - todos los tickets
 elseif ($_SESSION['privilegio'] === 'admin') {
@@ -196,12 +196,18 @@ function formatBytes($bytes, $precision = 2) {
     <title>Mis Tickets - CSI</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
+    <style>
+        .row-oati td { background: #e3f2fd !important; }
+        .row-infra td { background: #f5f5f5 !important; }
+        .tickets-table tbody tr.row-oati:hover td,
+        .tickets-table tbody tr.row-infra:hover td { filter: brightness(0.97); }
+    </style>
 </head>
 <body class="no-sidebar">
     <div class="header">
         <div class="top-logo-bar-vt">
-            <?php if (file_exists('imagen/oati.png')): ?>
-                <img src="imagen/oati.png" alt="Logo OATI">
+            <?php if (file_exists('imagen/logo2.png')): ?>
+                <img src="imagen/logo2.png" alt="Logo OATI">
             <?php else: ?>
                 <div class="logo-placeholder">OATI</div>
             <?php endif; ?>
@@ -210,7 +216,7 @@ function formatBytes($bytes, $precision = 2) {
             <img src="imagen/vacio.png">
         </div>
         <div class="system-info-vt">
-            <h1>Centro de Soporte Informático</h1>
+            <h1>Centro de Soporte</h1>
             <p>Sistema de Gestión de Tickets</p>
         </div>
         <div class="header-right">
@@ -375,6 +381,7 @@ function formatBytes($bytes, $precision = 2) {
                                 <th>Fecha</th>
                                 <th>Asunto</th>
                                 <th>Prioridad</th>
+                                <th>Tipo</th>
                                 <th>Estado</th>
                                 <th>Asignado a</th>
                                 <th>Acciones</th>
@@ -382,7 +389,8 @@ function formatBytes($bytes, $precision = 2) {
                         </thead>
                         <tbody>
                             <?php foreach ($tickets as $ticket): ?>
-                            <tr>
+                            <?php $fila_clase = (($ticket['area_tipo'] ?? 'informatica') == 'infraestructura') ? 'row-infra' : 'row-oati'; ?>
+                            <tr class="<?php echo $fila_clase; ?>">
                                 <td class="ticket-number">
                                     <a href="detalle_ticket.php?id=<?php echo $ticket['id']; ?>" title="Ver detalles">
                                         <?php echo htmlspecialchars($ticket['numero_ticket']); ?>
@@ -404,6 +412,13 @@ function formatBytes($bytes, $precision = 2) {
                                     </span>
                                 </td>
                                 <td>
+                                    <?php if (($ticket['area_tipo'] ?? 'informatica') == 'infraestructura'): ?>
+                                        <span class="badge bg-secondary">Infraestructura</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-info">Informática</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
                                     <span class="estado-badge estado-<?php echo strtolower(str_replace(' ', '-', $ticket['estado'])); ?>">
                                         <?php echo htmlspecialchars($ticket['estado']); ?>
                                     </span>
@@ -414,10 +429,10 @@ function formatBytes($bytes, $precision = 2) {
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <?php if ($ticket['tecnico_nombre']): ?>
-                                        <?php echo htmlspecialchars($ticket['tecnico_nombre']); ?>
+<?php if ($ticket['oati_nombre']): ?>
+                                        <?php echo htmlspecialchars($ticket['oati_nombre']); ?>
                                     <?php else: ?>
-                                        <span>Por asignar</span>
+                                        <span class="badge bg-warning">Sin asignar</span>
                                     <?php endif; ?>
                                 </td>
                                 <td>

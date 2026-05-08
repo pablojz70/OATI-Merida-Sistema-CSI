@@ -17,10 +17,10 @@ $config_file = 'config/sistema_config.php';
 // Cargar configuración existente o valores por defecto
 $config = [
     // Configuración general del sistema
-    'sistema_nombre' => 'Sistema CSI',
+    'sistema_nombre' => 'Areas Operativas: Infraestructura - OATI',
     'sistema_descripcion' => 'Sistema de Control de Soporte Informático',
     'sistema_version' => '1.0.0',
-    'sistema_url' => 'http://localhost/sistema_csi',
+     'sistema_url' => 'http://localhost/sistema_tickets',
     'sistema_email' => 'soporte@csi.gob.mx',
     'sistema_telefono' => '+52 999 123 4567',
     
@@ -39,7 +39,7 @@ $config = [
     'email_smtp_user' => '',
     'email_smtp_pass' => '',
     'email_from' => 'no-reply@csi.gob.mx',
-    'email_from_name' => 'Sistema CSI',
+    'email_from_name' => 'Areas Operativas: Infraestructura - OATI',
     
     // Configuración de seguridad
     'seguridad_intentos_login' => 3,
@@ -65,7 +65,7 @@ $config = [
     // Configuración de apariencia
     'tema_color_primario' => '#3498db',
     'tema_color_secundario' => '#2ecc71',
-    'tema_logo' => 'assets/logo.png',
+    'tema_logo' => 'assets/logo2.png',
     'tema_favicon' => 'assets/favicon.ico',
     'tema_modo_oscuro' => false,
     
@@ -166,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         // Guardar configuración en archivo
         $config_content = "<?php\n\n";
-        $config_content .= "// Configuración del Sistema CSI\n";
+        $config_content .= "// Configuración del Areas Operativas: Infraestructura - OATI\n";
         $config_content .= "// Archivo generado automáticamente el " . date('Y-m-d H:i:s') . "\n\n";
         
         foreach ($nueva_config as $key => $value) {
@@ -240,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $tipo_mensaje = "error";
         } else {
             // Enviar email de prueba
-            $asunto = "Prueba de Configuración - Sistema CSI";
+            $asunto = "Prueba de Configuración - Areas Operativas: Infraestructura - OATI";
             $mensaje = "
             <html>
             <head>
@@ -333,7 +333,7 @@ if (isset($_GET['mensaje'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configuración del Sistema - Sistema CSI</title>
+    <title>Configuración del Sistema - Areas Operativas: Infraestructura - OATI</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
     <style>

@@ -6,7 +6,7 @@ ini_set('display_errors', 1);
 echo "<h1>Verificar Tickets en Base de Datos</h1>";
 
 try {
-    $pdo = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8", "root", "");
+     $pdo = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8", "root", "");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ATTR_ERRMODE_EXCEPTION);
     
     echo "<p style='color:green'>✅ Conexión exitosa</p>";

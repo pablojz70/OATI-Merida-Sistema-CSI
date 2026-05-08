@@ -1,8 +1,8 @@
 <?php
 return [
     'sistema' => [
-        'nombre' => 'Sistema CSI - Soporte Técnico',
-        'logo' => 'logo.png',
+        'nombre' => 'Areas Operativas: Infraestructura - OATI - Soporte Técnico',
+        'logo' => 'logo2.png',
         'color_principal' => '#2c3e50',
         'items_por_pagina' => 20,
     ],
@@ -13,7 +13,7 @@ return [
         'smtp_user' => '',
         'smtp_pass' => '',
         'from_email' => 'notificaciones@sistema-csi.com',
-        'from_nombre' => 'Sistema CSI',
+        'from_nombre' => 'Areas Operativas: Infraestructura - OATI',
     ],
     'seguridad' => [
         'max_intentos_login' => 5,

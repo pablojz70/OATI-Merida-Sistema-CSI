@@ -14,7 +14,7 @@ $usuario_nombre = $_SESSION['nombre'] ?? 'Administrador';
 
 // Conexión PDO
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
             case 'eliminar_backup':
                 $archivo = $_POST['archivo'] ?? '';
-                $ruta = '/opt/lampp/htdocs/sistema_csi/backups/' . $archivo;
+                 $ruta = '/opt/lampp/htdocs/sistema_tickets/backups/' . $archivo;
                 
                 if (file_exists($ruta)) {
                     unlink($ruta);
@@ -130,7 +130,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Backup - Sistema CSI</title>
+    <title>Backup - Areas Operativas: Infraestructura - OATI</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/estilos2.css">
     <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
@@ -452,9 +452,9 @@ try {
     <!-- HEADER -->
     <header class="top-header">
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img">
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
                 <p class="system-sub-custom">Administración - Backup</p>
             </div>
         </div>

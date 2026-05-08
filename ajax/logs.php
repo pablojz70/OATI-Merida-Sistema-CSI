@@ -296,7 +296,7 @@ function exportarLogsPDF($result, $filtros) {
     </head>
     <body>
         <div class='header'>
-            <h1>Logs del Sistema CSI</h1>
+            <h1>Logs del Areas Operativas: Infraestructura - OATI</h1>
             <p><strong>Período:</strong> {$filtros['fecha_desde']} al {$filtros['fecha_hasta']}</p>
             <p><strong>Generado:</strong> " . date('d/m/Y H:i:s') . "</p>
         </div>

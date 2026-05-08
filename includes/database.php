@@ -6,8 +6,8 @@ class Database {
     private $conn = null;
     
     private function __construct() {
-        $host = 'localhost';
-        $dbname = 'sistema_csi';
+         $host = 'localhost';
+         $dbname = 'sistema_tickets';
         $username = 'root';
         $password = '';
         

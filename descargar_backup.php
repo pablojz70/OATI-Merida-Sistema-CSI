@@ -16,7 +16,7 @@ if (empty($archivo)) {
 
 // Sanitizar nombre de archivo
 $archivo = basename($archivo);
-$ruta = '/opt/lampp/htdocs/sistema_csi/backups/' . $archivo;
+$ruta = '/opt/lampp/htdocs/sistema_tickets/backups/' . $archivo;
 
 if (!file_exists($ruta)) {
     header('Location: admin_backup.php?error=archivo_no_encontrado');

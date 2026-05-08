@@ -2,7 +2,7 @@
 $host = "localhost";
 $user = "root";
 $pass = "";
-$db = "sistema_csi";
+$db = "sistema_tickets";
 
 $conn_temp = new mysqli($host, $user, $pass, $db);
 

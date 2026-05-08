@@ -70,21 +70,21 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     </li>
                     <?php endif; ?>
                     
-                    <!-- MENÚ TÉCNICO -->
-                    <?php if ($privilegio === 'tecnico'): ?>
-                    <li class="nav-item">
-                        <a href="tickets_asignados.php" class="nav-link <?php echo ($current_page == 'tickets_asignados.php') ? 'active' : ''; ?>">
-                            <i class="fas fa-tasks"></i>
-                            <span>Tickets Asignados</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="aceptar_ticket.php" class="nav-link <?php echo ($current_page == 'aceptar_ticket.php') ? 'active' : ''; ?>">
-                            <i class="fas fa-hand-paper"></i>
-                            <span>Aceptar Tickets</span>
-                        </a>
-                    </li>
-                    <?php endif; ?>
+<!-- MENÚ OATI -->
+                     <?php if ($privilegio === 'oati'): ?>
+                     <li class="nav-item">
+                         <a href="tickets_asignados.php" class="nav-link <?php echo ($current_page == 'tickets_asignados.php') ? 'active' : ''; ?>">
+                             <i class="fas fa-tasks"></i>
+                             <span>Tickets Asignados</span>
+                         </a>
+                     </li>
+                     <li class="nav-item">
+                         <a href="aceptar_ticket.php" class="nav-link <?php echo ($current_page == 'aceptar_ticket.php') ? 'active' : ''; ?>">
+                             <i class="fas fa-hand-paper"></i>
+                             <span>Aceptar Tickets</span>
+                         </a>
+                     </li>
+                     <?php endif; ?>
                     
                     <!-- MENÚ COMÚN PARA TODOS -->
                     <li class="nav-item">

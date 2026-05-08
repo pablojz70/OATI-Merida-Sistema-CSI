@@ -2,8 +2,8 @@
 // tickets_asignados.php - Panel del técnico (VERSIÓN CORREGIDA)
 session_start();
 
-// Verificar que sea técnico o admin
-if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['tecnico', 'admin'])) {
+// Verificar que sea OATI o admin
+if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['oati', 'admin'])) {
     header('Location: index.php');
     exit();
 }
@@ -11,7 +11,7 @@ if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['tecn
 // Obtener datos de sesión
 $privilegio = $_SESSION['privilegio'];
 $tecnico_id = $_SESSION['id_usuario'] ?? $_SESSION['usuario_id'] ?? null;
-$usuario_nombre = $_SESSION['nombre'] ?? 'Técnico';
+$usuario_nombre = $_SESSION['nombre'] ?? 'OATI';
 
 if (!$tecnico_id) {
     header('Location: index.php');
@@ -23,7 +23,7 @@ $filtro_estado = $_GET['estado'] ?? '';
 
 // CONEXIÓN A BASE DE DATOS (igual que otros archivos)
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -39,12 +39,19 @@ $query = "SELECT t.*, a.nombre as area_nombre, s.nombre as servicio_nombre,
             THEN CONCAT(TIMESTAMPDIFF(HOUR, t.fecha_creacion, NOW()), ' horas')
             ELSE CONCAT(TIMESTAMPDIFF(DAY, t.fecha_creacion, NOW()), ' días')
           END as tiempo_transcurrido
-          FROM Tickets t
-          JOIN AreasSoporte a ON t.area_id = a.id
-          JOIN Servicios s ON t.servicio_id = s.id
-          JOIN Dependencias d ON t.dependencia_id = d.id
-          JOIN Usuarios u ON t.usuario_id = u.id
-          WHERE t.tecnico_asignado = :tecnico_id";
+        FROM Tickets t
+           JOIN AreasSoporte a ON t.area_id = a.id
+           JOIN Servicios s ON t.servicio_id = s.id
+           JOIN Dependencias d ON t.dependencia_id = d.id
+           JOIN Usuarios u ON t.usuario_id = u.id
+            WHERE t.oati_asignado = :tecnico_id";
+
+// Filtrar por area_tipo según privilegio
+if ($privilegio == 'oati') {
+    $query .= " AND t.area_tipo = 'informatica'";
+} elseif ($privilegio == 'infraestructura') {
+    $query .= " AND t.area_tipo = 'infraestructura'";
+}
 
 // Agregar filtro de estado si viene en la URL
 if (!empty($filtro_estado)) {
@@ -74,14 +81,21 @@ $tickets = $stmt->fetchAll();
 
 // Obtener estadísticas
 $stats_query = "SELECT 
-    COUNT(*) as total,
-    SUM(CASE WHEN estado = 'Nuevo' THEN 1 ELSE 0 END) as nuevos,
-    SUM(CASE WHEN estado = 'Asignado' THEN 1 ELSE 0 END) as asignados,
-    SUM(CASE WHEN estado = 'En Proceso' THEN 1 ELSE 0 END) as en_proceso,
-    SUM(CASE WHEN estado LIKE 'Cerrado%' THEN 1 ELSE 0 END) as cerrados,
-    SUM(CASE WHEN DATE(fecha_cierre) = CURDATE() THEN 1 ELSE 0 END) as cerrados_hoy
-    FROM Tickets 
-    WHERE tecnico_asignado = :tecnico_id";
+     COUNT(*) as total,
+     SUM(CASE WHEN estado = 'Nuevo' THEN 1 ELSE 0 END) as nuevos,
+     SUM(CASE WHEN estado = 'Asignado' THEN 1 ELSE 0 END) as asignados,
+     SUM(CASE WHEN estado = 'En Proceso' THEN 1 ELSE 0 END) as en_proceso,
+     SUM(CASE WHEN estado LIKE 'Cerrado%' THEN 1 ELSE 0 END) as cerrados,
+     SUM(CASE WHEN DATE(fecha_cierre) = CURDATE() THEN 1 ELSE 0 END) as cerrados_hoy
+     FROM Tickets 
+     WHERE oati_asignado = :tecnico_id";
+
+// Filtrar estadísticas por area_tipo según privilegio
+if ($privilegio == 'oati') {
+    $stats_query .= " AND area_tipo = 'informatica'";
+} elseif ($privilegio == 'infraestructura') {
+    $stats_query .= " AND area_tipo = 'infraestructura'";
+}
 
 $stats_stmt = $conn->prepare($stats_query);
 $stats_stmt->execute([':tecnico_id' => $tecnico_id]);
@@ -505,18 +519,18 @@ $stats = $stats_stmt->fetch();
     <!-- HEADER COMPACTO (igual que otros archivos) -->
     <header class="top-header">
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img" 
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img" 
                  onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI1IiBmaWxsPSIjMWExYjk3Ii8+PHBhdGggZD0iTTEwIDE1SDMwTTEwIDIwSDI1TTEwIDI1SDIwIiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=';">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
-                <p class="system-sub-custom">Sistema CSI</p>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
+                <p class="system-sub-custom">Areas Operativas: Infraestructura - OATI</p>
             </div>
         </div>
         
         <div class="user-header-info-custom">
             <div class="user-details-custom">
                 <span class="user-name-custom"><?php echo htmlspecialchars($usuario_nombre); ?></span>
-                <span class="user-role-custom">Técnico</span>
+                <span class="user-role-custom">OATI</span>
             </div>
             <a href="logout.php" class="logout-btn-custom" title="Cerrar sesión">
                 <img src="imagen/Salir.png" alt="Salir" class="logout-img" 
@@ -541,7 +555,7 @@ $stats = $stats_stmt->fetch();
             <!-- ENCABEZADO DE PÁGINA -->
             <div class="page-header-custom">
                 <h1 class="page-title-custom">
-                    <i class="fas fa-tools"></i> Panel del Técnico
+                    <i class="fas fa-tools"></i> Panel del OATI
                 </h1>
                 <p class="page-subtitle-custom">Gestión de tickets asignados a <?php echo htmlspecialchars($usuario_nombre); ?></p>
             </div>
@@ -778,7 +792,7 @@ $stats = $stats_stmt->fetch();
             <div class="footer-custom">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        Centro de Soporte Informático CSI • 
+                        Centro de Soporte CSI • 
                         Mostrando <?php echo count($tickets); ?> tickets asignados
                     </div>
                     <div style="font-size: 9px; color: #27ae60;">

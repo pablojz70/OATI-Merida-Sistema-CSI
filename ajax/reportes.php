@@ -20,6 +20,7 @@ $filtros = [
     'area_id' => $_GET['area_id'] ?? '',
     'dependencia_id' => $_GET['dependencia_id'] ?? '',
     'tecnico_id' => $_GET['tecnico_id'] ?? '',
+    'area_tipo' => $_GET['area_tipo'] ?? '',
     'tipo_reporte' => $_GET['tipo_reporte'] ?? 'general'
 ];
 
@@ -57,8 +58,13 @@ try {
     }
     
     if (!empty($filtros['tecnico_id'])) {
-        $condiciones[] = "t.tecnico_asignado = :tecnico_id";
+        $condiciones[] = "t.oati_asignado = :tecnico_id";
         $params[':tecnico_id'] = (int)$filtros['tecnico_id'];
+    }
+    
+    if (!empty($filtros['area_tipo'])) {
+        $condiciones[] = "t.area_tipo = :area_tipo";
+        $params[':area_tipo'] = $filtros['area_tipo'];
     }
     
     $where_clause = "WHERE " . implode(" AND ", $condiciones);
@@ -178,15 +184,15 @@ try {
         'valores' => $areas_valores
     ];
     
-    // Gráfico de técnicos (top 5)
+    // Gráfico de OATI (top 5)
     $query_tecnicos = "SELECT 
         u.nombre,
         COUNT(t.id) as cerrados
         FROM Tickets t
-        JOIN Usuarios u ON t.tecnico_asignado = u.id
+        JOIN Usuarios u ON t.oati_asignado = u.id
         WHERE t.estado IN ('Cerrado Exitosamente', 'Cerrado No Exitoso')
         AND DATE(t.fecha_creacion) BETWEEN :fecha_inicio_tecnicos AND :fecha_fin_tecnicos
-        GROUP BY t.tecnico_asignado, u.nombre
+        GROUP BY t.oati_asignado, u.nombre
         ORDER BY cerrados DESC
         LIMIT 5";
     
@@ -219,10 +225,10 @@ try {
         t.prioridad,
         t.estado,
         DATE_FORMAT(t.fecha_creacion, '%d/%m/%Y %H:%i') as fecha,
-        u.nombre as tecnico_nombre
+        u.nombre as oati_nombre
         FROM Tickets t
         JOIN AreasSoporte a ON t.area_id = a.id
-        LEFT JOIN Usuarios u ON t.tecnico_asignado = u.id
+        LEFT JOIN Usuarios u ON t.oati_asignado = u.id
         $where_clause
         ORDER BY t.fecha_creacion DESC
         LIMIT 50";
@@ -260,15 +266,15 @@ try {
     unset($item);
     $respuesta['tablas']['top_areas'] = $top_areas;
     
-    // Top técnicos
+    // Top OATI
     $query_top_tecnicos = "SELECT 
         u.nombre,
         COUNT(CASE WHEN t.estado IN ('Cerrado Exitosamente', 'Cerrado No Exitoso') THEN 1 END) as cerrados,
         AVG(CASE WHEN t.estado IN ('Cerrado Exitosamente', 'Cerrado No Exitoso') THEN t.tiempo_resolucion_minutos END) as tiempo_promedio
         FROM Tickets t
-        JOIN Usuarios u ON t.tecnico_asignado = u.id
+        JOIN Usuarios u ON t.oati_asignado = u.id
         WHERE DATE(t.fecha_creacion) BETWEEN :fecha_inicio_top_tecnicos AND :fecha_fin_top_tecnicos
-        GROUP BY t.tecnico_asignado, u.nombre
+        GROUP BY t.oati_asignado, u.nombre
         HAVING cerrados > 0
         ORDER BY cerrados DESC
         LIMIT 5";

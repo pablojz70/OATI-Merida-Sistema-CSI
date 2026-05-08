@@ -18,7 +18,7 @@ if (!$id_usuario) {
 
 // Conexión a base de datos
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -33,10 +33,10 @@ if ($adjunto_id <= 0) {
 
 // Consultar información del archivo adjunto
 try {
-    $sql = "SELECT ta.*, t.usuario_id as ticket_usuario_id, t.tecnico_asignado 
-            FROM TicketAdjuntos ta
-            JOIN Tickets t ON ta.ticket_id = t.id
-            WHERE ta.id = ?";
+$sql = "SELECT ta.*, t.usuario_id as ticket_usuario_id, t.oati_asignado 
+             FROM TicketAdjuntos ta
+             JOIN Tickets t ON ta.ticket_id = t.id
+             WHERE ta.id = ?";
     
     $stmt = $conn->prepare($sql);
     $stmt->execute([$adjunto_id]);
@@ -51,8 +51,8 @@ try {
     
     if ($privilegio == 'admin') {
         $puede_descargar = true;
-    } elseif ($privilegio == 'tecnico') {
-        $puede_descargar = ($adjunto['tecnico_asignado'] == $id_usuario);
+} elseif ($privilegio == 'oati') {
+         $puede_descargar = ($adjunto['oati_asignado'] == $id_usuario);
     } elseif ($privilegio == 'usuario') {
         $puede_descargar = ($adjunto['ticket_usuario_id'] == $id_usuario);
     }
@@ -67,7 +67,7 @@ try {
     }
     
     // Ruta completa del archivo
-    $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_csi/adjuntos/";
+     $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_tickets/adjuntos/";
     $ruta_completa_archivo = $ruta_base_adjuntos . $adjunto['ruta_archivo'];
     
     // Verificar que el archivo existe

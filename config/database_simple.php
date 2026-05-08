@@ -3,7 +3,7 @@
 $host = "localhost";
 $usuario = "root";
 $contrasena = "";  // Cambia si tienes contraseña
-$basedatos = "sistema_csi";
+$basedatos = "sistema_tickets";
 
 // Intentar conexión
 $conn = new mysqli($host, $usuario, $contrasena, $basedatos);

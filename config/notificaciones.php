@@ -54,7 +54,7 @@ class Notificaciones {
         // Descomentar cuando tengan PHPMailer configurado:
         /*
         $mail = new PHPMailer();
-        $mail->setFrom('soporte@csi.com', 'Sistema CSI');
+        $mail->setFrom('soporte@csi.com', 'Areas Operativas: Infraestructura - OATI');
         $mail->addAddress($destinatario);
         $mail->Subject = $asunto;
         $mail->Body = $mensaje;

@@ -12,8 +12,8 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 // 2. CONFIGURACIONES GLOBALES
-define('SITE_NAME', 'Sistema CSI');
-define('SITE_URL', 'http://localhost/sistema_csi/');
+define('SITE_NAME', 'Areas Operativas: Infraestructura - OATI');
+define('SITE_URL', 'http://localhost/sistema_tickets/');
 define('DEBUG_MODE', true);
 
 // 3. INCLUDES ESENCIALES

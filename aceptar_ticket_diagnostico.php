@@ -7,16 +7,16 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // DEBUG: Verificar sesión
-if (!isset($_SESSION['usuario_id']) || $_SESSION['privilegio'] != 'tecnico') {
+if (!isset($_SESSION['usuario_id']) || $_SESSION['privilegio'] != 'oati') {
     echo "<!-- DEBUG: Sesión no válida para técnico -->";
     echo "<!-- usuario_id: " . ($_SESSION['usuario_id'] ?? 'NO') . " -->";
     echo "<!-- privilegio: " . ($_SESSION['privilegio'] ?? 'NO') . " -->";
     header('Location: index.php');
     exit();
 }
+$id_oati = $_SESSION['usuario_id'];
 
-$id_tecnico = $_SESSION['usuario_id'];
-$nombre_tecnico = $_SESSION['nombre'];
+$nombre_oati = $_SESSION['nombre'];
 
 // RUTA CORRECTA: 'config/database.php' (están en la misma carpeta)
 require_once 'config/database.php';
@@ -47,7 +47,7 @@ $sql = "SELECT
     JOIN AreasSoporte a ON t.area_id = a.id
     JOIN Servicios s ON t.servicio_id = s.id
     WHERE t.estado = 'Nuevo' 
-    AND t.tecnico_asignado IS NULL
+     AND t.oati_asignado IS NULL
     ORDER BY 
         CASE t.prioridad 
             WHEN 'urgente' THEN 1
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
     $id_ticket = intval($_POST['id_ticket']);
     
     // Verificar disponibilidad
-    $check_sql = "SELECT id FROM Tickets WHERE id = ? AND estado = 'Nuevo' AND tecnico_asignado IS NULL";
+    $check_sql = "SELECT id FROM Tickets WHERE id = ? AND estado = 'Nuevo' AND oati_asignado IS NULL";
     $stmt = $conn->prepare($check_sql);
     $stmt->bind_param("i", $id_ticket);
     $stmt->execute();
@@ -79,9 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
     
     if ($check_result->num_rows > 0) {
         // Asignar ticket
-        $update_sql = "UPDATE Tickets SET tecnico_asignado = ?, estado = 'Asignado' WHERE id = ?";
+        $update_sql = "UPDATE Tickets SET oati_asignado = ?, estado = 'Asignado' WHERE id = ?";
         $stmt = $conn->prepare($update_sql);
-        $stmt->bind_param("ii", $id_tecnico, $id_ticket);
+        $stmt->bind_param("ii", $id_oati, $id_ticket);
         
         if ($stmt->execute()) {
             // Redirigir con éxito
@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aceptar Tickets - Sistema CSI</title>
+    <title>Aceptar Tickets - Areas Operativas: Infraestructura - OATI</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
     <style>
@@ -535,7 +535,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
         <!-- Sidebar con menú -->
         <div class="sidebar-aceptar">
             <?php include 'includes/header.php'; ?>
-            <?php include 'includes/menu_tecnico.php'; ?>
+            <?php include 'includes/menu_oati.php'; ?>
         </div>
         
         <!-- Contenido principal -->
@@ -544,7 +544,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
             <div class="barra-usuario">
                 <div class="info-usuario">
                     <div class="avatar-usuario">
-                        <?php echo substr($nombre_tecnico, 0, 1); ?>
+                        <?php echo substr($nombre_oati, 0, 1); ?>
                     </div>
                     <div class="detalles-usuario">
                         <h4><?php echo htmlspecialchars($nombre_tecnico); ?></h4>

@@ -23,16 +23,16 @@ echo "</table>";
 
 // 3. Tickets nuevos sin asignar
 $sql_nuevos = "SELECT 
-    t.id, 
-    t.numero_ticket, 
-    t.asunto, 
-    t.estado,
-    t.tecnico_asignado,
-    u.nombre as usuario_nombre
-    FROM tickets t
-    LEFT JOIN usuarios u ON t.usuario_id = u.id
-    WHERE t.estado = 'Nuevo' 
-    AND t.tecnico_asignado IS NULL";
+     t.id, 
+     t.numero_ticket, 
+     t.asunto, 
+     t.estado,
+     t.oati_asignado,
+     u.nombre as usuario_nombre
+     FROM tickets t
+     LEFT JOIN usuarios u ON t.usuario_id = u.id
+     WHERE t.estado = 'Nuevo' 
+     AND t.oati_asignado IS NULL";
 
 echo "<h3>Tickets NUEVOS sin asignar:</h3>";
 $result = $conn->query($sql_nuevos);
@@ -48,7 +48,7 @@ if ($result && $result->rowCount() > 0) {
                 <td>{$row['numero_ticket']}</td>
                 <td>{$row['asunto']}</td>
                 <td>{$row['estado']}</td>
-                <td>" . ($row['tecnico_asignado'] ? 'ASIGNADO' : 'NULL') . "</td>
+                <td>" . ($row['oati_asignado'] ? 'ASIGNADO' : 'NULL') . "</td>
                 <td>{$row['usuario_nombre']}</td>
               </tr>";
     }
@@ -56,15 +56,15 @@ if ($result && $result->rowCount() > 0) {
 } else {
     echo "<p style='color:red'><strong>❌ NO se encontraron tickets nuevos sin asignar</strong></p>";
     
-    $sql_otros = "SELECT 
-        t.id, 
-        t.numero_ticket, 
-        t.asunto, 
-        t.estado,
-        t.tecnico_asignado
-        FROM tickets t
-        WHERE t.tecnico_asignado IS NULL
-        ORDER BY t.estado";
+$sql_otros = "SELECT 
+         t.id, 
+         t.numero_ticket, 
+         t.asunto, 
+         t.estado,
+         t.oati_asignado
+         FROM tickets t
+         WHERE t.oati_asignado IS NULL
+         ORDER BY t.estado";
     
     $result2 = $conn->query($sql_otros);
     if ($result2 && $result2->rowCount() > 0) {

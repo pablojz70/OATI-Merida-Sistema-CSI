@@ -56,32 +56,42 @@ try {
     error_log("Error cargando dependencias: " . $e->getMessage());
 }
 
-// c) Obtener técnicos y admins disponibles (para admin y técnicos)
-$tecnicos = [];
-if ($privilegio == 'admin' || $privilegio == 'tecnico') {
+// c) Obtener OATI, Infraestructura y admins disponibles (para admin y OATI)
+$oati_asignables = [];
+$infra_asignables = [];
+if ($privilegio == 'admin' || $privilegio == 'oati') {
     try {
         // Obtener todos los admins activos
         $stmt_admins = $conn->query("SELECT id, nombre, correo FROM Usuarios WHERE privilegio = 'admin' AND activo = 1 ORDER BY nombre");
         $admins = $stmt_admins->fetchAll(PDO::FETCH_ASSOC);
         
-        // Obtener técnicos normales
-        $stmt = $conn->query("SELECT id, nombre, correo FROM Usuarios WHERE privilegio = 'tecnico' AND activo = 1 ORDER BY nombre");
-        $tecnicos_normales = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Obtener OATI normales
+        $stmt = $conn->query("SELECT id, nombre, correo FROM Usuarios WHERE privilegio = 'oati' AND activo = 1 ORDER BY nombre");
+        $oati_normales = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Combinar: admins primero (marcados), luego técnicos
+        // Obtener Infraestructura
+        $stmt_infra = $conn->query("SELECT id, nombre, correo FROM Usuarios WHERE privilegio = 'infraestructura' AND activo = 1 ORDER BY nombre");
+        $infras = $stmt_infra->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Combinar: admins primero (marcados), luego OATI
         foreach ($admins as $admin) {
             $admin['is_admin'] = true;
             if ($admin['id'] == $usuario_id) {
                 $admin['nombre'] .= ' (Yo)';
             }
-            $tecnicos[] = $admin;
+            $oati_asignables[] = $admin;
         }
-        foreach ($tecnicos_normales as $tec) {
-            $tec['is_admin'] = false;
-            $tecnicos[] = $tec;
+        foreach ($oati_normales as $oati) {
+            $oati['is_admin'] = false;
+            $oati_asignables[] = $oati;
+        }
+        // Infraestructura no incluye admins
+        foreach ($infras as $infra) {
+            $infra['is_admin'] = false;
+            $infra_asignables[] = $infra;
         }
     } catch (Exception $e) {
-        error_log("Error cargando técnicos: " . $e->getMessage());
+        error_log("Error cargando OATI: " . $e->getMessage());
     }
 }
 
@@ -93,7 +103,8 @@ $datos_formulario = [
     'asunto' => '',
     'descripcion' => '',
     'prioridad' => 'media',
-    'tecnico_asignado' => '',
+     'oati_asignado' => '',
+    'area_tipo' => 'informatica',
     'dependencia_id' => $dependencia_id,
     'lugar_area' => '',
     'fecha_ticket' => '',
@@ -104,12 +115,13 @@ $datos_formulario = [
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Recoger datos
     $datos_formulario['area_id'] = intval($_POST['area_id'] ?? 0);
+    $datos_formulario['area_tipo'] = $_POST['area_tipo'] ?? 'informatica';
     $datos_formulario['servicio_id'] = intval($_POST['servicio_id'] ?? 0);
     $datos_formulario['asunto'] = trim($_POST['asunto'] ?? '');
     $datos_formulario['descripcion'] = trim($_POST['descripcion'] ?? '');
     
-    // Solo admin puede modificar prioridad, otros usuarios tienen prioridad media
-    if ($privilegio == 'admin') {
+    // Admin, OATI e Infraestructura pueden modificar prioridad y fecha
+    if ($privilegio == 'admin' || $privilegio == 'oati' || $privilegio == 'infraestructura') {
         $datos_formulario['prioridad'] = $_POST['prioridad'] ?? 'media';
         $datos_formulario['fecha_ticket'] = $_POST['fecha_ticket'] ?? '';
     } else {
@@ -126,11 +138,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Obtener dependencia de donde se presenta la falla (PARA TODOS LOS USUARIOS)
     $datos_formulario['dependencia_id'] = isset($_POST['dependencia_id']) ? intval($_POST['dependencia_id']) : $dependencia_id;
     
-    // Técnico asignado para admin y técnicos
-    if ($privilegio == 'admin' || $privilegio == 'tecnico') {
-        $datos_formulario['tecnico_asignado'] = isset($_POST['tecnico_asignado']) ? intval($_POST['tecnico_asignado']) : null;
+    // OATI asignado para admin y OATI
+    if ($privilegio == 'admin' || $privilegio == 'oati') {
+        $datos_formulario['oati_asignado'] = isset($_POST['oati_asignado']) ? intval($_POST['oati_asignado']) : null;
     } else {
-        $datos_formulario['tecnico_asignado'] = null;
+        $datos_formulario['oati_asignado'] = null;
     }
     
     // Validaciones básicas
@@ -206,38 +218,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $numero_ticket = $prefijo . $fecha . sprintf('%05d', rand(10000, 99999));
             }
             
-            $estado_inicial = 'Nuevo';
-            if (($privilegio == 'admin' || $privilegio == 'tecnico') && $datos_formulario['tecnico_asignado']) {
-                $estado_inicial = 'Asignado';
-            }
+             $estado_inicial = 'Nuevo';
+             if (($privilegio == 'admin' || $privilegio == 'oati') && $datos_formulario['oati_asignado']) {
+                 $estado_inicial = 'Asignado';
+             }
             
             $ticket_usuario_id = $usuario_id;
             if ($privilegio == 'admin' && $datos_formulario['dependencia_id'] != $dependencia_id) {
                 $ticket_usuario_id = $usuario_id;
             }
             
-            $sql = "INSERT INTO Tickets (
-                numero_ticket, usuario_id, dependencia_id, lugar_area, area_id, 
-                servicio_id, asunto, descripcion, prioridad, estado, 
-                tecnico_asignado, fecha_creacion, numero_bien, serial
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, NOW()), ?, ?)";
+             $sql = "INSERT INTO Tickets (
+                 numero_ticket, usuario_id, dependencia_id, lugar_area, area_id, 
+                 servicio_id, asunto, descripcion, prioridad, estado, 
+                 oati_asignado, fecha_creacion, area_tipo, numero_bien, serial
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, NOW()), ?, ?, ?)";
             
-            $params = [
-                $numero_ticket,
-                $ticket_usuario_id,
-                $datos_formulario['dependencia_id'],
-                $datos_formulario['lugar_area'],
-                $datos_formulario['area_id'],
-                $datos_formulario['servicio_id'],
-                $datos_formulario['asunto'],
-                $datos_formulario['descripcion'],
-                $datos_formulario['prioridad'],
-                $estado_inicial,
-                (($privilegio == 'admin' || $privilegio == 'tecnico') && $datos_formulario['tecnico_asignado']) ? $datos_formulario['tecnico_asignado'] : null,
-                !empty($datos_formulario['fecha_ticket']) ? $datos_formulario['fecha_ticket'] : null,
-                !empty($datos_formulario['numero_bien']) ? $datos_formulario['numero_bien'] : null,
-                !empty($datos_formulario['serial']) ? $datos_formulario['serial'] : null
-            ];
+             $params = [
+                 $numero_ticket,
+                 $ticket_usuario_id,
+                 $datos_formulario['dependencia_id'],
+                 $datos_formulario['lugar_area'],
+                 $datos_formulario['area_id'],
+                 $datos_formulario['servicio_id'],
+                 $datos_formulario['asunto'],
+                 $datos_formulario['descripcion'],
+                 $datos_formulario['prioridad'],
+                 $estado_inicial,
+                 (($privilegio == 'admin' || $privilegio == 'oati') && $datos_formulario['oati_asignado']) ? $datos_formulario['oati_asignado'] : null,
+                 !empty($datos_formulario['fecha_ticket']) ? $datos_formulario['fecha_ticket'] : null,
+                 $datos_formulario['area_tipo'],
+                 !empty($datos_formulario['numero_bien']) ? $datos_formulario['numero_bien'] : null,
+                 !empty($datos_formulario['serial']) ? $datos_formulario['serial'] : null
+             ];
             
             $stmt = $conn->prepare($sql);
             $stmt->execute($params);
@@ -253,7 +266,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 error_log("DEBUG: Iniciando procesamiento de archivos adjuntos para ticket ID: $ticket_id");
                 
                 // RUTA BASE ABSOLUTA - MODIFICADA
-                $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_csi/adjuntos/tickets/";
+                 $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_tickets/adjuntos/tickets/";
                 
                 // Procesar cada archivo
                 foreach($_FILES['archivos']['tmp_name'] as $key => $tmp_name) {
@@ -349,9 +362,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if (!empty($datos_formulario['lugar_area'])) {
                     $detalle_historial .= " - Lugar/Área: " . substr($datos_formulario['lugar_area'], 0, 50);
                 }
-                if ($datos_formulario['tecnico_asignado']) {
-                    $detalle_historial .= " - Asignado inmediatamente a técnico";
-                }
+                 if ($datos_formulario['oati_asignado']) {
+                     $detalle_historial .= " - Asignado inmediatamente a OATI";
+                 }
                 if ($archivos_subidos > 0) {
                     $detalle_historial .= " - Con $archivos_subidos archivo(s) adjunto(s)";
                 }
@@ -384,9 +397,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 error_log("Info: historialtickets no disponible - " . $e->getMessage());
             }
             
-            $_SESSION['mensaje_exito'] = "✅ Ticket <strong>$numero_ticket</strong> creado exitosamente" . 
-                                        ($datos_formulario['tecnico_asignado'] ? " y asignado a técnico" : "") . 
-                                        $mensaje_archivos;
+$_SESSION['mensaje_exito'] = "✅ Ticket <strong>$numero_ticket</strong> creado exitosamente" . 
+                                         ($datos_formulario['tecnico_asignado'] ? " y asignado a OATI" : "") . 
+                                         $mensaje_archivos;
             header('Location: mis_tickets.php');
             exit();
             
@@ -401,10 +414,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 $areas = [];
 try {
     if ($privilegio == 'admin') {
-        $stmt = $conn->query("SELECT id, nombre, activa, todosven FROM AreasSoporte ORDER BY activa DESC, orden, nombre");
+        $stmt = $conn->query("SELECT id, nombre, activa, todosven, tipo FROM AreasSoporte ORDER BY activa DESC, orden, nombre");
         $areas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } else {
-        $stmt = $conn->query("SELECT id, nombre FROM AreasSoporte WHERE activa = 1 AND todosven = 1 ORDER BY orden, nombre");
+        $stmt = $conn->query("SELECT id, nombre, tipo FROM AreasSoporte WHERE activa = 1 AND todosven = 1 ORDER BY orden, nombre");
         $areas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 } catch (Exception $e) {
@@ -412,8 +425,20 @@ try {
     $errores[] = "Error al cargar las áreas de soporte";
 }
 
+// Separar áreas por tipo
+$areas_informatica = [];
+$areas_infraestructura = [];
+foreach ($areas as $area) {
+    $tipo = $area['tipo'] ?? 'informatica';
+    if ($tipo == 'informatica') {
+        $areas_informatica[] = $area;
+    } else {
+        $areas_infraestructura[] = $area;
+    }
+}
+
 // 8. INCLUIR CABECERA
-$titulo_pagina = "Crear Nuevo Ticket - Sistema CSI";
+$titulo_pagina = "Crear Nuevo Ticket - Areas Operativas: Infraestructura - OATI";
 include 'includes/header.php';
 
 // 9. DETERMINAR QUÉ MENÚ INCLUIR
@@ -603,9 +628,9 @@ if (!file_exists($menu_archivo)) {
     <!-- HEADER -->
     <header class="top-header">
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img">
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
                 <p class="system-sub-custom">Crear Nuevo Ticket</p>
             </div>
         </div>
@@ -737,15 +762,53 @@ if (!file_exists($menu_archivo)) {
                                    maxlength="150"
                                    value="<?php echo htmlspecialchars($datos_formulario['lugar_area']); ?>"
                                    required>
-                        </div>
-                        
-                        <!-- ÁREA DE SOPORTE -->
+                         </div>
+                         
+                         <!-- TIPO DE ATENCIÓN -->
+                         <div class="form-group">
+                             <label>Tipo de Atención *</label>
+                             <div class="radio-group">
+                                 <label><input type="radio" name="area_tipo" value="informatica" checked onchange="cambiarTipo(this.value)"> Informática (OATI)</label>
+                                 <label><input type="radio" name="area_tipo" value="infraestructura" onchange="cambiarTipo(this.value)"> Infraestructura</label>
+                             </div>
+                         </div>
+                         
+                         <script>
+                         function cambiarTipo(tipo) {
+                             var select = document.getElementById('area_id');
+                             var options = select.options;
+                             for (var i = 0; i < options.length; i++) {
+                                 var opt = options[i];
+                                 if (opt.value === '') continue;
+                                 if (opt.getAttribute('data-tipo') === tipo) {
+                                     opt.style.display = '';
+                                     opt.disabled = false;
+                                 } else {
+                                     opt.style.display = 'none';
+                                     opt.disabled = true;
+                                 }
+                             }
+                             // Reset selection if hidden
+                             if (select.selectedIndex > 0 && select.options[select.selectedIndex].disabled) {
+                                 select.selectedIndex = 0;
+                                 // Trigger change to clear servicios
+                                 $(select).trigger('change');
+                             }
+                         }
+                         // Initialize on page load
+                         document.addEventListener('DOMContentLoaded', function() {
+                             var checked = document.querySelector('input[name="area_tipo"]:checked');
+                             if (checked) cambiarTipo(checked.value);
+                         });
+                         </script>
+                         
+                         <!-- ÁREA DE SOPORTE -->
                         <div class="form-group">
                             <label for="area_id">Área de Soporte *</label>
-                            <select class="form-control" id="area_id" name="area_id" required>
+<select class="form-control" id="area_id" name="area_id" required>
                                 <option value="">-- Seleccione área --</option>
                                 <?php foreach ($areas as $area): ?>
-                                    <option value="<?php echo $area['id']; ?>" 
+                                    <option value="<?php echo $area['id']; ?>" data-tipo="<?php echo $area['tipo'] ?? 'informatica'; ?>" 
                                             <?php echo (isset($datos_formulario['area_id']) && $datos_formulario['area_id'] == $area['id']) ? 'selected' : ''; ?>>
                                         <?php echo htmlspecialchars($area['nombre']); ?>
                                     </option>
@@ -843,8 +906,8 @@ if (!file_exists($menu_archivo)) {
                     <div class="form-section-card">
                         <h4><i class="fas fa-cog"></i> Configuración</h4>
                         
-                        <?php if ($privilegio == 'admin'): ?>
-                        <!-- Prioridad editable solo para admin -->
+                        <?php if ($privilegio == 'admin' || $privilegio == 'oati' || $privilegio == 'infraestructura'): ?>
+                        <!-- Prioridad y Fecha editable para admin, OATI e Infraestructura -->
                         <div class="form-group">
                             <label for="prioridad"><i class="fas fa-exclamation-circle"></i> Nivel de Prioridad *</label>
                             <select class="form-control" id="prioridad" name="prioridad" required>
@@ -853,10 +916,9 @@ if (!file_exists($menu_archivo)) {
                                 <option value="alta" <?php echo $datos_formulario['prioridad'] == 'alta' ? 'selected' : ''; ?>>Alta</option>
                                 <option value="urgente" <?php echo $datos_formulario['prioridad'] == 'urgente' ? 'selected' : ''; ?>>Urgente</option>
                             </select>
-                            <small style="color: #666; font-size: 11px;">Solo administradores pueden modificar la prioridad</small>
                         </div>
                         
-                        <!-- Fecha editable solo para admin -->
+                        <!-- Fecha editable -->
                         <div class="form-group">
                             <label for="fecha_ticket"><i class="fas fa-calendar"></i> Fecha del Ticket</label>
                             <input type="datetime-local" class="form-control" id="fecha_ticket" name="fecha_ticket" value="">
@@ -874,32 +936,76 @@ if (!file_exists($menu_archivo)) {
                         </div>
                         <?php endif; ?>
                         
-                        <?php if (($privilegio == 'admin' || $privilegio == 'tecnico') && !empty($tecnicos)): ?>
+                        <?php if (($privilegio == 'admin' || $privilegio == 'oati') && (!empty($oati_asignables) || !empty($infra_asignables))): ?>
                         <div class="admin-panel">
-                            <h5><i class="fas fa-user-tag"></i> Asignación de Técnico</h5>
+                            <h5><i class="fas fa-user-tag"></i> <span id="asignacion-titulo">Asignación de OATI</span></h5>
                             
                             <div class="toggle-container">
-                                <input type="checkbox" id="asignar_tecnico" name="asignar_tecnico" value="1" 
-                                       <?php echo isset($_POST['asignar_tecnico']) ? 'checked' : ''; ?>>
+<input type="checkbox" id="asignar_oati" name="asignar_oati" value="1" 
+                                     <?php echo isset($_POST['asignar_oati']) ? 'checked' : ''; ?>>
                                 <span class="toggle-switch"></span>
-                                <span class="toggle-label">Asignar técnico inmediatamente</span>
+                                <span class="toggle-label" id="asignar-label">Asignar OATI inmediatamente</span>
                             </div>
                             
-                            <div id="tecnico-selector" style="<?php echo isset($_POST['asignar_tecnico']) ? 'display: block;' : 'display: none;' ?>">
+                            <div id="oati-selector" style="<?php echo isset($_POST['asignar_oati']) ? 'display: block;' : 'display: none;' ?>">
                                 <div class="form-group">
-                                    <label for="tecnico_asignado">Asignar a:</label>
-                                    <select class="form-control" id="tecnico_asignado" name="tecnico_asignado">
-                                        <option value="">-- Seleccionar --</option>
-                                        <?php foreach ($tecnicos as $tecnico): ?>
-                                            <?php $is_admin = isset($tecnico['is_admin']) && $tecnico['is_admin']; ?>
-                                            <option value="<?php echo $tecnico['id']; ?>" 
-                                                    <?php echo $datos_formulario['tecnico_asignado'] == $tecnico['id'] ? 'selected' : ''; ?>>
-                                                <?php echo htmlspecialchars($tecnico['nombre']); ?><?php echo $is_admin ? ' ⭐' : ''; ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
+                                     <label for="oati_asignado"><span id="asignar-a-label">Asignar a:</span></label>
+                                     <select class="form-control" id="oati_asignado" name="oati_asignado">
+                                         <option value="">-- Seleccionar --</option>
+                                         <optgroup label="OATI" id="oatis-optgroup">
+                                         <?php foreach ($oati_asignables as $oati): ?>
+                                             <?php $is_admin = isset($oati['is_admin']) && $oati['is_admin']; ?>
+                                             <option value="<?php echo $oati['id']; ?>" 
+                                                     <?php echo $datos_formulario['oati_asignado'] == $oati['id'] ? 'selected' : ''; ?>>
+                                                 <?php echo htmlspecialchars($oati['nombre']); ?><?php echo $is_admin ? ' ⭐' : ''; ?>
+                                             </option>
+                                         <?php endforeach; ?>
+                                         </optgroup>
+                                         <optgroup label="Infraestructura" id="infra-optgroup" style="display:none;">
+                                         <?php foreach ($infra_asignables as $infra): ?>
+                                             <option value="<?php echo $infra['id']; ?>" 
+                                                     <?php echo $datos_formulario['oati_asignado'] == $infra['id'] ? 'selected' : ''; ?>>
+                                                 <?php echo htmlspecialchars($infra['nombre']); ?>
+                                             </option>
+                                         <?php endforeach; ?>
+                                         </optgroup>
+                                     </select>
+                                 </div>
                             </div>
+                            <script>
+                            function actualizarAsignacion(tipo) {
+                                var titulo = document.getElementById('asignacion-titulo');
+                                var label = document.getElementById('asignar-label');
+                                var aLabel = document.getElementById('asignar-a-label');
+                                var oatiOpt = document.getElementById('oatis-optgroup');
+                                var infraOpt = document.getElementById('infra-optgroup');
+                                if (tipo === 'infraestructura') {
+                                    titulo.textContent = 'Asignación de Infraestructura';
+                                    label.textContent = 'Asignar Infraestructura inmediatamente';
+                                    if (oatiOpt) oatiOpt.style.display = 'none';
+                                    if (infraOpt) infraOpt.style.display = '';
+                                } else {
+                                    titulo.textContent = 'Asignación de OATI';
+                                    label.textContent = 'Asignar OATI inmediatamente';
+                                    if (oatiOpt) oatiOpt.style.display = '';
+                                    if (infraOpt) infraOpt.style.display = 'none';
+                                }
+                                // Reset selection
+                                var select = document.getElementById('oati_asignado');
+                                if (select) select.selectedIndex = 0;
+                            }
+                            // Hook into existing cambiarTipo
+                            var origCambiarTipo = window.cambiarTipo;
+                            window.cambiarTipo = function(tipo) {
+                                if (origCambiarTipo) origCambiarTipo(tipo);
+                                actualizarAsignacion(tipo);
+                            };
+                            // Initialize on page load
+                            document.addEventListener('DOMContentLoaded', function() {
+                                var checked = document.querySelector('input[name="area_tipo"]:checked');
+                                if (checked) actualizarAsignacion(checked.value);
+                            });
+                            </script>
                         </div>
                         <?php endif; ?>
                     </div>
@@ -943,29 +1049,29 @@ if (!file_exists($menu_archivo)) {
             });
         }
         
-        // Toggle para técnico
-        var asignarTecnico = document.getElementById('asignar_tecnico');
-        var tecnicoSelector = document.getElementById('tecnico-selector');
-        var tecnicoAsignado = document.getElementById('tecnico_asignado');
-        
-        if (asignarTecnico && tecnicoSelector && tecnicoAsignado) {
-            asignarTecnico.addEventListener('change', function() {
-                if (this.checked) {
-                    tecnicoSelector.style.display = 'block';
-                    tecnicoAsignado.disabled = false;
-                } else {
-                    tecnicoSelector.style.display = 'none';
-                    tecnicoAsignado.disabled = true;
-                    tecnicoAsignado.value = '';
-                }
-            });
-            
-            // Inicializar estado
-            if (!asignarTecnico.checked) {
-                tecnicoSelector.style.display = 'none';
-                tecnicoAsignado.disabled = true;
-            }
-        }
+         // Toggle para OATI
+         var asignarOati = document.getElementById('asignar_oati');
+         var oatiSelector = document.getElementById('oati-selector');
+         var oatiAsignado = document.getElementById('oati_asignado');
+         
+         if (asignarOati && oatiSelector && oatiAsignado) {
+             asignarOati.addEventListener('change', function() {
+                 if (this.checked) {
+                     oatiSelector.style.display = 'block';
+                     oatiAsignado.disabled = false;
+                 } else {
+                     oatiSelector.style.display = 'none';
+                     oatiAsignado.disabled = true;
+                     oatiAsignado.value = '';
+                 }
+             });
+             
+             // Inicializar estado
+             if (!asignarOati.checked) {
+                 oatiSelector.style.display = 'none';
+                 oatiAsignado.disabled = true;
+             }
+         }
     })();
     
     // Función para buscar en INTRADAR
@@ -1113,21 +1219,21 @@ if (!file_exists($menu_archivo)) {
             });
         });
         
-        // Toggle para selector de técnico
-        $('#asignar_tecnico').change(function() {
+        // Toggle para selector de OATI
+        $('#asignar_oati').change(function() {
             if ($(this).is(':checked')) {
-                $('#tecnico-selector').show();
-                $('#tecnico_asignado').prop('disabled', false);
+                $('#oati-selector').show();
+                $('#oati_asignado').prop('disabled', false);
             } else {
-                $('#tecnico-selector').hide();
-                $('#tecnico_asignado').prop('disabled', true).val('');
+                $('#oati-selector').hide();
+                $('#oati_asignado').prop('disabled', true).val('');
             }
         });
         
-        // Inicializar estado del selector de técnico
-        if (!$('#asignar_tecnico').is(':checked')) {
-            $('#tecnico-selector').hide();
-            $('#tecnico_asignado').prop('disabled', true);
+        // Inicializar estado del selector de OATI
+        if (!$('#asignar_oati').is(':checked')) {
+            $('#oati-selector').hide();
+            $('#oati_asignado').prop('disabled', true);
         }
         
         // Validación simple

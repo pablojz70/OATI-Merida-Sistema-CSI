@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['admin', 'tecnico'])) {
+if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['admin', 'OATI'])) {
     header('Location: index.php');
     exit();
 }
@@ -13,7 +13,7 @@ if (!$ticket_id) {
 }
 
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("Error de conexión: " . $e->getMessage());
@@ -30,7 +30,7 @@ if (!$ticket) {
     die("Ticket no encontrado");
 }
 
-$tecnico_nombre = $_SESSION['nombre'] ?? 'Técnico';
+$tecnico_nombre = $_SESSION['nombre'] ?? 'OATI';
 
 $bien_intradar = null;
 if (!empty($ticket['numero_bien'])) {

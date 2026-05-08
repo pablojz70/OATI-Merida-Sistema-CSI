@@ -1,5 +1,5 @@
 <?php
-// Configuración de Backups Automáticos - Sistema CSI
+// Configuración de Backups Automáticos - Areas Operativas: Infraestructura - OATI
 return [
     'frecuencia' => 'semanal',
     'hora' => '02:00',

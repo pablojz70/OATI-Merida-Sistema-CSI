@@ -20,7 +20,7 @@ $queries = [
     'tickets_sin_asignar' => "SELECT COUNT(*) as total FROM Tickets WHERE estado = 'Nuevo' AND tecnico_asignado IS NULL",
     'tickets_urgentes' => "SELECT COUNT(*) as total FROM Tickets WHERE prioridad = 'urgente' AND estado NOT LIKE 'Cerrado%'",
     'total_usuarios' => "SELECT COUNT(*) as total FROM Usuarios",
-    'total_tecnicos' => "SELECT COUNT(*) as total FROM Usuarios WHERE privilegio = 'tecnico'",
+    'total_tecnicos' => "SELECT COUNT(*) as total FROM Usuarios WHERE privilegio IN ('oati', 'infraestructura')",
     'tickets_creados_hoy' => "SELECT COUNT(*) as total FROM Tickets WHERE DATE(fecha_creacion) = CURDATE()",
     'tickets_cerrados_hoy' => "SELECT COUNT(*) as total FROM Tickets WHERE estado = 'Cerrado Exitosamente' AND DATE(fecha_resolucion) = CURDATE()"
 ];

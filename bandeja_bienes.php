@@ -11,7 +11,7 @@ $id_usuario = $_SESSION['id_usuario'] ?? $_SESSION['usuario_id'] ?? null;
 $usuario_nombre = $_SESSION['nombre'] ?? 'Bienes';
 
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("Error de conexión: " . $e->getMessage());
@@ -85,7 +85,7 @@ $cerrados = $stmt_count->fetch()['total'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bandeja de Bienes - Sistema CSI</title>
+    <title>Bandeja de Bienes - Areas Operativas: Infraestructura - OATI</title>
     <link rel="stylesheet" href="css/ver_tickets.css">
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/estilos2.css">

@@ -117,7 +117,7 @@ if (!empty($buscar)) {
     $params[] = "%$buscar%";
 }
 
-if (!empty($filtro_tipo) && in_array($filtro_tipo, ['admin', 'director', 'tecnico', 'usuario', 'bienes'])) {
+if (!empty($filtro_tipo) && in_array($filtro_tipo, ['admin', 'director', 'oati', 'infraestructura', 'usuario', 'bienes'])) {
     $where_conditions[] = "u.privilegio = ?";
     $params[] = $filtro_tipo;
 }
@@ -160,10 +160,11 @@ $stats_query = "
     SELECT 
         COUNT(*) as total,
         SUM(CASE WHEN privilegio = 'admin' THEN 1 ELSE 0 END) as admins,
-        SUM(CASE WHEN privilegio = 'tecnico' THEN 1 ELSE 0 END) as tecnicos,
+        SUM(CASE WHEN privilegio = 'oati' THEN 1 ELSE 0 END) as oati,
         SUM(CASE WHEN privilegio = 'director' THEN 1 ELSE 0 END) as directores,
         SUM(CASE WHEN privilegio = 'bienes' THEN 1 ELSE 0 END) as bienes,
         SUM(CASE WHEN privilegio = 'usuario' THEN 1 ELSE 0 END) as usuarios,
+        SUM(CASE WHEN privilegio = 'infraestructura' THEN 1 ELSE 0 END) as infraestructura,
         SUM(CASE WHEN activo = 1 THEN 1 ELSE 0 END) as activos,
         SUM(CASE WHEN activo = 0 THEN 1 ELSE 0 END) as inactivos
     FROM Usuarios
@@ -189,7 +190,7 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gestión de Usuarios - Sistema CSI</title>
+    <title>Gestión de Usuarios - Areas Operativas: Infraestructura - OATI</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/estilos2.css">
     <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
@@ -268,9 +269,10 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
         
         .stat-usuario.total { border-color: #1a2980; }
         .stat-usuario.admin { border-color: #e74c3c; }
-        .stat-usuario.tecnico { border-color: #f39c12; }
+        .stat-usuario.oati { border-color: #f39c12; }
         .stat-usuario.director { border-color: #2e7d32; }
         .stat-usuario.bienes { border-color: #9b59b6; }
+.stat-usuario.infraestructura { border-color: #16a085; }
         .stat-usuario.usuario { border-color: #3498db; }
         .stat-usuario.activo { border-color: #27ae60; }
         
@@ -308,7 +310,7 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
         }
         
         .badge-admin { background: #fee; color: #c0392b; }
-        .badge-tecnico { background: #fff3cd; color: #856404; }
+        .badge-oati { background: #fff3cd; color: #856404; }
         .badge-director { background: #e8f5e9; color: #2e7d32; }
         .badge-usuario { background: #e3f2fd; color: #1976d2; }
         
@@ -866,10 +868,10 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
     <header class="top-header">
         <!-- LOGO OATI Y TÍTULO -->
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img" 
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img" 
                  onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI1IiBmaWxsPSIjMWExYjk3Ii8+PHBhdGggZD0iTTEwIDE1SDMwTTEwIDIwSDI1TTEwIDI1SDIwIiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+';">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
                 <p class="system-sub-custom">Gestión de Usuarios</p>
             </div>
         </div>
@@ -931,25 +933,31 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
                             <span class="stat-label">Administradores</span>
                         </div>
                     </a>
-                    <a href="admin_usuarios.php?filtro_tipo=tecnico" class="stat-link">
-                        <div class="stat-usuario tecnico">
-                            <span class="stat-numero"><?php echo $stats['tecnicos']; ?></span>
-                            <span class="stat-label">Técnicos</span>
-                        </div>
-                    </a>
+<a href="admin_usuarios.php?filtro_tipo=oati" class="stat-link">
+    <div class="stat-usuario oati">
+        <span class="stat-numero"><?php echo $stats['oati']; ?></span>
+        <span class="stat-label">OATI</span>
+    </div>
+</a>
                     <a href="admin_usuarios.php?filtro_tipo=director" class="stat-link">
                         <div class="stat-usuario director">
                             <span class="stat-numero"><?php echo $stats['directores'] ?? 0; ?></span>
                             <span class="stat-label">Directores</span>
                         </div>
                     </a>
-                    <a href="admin_usuarios.php?filtro_tipo=bienes" class="stat-link">
-                        <div class="stat-usuario bienes">
-                            <span class="stat-numero"><?php echo $stats['bienes'] ?? 0; ?></span>
-                            <span class="stat-label">Bienes</span>
-                        </div>
-                    </a>
-                    <a href="admin_usuarios.php?filtro_tipo=usuario" class="stat-link">
+<a href="admin_usuarios.php?filtro_tipo=bienes" class="stat-link">
+    <div class="stat-usuario bienes">
+        <span class="stat-numero"><?php echo $stats['bienes'] ?? 0; ?></span>
+        <span class="stat-label">Bienes</span>
+    </div>
+</a>
+<a href="admin_usuarios.php?filtro_tipo=infraestructura" class="stat-link">
+    <div class="stat-usuario infraestructura">
+        <span class="stat-numero"><?php echo $stats['infraestructura'] ?? 0; ?></span>
+        <span class="stat-label">Infraestructura</span>
+    </div>
+</a>
+<a href="admin_usuarios.php?filtro_tipo=usuario" class="stat-link">
                         <div class="stat-usuario usuario">
                             <span class="stat-numero"><?php echo $stats['usuarios']; ?></span>
                             <span class="stat-label">Usuarios Normales</span>
@@ -977,7 +985,7 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
                     $filtros_activos = [];
                     if (!empty($buscar)) $filtros_activos[] = "Búsqueda: \"$buscar\"";
                     if (!empty($filtro_tipo)) {
-                        $nombres_tipo = ['admin' => 'Administradores', 'director' => 'Directores', 'tecnico' => 'Técnicos', 'bienes' => 'Bienes', 'usuario' => 'Usuarios Normales'];
+                        $nombres_tipo = ['admin' => 'Administradores', 'director' => 'Directores', 'oati' => 'OATI', 'bienes' => 'Bienes', 'usuario' => 'Usuarios Normales'];
                         $filtros_activos[] = "Tipo: " . ($nombres_tipo[$filtro_tipo] ?? $filtro_tipo);
                     }
                     if ($filtro_estado === '1') $filtros_activos[] = "Estado: Activos";
@@ -1000,7 +1008,7 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
                                 <option value="">Todos los tipos</option>
                                 <option value="admin" <?php echo $filtro_tipo == 'admin' ? 'selected' : ''; ?>>Administradores</option>
                                 <option value="director" <?php echo $filtro_tipo == 'director' ? 'selected' : ''; ?>>Directores</option>
-                                <option value="tecnico" <?php echo $filtro_tipo == 'tecnico' ? 'selected' : ''; ?>>Técnicos</option>
+                                <option value="oati" <?php echo $filtro_tipo == 'oati' ? 'selected' : ''; ?>>OATI</option>
                                 <option value="bienes" <?php echo $filtro_tipo == 'bienes' ? 'selected' : ''; ?>>Bienes</option>
                                 <option value="usuario" <?php echo $filtro_tipo == 'usuario' ? 'selected' : ''; ?>>Usuarios Normales</option>
                             </select>
@@ -1047,9 +1055,9 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <span class="badge-privilegio badge-<?php echo $usuario['privilegio']; ?>">
-                                            <?php echo ucfirst($usuario['privilegio']); ?>
-                                        </span>
+<span class="badge-privilegio badge-<?php echo $usuario['privilegio']; ?>">
+    <?php echo strtoupper($usuario['privilegio']); ?>
+</span>
                                     </td>
                                     <td>
                                         <?php if (!empty($usuario['dependencia_nombre_corto'])): ?>
@@ -1139,16 +1147,18 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
                                 <input type="password" id="confirm_password" name="confirm_password" required>
                             </div>
                             
-                            <div class="form-group">
-                                <label for="privilegio">Tipo de Usuario *</label>
-                                <select id="privilegio" name="privilegio" required>
-                                    <option value="">Seleccionar...</option>
-                                    <option value="usuario" selected>Usuario Normal</option>
-                                    <option value="tecnico">Técnico</option>
-                                    <option value="director">Director</option>
-                                    <option value="admin">Administrador</option>
-                                </select>
-                            </div>
+<div class="form-group">
+                                 <label for="privilegio">Tipo de Usuario *</label>
+                                 <select id="privilegio" name="privilegio" required>
+                                     <option value="">Seleccionar...</option>
+                                     <option value="usuario" selected>Usuario Normal</option>
+                                     <option value="oati">OATI</option>
+                                     <option value="director">Director</option>
+                                     <option value="admin">Administrador</option>
+                                     <option value="infraestructura">Infraestructura</option>
+                                     <option value="bienes">Bienes</option>
+                                 </select>
+                             </div>
                         </div>
                     </div>
                     
@@ -1158,8 +1168,9 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
                         <select id="dependencia_id" name="dependencia_id" onchange="mostrarInfoDependencia(this.value)">
                             <option value="0">Sin dependencia</option>
                             <?php foreach ($dependencias as $dep): ?>
-                                <option value='<?php echo $dep['id']; ?>' 
-                                        data-nombre-completo='<?php echo htmlspecialchars($dep['nombre']); ?>'>
+                            <option value='<?php echo $dep['id']; ?>' 
+                                    <?php echo $dep['id'] == 24 ? 'selected' : ''; ?>
+                                    data-nombre-completo='<?php echo htmlspecialchars($dep['nombre']); ?>'>
                                     <?php echo !empty($dep['nombre_corto']) ? htmlspecialchars($dep['nombre_corto']) : htmlspecialchars($dep['nombre']); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -1290,9 +1301,11 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
                     .filter(w => w.length > 0);
                 
                 if (usuario.length >= 2) {
-                    usuario = usuario[0].charAt(0) + usuario[usuario.length - 1];
+                    const nombre = usuario[0];
+                    const apellido = usuario[usuario.length - 1];
+                    usuario = apellido.substring(0, 4) + nombre.substring(0, 4) + 'DAR';
                 } else if (usuario.length === 1) {
-                    usuario = usuario[0];
+                    usuario = usuario[0] + 'DAR';
                 }
                 
                 usuario = usuario

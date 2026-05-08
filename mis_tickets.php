@@ -57,7 +57,7 @@ try {
 }
 
 // 6. ESTABLECER TÍTULO PARA LA CABECERA
-$titulo_pagina = "Mis Tickets - Sistema CSI";
+$titulo_pagina = "Mis Tickets - Areas Operativas: Infraestructura - OATI";
 
 // 7. INCLUIR CABECERA
 include 'includes/header.php';
@@ -74,7 +74,7 @@ if (!file_exists($menu_archivo)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mis Tickets - Centro de Soporte Informático</title>
+    <title>Mis Tickets - Centro de Soporte</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/estilos2.css">
     <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
@@ -329,10 +329,10 @@ if (!file_exists($menu_archivo)) {
     <header class="top-header">
         <!-- LOGO OATI Y TÍTULO -->
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img" 
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img" 
                  onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI1IiBmaWxsPSIjMWExYjk3Ii8+PHBhdGggZD0iTTEwIDE1SDMwTTEwIDIwSDI1TTEwIDI1SDIwIiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+';">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
                 <p class="system-sub-custom">Mis Tickets</p>
             </div>
         </div>
@@ -529,7 +529,7 @@ if (!file_exists($menu_archivo)) {
             <div class="footer-custom">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        Centro de Soporte Informático CSI • 
+                        Centro de Soporte CSI • 
                         <span id="session-timer-custom">Sesión: 00:00</span>
                     </div>
                     <div id="system-status" style="font-size: 9px; color: #27ae60;">

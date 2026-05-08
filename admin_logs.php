@@ -14,7 +14,7 @@ $usuario_nombre = $_SESSION['nombre'] ?? 'Administrador';
 
 // Conexión a la base de datos
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -399,9 +399,9 @@ $estadisticas = $stmt_stats->fetch(PDO::FETCH_ASSOC);
     <!-- HEADER -->
     <header class="top-header">
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img">
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
                 <p class="system-sub-custom">Administración - Logs</p>
             </div>
         </div>

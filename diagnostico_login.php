@@ -1,9 +1,9 @@
 <?php
 // Diagnóstico completo del sistema
-echo "<h1>Diagnóstico del Sistema CSI</h1>";
+echo "<h1>Diagnóstico del Areas Operativas: Infraestructura - OATI</h1>";
 
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", 'root', '');
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", 'root', '');
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     echo "<p style='color:green'>✅ Conexión a BD exitosa</p>";
     

@@ -8,7 +8,7 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['privilegio'] != 'admin') {
 }
 
 // Conexión a la base de datos
-$conn = new mysqli('localhost', 'root', '', 'sistema_csi');
+$conn = new mysqli('localhost', 'root', '', 'sistema_tickets');
 if ($conn->connect_error) {
     die("Error de conexión a la base de datos: " . $conn->connect_error);
 }

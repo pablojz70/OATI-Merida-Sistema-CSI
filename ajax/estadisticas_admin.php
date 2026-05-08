@@ -68,7 +68,7 @@ try {
     $result = $conn->query($query);
     $estadisticas['total_usuarios'] = $result->fetch_assoc()['total'];
     
-    $query = "SELECT COUNT(*) as total FROM usuarios WHERE privilegio = 'tecnico'";
+    $query = "SELECT COUNT(*) as total FROM usuarios WHERE privilegio IN ('oati', 'infraestructura')";
     $result = $conn->query($query);
     $estadisticas['total_tecnicos'] = $result->fetch_assoc()['total'];
     
@@ -162,7 +162,7 @@ try {
     
     $query = "SELECT COUNT(*) as total 
               FROM usuarios 
-              WHERE privilegio = 'tecnico' 
+              WHERE privilegio IN ('oati', 'infraestructura') 
               AND activo = 1";
     $result = $conn->query($query);
     $estadisticas['tecnicos_activos'] = $result->fetch_assoc()['total'];

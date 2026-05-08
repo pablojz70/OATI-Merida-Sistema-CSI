@@ -51,7 +51,7 @@ function obtenerFila($sql, $params = []) {
  */
 function obtenerConfig($clave, $defecto = '') {
     $configs = [
-        'nombre_sistema' => 'Sistema CSI',
+        'nombre_sistema' => 'Areas Operativas: Infraestructura - OATI',
         'color_principal' => '#2c3e50'
     ];
     return $configs[$clave] ?? $defecto;

@@ -6,18 +6,27 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // Verificar sesión de técnico
-if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['tecnico', 'admin'])) {
+if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['oati', 'infraestructura', 'admin'])) {
     header('Location: index.php');
     exit();
 }
 
 $id_tecnico = $_SESSION['id_usuario'] ?? $_SESSION['usuario_id'] ?? null;
 $nombre_tecnico = $_SESSION['nombre'] ?? 'Técnico';
-$privilegio = $_SESSION['privilegio'] ?? 'tecnico';
+$privilegio = $_SESSION['privilegio'] ?? 'oati';
+
+// Determinar qué tipo de tickets debe ver según su privilegio
+if ($privilegio == 'infraestructura') {
+    $area_tipo_filter = " AND t.area_tipo = 'infraestructura'";
+} elseif ($privilegio == 'oati') {
+    $area_tipo_filter = " AND t.area_tipo = 'informatica'";
+} else {
+    $area_tipo_filter = ''; // admin ve todos
+}
 
 // CONEXIÓN PDO
 try {
-    $pdo = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $pdo = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -44,7 +53,8 @@ $sql = "SELECT
     INNER JOIN AreasSoporte a ON t.area_id = a.id
     INNER JOIN Servicios s ON t.servicio_id = s.id
     WHERE t.estado = 'Nuevo' 
-    AND t.tecnico_asignado IS NULL
+     AND t.oati_asignado IS NULL
+     $area_tipo_filter
     ORDER BY 
         CASE t.prioridad 
             WHEN 'urgente' THEN 1
@@ -67,12 +77,12 @@ $mensaje = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
     $id_ticket = intval($_POST['id_ticket']);
     
-    $check_sql = "SELECT id FROM Tickets WHERE id = ? AND estado = 'Nuevo' AND tecnico_asignado IS NULL";
+    $check_sql = "SELECT id FROM Tickets WHERE id = ? AND estado = 'Nuevo' AND oati_asignado IS NULL $area_tipo_filter";
     $stmt = $pdo->prepare($check_sql);
     $stmt->execute([$id_ticket]);
     
     if ($stmt->rowCount() > 0) {
-        $update_sql = "UPDATE Tickets SET tecnico_asignado = ?, estado = 'Asignado' WHERE id = ?";
+        $update_sql = "UPDATE Tickets SET oati_asignado = ?, estado = 'Asignado' WHERE id = ?";
         $stmt = $pdo->prepare($update_sql);
         
         if ($stmt->execute([$id_tecnico, $id_ticket])) {
@@ -92,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aceptar Tickets - Sistema CSI</title>
+    <title>Aceptar Tickets - Areas Operativas: Infraestructura - OATI</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/estilos2.css">
     <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
@@ -417,46 +427,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
     <!-- HEADER OATI (igual que dashboard.php) -->
     <header class="top-header">
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img" 
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img" 
                  onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI1IiBmaWxsPSIjMWExYjk3Ii8+PHBhdGggZD0iTTEwIDE1SDMwTTEwIDIwSDI1TTEwIDI1SDIwIiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+';">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
-                <p class="system-sub-custom">Sistema CSI</p>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
+                <p class="system-sub-custom">Areas Operativas: Infraestructura - OATI</p>
             </div>
         </div>
         
         <div class="user-header-info-custom">
             <div class="user-details-custom">
                 <span class="user-name-custom"><?php echo htmlspecialchars($nombre_tecnico); ?></span>
-                <span class="user-role-custom">Técnico</span>
+
+                <a href="dashboard.php" class="btn-back-custom">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
             </div>
-            <a href="logout.php" class="logout-btn-custom" title="Cerrar sesión">
-                <img src="imagen/Salir.png" alt="Salir" class="logout-img" 
-                     onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMTFMMTUgOEwxMiA1TTE1IDhIN00xMCAyVjFDMTAgMC40NDcgOS41NTMgMCA5IDBIMUMwLjQ0NyAwIDAgMC40NDcgMCAxVjE1QzAgMTUuNTUzIDAuNDQ3IDE2IDEgMTZIOUM5LjU1MyAxNiAxMCAxNS41NTMgMTAgMTVWMTQiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC3zdmc+';">
-                <span class="logout-text">Salir</span>
-            </a>
+            <div class="page-header-left-custom">
+                <h1 class="page-title-custom"><i class="fas fa-hand-paper"></i> Aceptar Ticket</h1>
+                <p class="page-subtitle-custom"><?php echo ucfirst($privilegio); ?>: <?php echo htmlspecialchars($nombre_tecnico); ?> | Selecciona tickets para atender</p>
+            </div>
         </div>
     </header>
     
-    <div class="main-wrapper">
-        <!-- MENÚ LATERAL - USAR ARCHIVO EXTERNO SEGÚN PRIVILEGIO -->
-        <?php
-        $menu_archivo = "includes/menu_$privilegio.php";
-        if (!file_exists($menu_archivo)) {
-            $menu_archivo = "includes/menu_usuario.php";
-        }
+    <!-- SIDEBAR MENU -->
+    <?php
+    $menu_archivo = "includes/menu_$privilegio.php";
+    if (file_exists($menu_archivo)) {
         include $menu_archivo;
-        ?>
-        
-        <!-- CONTENIDO PRINCIPAL -->
-        <main class="main-content-custom">
-            <!-- ENCABEZADO DE PÁGINA -->
-            <div class="page-header-custom">
-                <h1 class="page-title-custom">
-                    <i class="fas fa-hand-paper"></i> Aceptar Tickets Disponibles
-                </h1>
-                <p class="page-subtitle-custom">Técnico: <?php echo htmlspecialchars($nombre_tecnico); ?> | Selecciona tickets para atender</p>
-            </div>
+    } else {
+        include 'includes/menu_usuario.php';
+    }
+    ?>
+    
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main-content-custom">
+        <div class="layout-container-custom">
             
             <!-- MENSAJES -->
             <?php if (isset($error)): ?>
@@ -611,7 +617,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
             <div class="footer-custom">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div style="font-size: 11px; color: #666;">
-                        Centro de Soporte Informático CSI • 
+                        Centro de Soporte CSI • 
                         Mostrando <?php echo count($tickets); ?> tickets disponibles
                     </div>
                     <div style="font-size: 10px; color: #27ae60;">
@@ -619,8 +625,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
     
     <!-- Botón de refrescar -->
     <button class="refresh-btn-aceptar" onclick="location.reload()" title="Actualizar lista">

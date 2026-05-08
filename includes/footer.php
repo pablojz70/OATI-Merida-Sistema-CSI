@@ -5,8 +5,8 @@
         <div class="footer-container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h4>Sistema CSI</h4>
-                    <p>Centro de Soporte Informático</p>
+                    <h4>Areas Operativas: Infraestructura - OATI</h4>
+                    <p>Centro de Soporte</p>
                     <p>Versión 1.0</p>
                 </div>
                 
@@ -27,7 +27,7 @@
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; <?php echo date('Y'); ?> Sistema CSI. Todos los derechos reservados.</p>
+                <p>&copy; <?php echo date('Y'); ?> Areas Operativas: Infraestructura - OATI. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>

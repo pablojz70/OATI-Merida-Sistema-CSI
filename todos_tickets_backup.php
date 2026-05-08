@@ -45,7 +45,7 @@ $es_solo_lectura = ($privilegio == 'director');
 
 // CONEXIÓN A LA BASE DE DATOS CON PDO
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("Error de conexión a la base de datos: " . $e->getMessage());
@@ -811,11 +811,11 @@ $total_activos = $activos_data['total_activos'] ?? 0;
     <header class="top-header">
         <!-- LOGO OATI Y TÍTULO -->
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img" 
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img" 
                  onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI1IiBmaWxsPSIjMWExYjk3Ii8+PHBhdGggZD0iTTEwIDE1SDMwTTEwIDIwSDI1TTEwIDI1SDIwIiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4+';">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
-                <p class="system-sub-custom">Sistema CSI</p>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
+                <p class="system-sub-custom">Areas Operativas: Infraestructura - OATI</p>
             </div>
         </div>
         
@@ -1223,7 +1223,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
             <div class="footer-custom">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        Centro de Soporte Informático CSI • 
+                        Centro de Soporte CSI • 
                         Mostrando <?php echo count($tickets); ?> tickets
                         <?php if ($mostrar_solo_activos && empty($filtros['estado'])): ?>
                             (activos)

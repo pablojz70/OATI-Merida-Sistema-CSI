@@ -14,50 +14,21 @@ require_once 'includes/functions.php';
 $id_usuario = $_SESSION['id_usuario'] ?? $_SESSION['usuario_id'] ?? null;
 $usuario_nombre = $_SESSION['nombre'] ?? 'Usuario';
 
-try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die("Error de conexion: " . $e->getMessage());
-}
-
 // Filtros
-$busqueda = trim($_GET['buscar'] ?? '');
+$vista_tipo = $_GET['vista_tipo'] ?? '';
 $filtro_calificacion = $_GET['calificacion'] ?? '';
 $filtro_tecnico = $_GET['tecnico'] ?? '';
 $filtro_dependencia = $_GET['dependencia'] ?? '';
 
-// Obtener técnicos para el filtro
-$tecnicos = [];
-try {
-    $stmt_tec = $conn->query("SELECT DISTINCT tech.id, tech.nombre 
-                               FROM TicketEvaluaciones e 
-                               JOIN Usuarios tech ON e.tecnico_id = tech.id 
-                               WHERE tech.id IS NOT NULL 
-                               ORDER BY tech.nombre");
-    $tecnicos = $stmt_tec->fetchAll();
-} catch (Exception $e) {}
-
-// Obtener dependencias para el filtro
-$dependencias = [];
-try {
-    $stmt_dep = $conn->query("SELECT DISTINCT d.id, d.nombre 
-                               FROM TicketEvaluaciones e 
-                               JOIN Tickets t ON e.ticket_id = t.id 
-                               JOIN Dependencias d ON t.dependencia_id = d.id 
-                               ORDER BY d.nombre");
-    $dependencias = $stmt_dep->fetchAll();
-} catch (Exception $e) {}
-
-$where = [];
 $params = [];
+$where = [];
 
-if (!empty($busqueda)) {
-    $where[] = "(t.numero_ticket LIKE ? OR u.nombre LIKE ? OR e.comentario LIKE ?)";
-    $params[] = "%$busqueda%";
-    $params[] = "%$busqueda%";
-    $params[] = "%$busqueda%";
+if (!empty($vista_tipo)) {
+    if ($vista_tipo === 'oati') {
+        $where[] = "t.area_tipo = 'informatica'";
+    } else {
+        $where[] = "t.area_tipo = 'infraestructura'";
+    }
 }
 
 if (!empty($filtro_calificacion) && is_numeric($filtro_calificacion)) {
@@ -66,7 +37,7 @@ if (!empty($filtro_calificacion) && is_numeric($filtro_calificacion)) {
 }
 
 if (!empty($filtro_tecnico) && is_numeric($filtro_tecnico)) {
-    $where[] = "e.tecnico_id = ?";
+    $where[] = "e.oati_id = ?";
     $params[] = $filtro_tecnico;
 }
 
@@ -90,7 +61,7 @@ $query = "SELECT e.*,
           FROM TicketEvaluaciones e
           JOIN Tickets t ON e.ticket_id = t.id
           JOIN Usuarios u ON e.usuario_id = u.id
-          LEFT JOIN Usuarios tech ON e.tecnico_id = tech.id
+           LEFT JOIN Usuarios tech ON e.oati_id = tech.id
           LEFT JOIN Dependencias d ON t.dependencia_id = d.id
           $sql_where
           ORDER BY e.fecha_evaluacion DESC";
@@ -100,6 +71,12 @@ $stmt->execute($params);
 $evaluaciones = $stmt->fetchAll();
 
 // Estadísticas generales
+$stats_tipo_where = '';
+if ($vista_tipo === 'oati') {
+    $stats_tipo_where = " WHERE t.area_tipo = 'informatica'";
+} elseif ($vista_tipo === 'infraestructura') {
+    $stats_tipo_where = " WHERE t.area_tipo = 'infraestructura'";
+}
 $stats = [];
 try {
     $stats_query = "SELECT 
@@ -111,7 +88,8 @@ try {
         SUM(CASE WHEN calificacion = 2 THEN 1 ELSE 0 END) as dos_estrellas,
         SUM(CASE WHEN calificacion = 1 THEN 1 ELSE 0 END) as una_estrella,
         SUM(CASE WHEN comentario IS NOT NULL AND comentario != '' THEN 1 ELSE 0 END) as con_comentario
-        FROM TicketEvaluaciones";
+        FROM TicketEvaluaciones e
+        JOIN Tickets t ON e.ticket_id = t.id{$stats_tipo_where}";
     $stmt_stats = $conn->query($stats_query);
     $stats = $stmt_stats->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -121,16 +99,17 @@ try {
 // Estadísticas por TÉCNICO
 $stats_por_tecnico = [];
 try {
-    $stats_tec = $conn->query("SELECT 
-        tech.id as tecnico_id,
-        tech.nombre as tecnico_nombre,
-        COUNT(*) as total,
-        AVG(e.calificacion) as promedio
-        FROM TicketEvaluaciones e
-        JOIN Usuarios tech ON e.tecnico_id = tech.id
-        WHERE tech.id IS NOT NULL
-        GROUP BY tech.id, tech.nombre
-        ORDER BY promedio DESC");
+$stats_tec = $conn->query("SELECT 
+         tech.id as tecnico_id,
+         tech.nombre as tecnico_nombre,
+         COUNT(*) as total,
+         AVG(e.calificacion) as promedio
+         FROM TicketEvaluaciones e
+         JOIN Tickets t ON e.ticket_id = t.id
+         JOIN Usuarios tech ON e.oati_id = tech.id
+         WHERE tech.id IS NOT NULL{$stats_tipo_where}
+         GROUP BY tech.id, tech.nombre
+         ORDER BY promedio DESC");
     $stats_por_tecnico = $stats_tec->fetchAll();
 } catch (Exception $e) {}
 
@@ -145,10 +124,25 @@ try {
         FROM TicketEvaluaciones e
         JOIN Tickets t ON e.ticket_id = t.id
         JOIN Dependencias d ON t.dependencia_id = d.id
+        {$stats_tipo_where}
         GROUP BY d.id, d.nombre
         ORDER BY promedio DESC");
     $stats_por_dependencia = $stats_dep->fetchAll();
 } catch (Exception $e) {}
+
+// Obtener técnicos según vista
+$tipo_tecnicos = '';
+if ($vista_tipo === 'oati') {
+    $tipo_tecnicos = " AND privilegio = 'oati'";
+} elseif ($vista_tipo === 'infraestructura') {
+    $tipo_tecnicos = " AND privilegio = 'infraestructura'";
+}
+$tecnicos = $conn->query("SELECT id, nombre FROM Usuarios WHERE activo = 1{$tipo_tecnicos} ORDER BY nombre")->fetchAll();
+
+// Obtener dependencias
+$dependencias = $conn->query("SELECT id, nombre FROM Dependencias WHERE activa = 1 ORDER BY nombre")->fetchAll();
+
+$busqueda = $_GET['buscar'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -497,7 +491,7 @@ try {
 <body>
     <header class="top-header">
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img">
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img">
             <div class="system-titles-custom">
                 <h1 class="system-name-custom">Centro de Soporte Informatico</h1>
                 <p class="system-sub-custom">Evaluaciones de Servicio</p>
@@ -533,6 +527,22 @@ try {
                 </h1>
                 <a href="dashboard.php" class="btn-filtro" style="text-decoration: none;">
                     <img src="imagen/Atras.png" alt="Volver" style="width:16px;height:16px;object-fit:contain;"> Volver
+                </a>
+            </div>
+            
+            <!-- BOTONES DE NAVEGACIÓN POR TIPO -->
+            <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
+                <a href="admin_evaluaciones.php" class="btn-filter" 
+                   style="background: <?php echo empty($vista_tipo) ? '#1a2980' : '#6c757d'; ?>; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-list"></i> Todos
+                </a>
+                <a href="admin_evaluaciones.php?vista_tipo=oati" class="btn-filter" 
+                   style="background: <?php echo $vista_tipo == 'oati' ? '#3498db' : '#6c757d'; ?>; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-laptop-code"></i> OATI
+                </a>
+                <a href="admin_evaluaciones.php?vista_tipo=infraestructura" class="btn-filter" 
+                   style="background: <?php echo $vista_tipo == 'infraestructura' ? '#17a2b8' : '#6c757d'; ?>; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-tools"></i> Infraestructura
                 </a>
             </div>
             
@@ -574,8 +584,8 @@ try {
             
             <!-- ESTADISTICAS POR TECNICO -->
             <?php if (!empty($stats_por_tecnico)): ?>
-            <div class="stats-seccion">
-                <h3><i class="fas fa-user-cog"></i> Rendimiento por Técnico</h3>
+<div class="stats-seccion">
+                 <h3><i class="fas fa-user-cog"></i> Rendimiento por OATI</h3>
                 <div class="stats-grid">
                     <?php foreach ($stats_por_tecnico as $stat): ?>
                         <div class="stats-card">
@@ -627,7 +637,8 @@ try {
             <!-- FILTROS -->
             <div class="filtros-box">
                 <form method="GET" class="filtros-form">
-                    <input type="text" name="buscar" placeholder="Buscar por ticket, usuario o comentario..." value="<?php echo htmlspecialchars($busqueda); ?>">
+                    <input type="hidden" name="vista_tipo" value="<?php echo htmlspecialchars($vista_tipo); ?>">
+                    <input type="text" name="buscar" placeholder="Buscar por ticket, usuario o comentario..." value="<?php echo htmlspecialchars($busqueda ?? ''); ?>">
                     
                     <select name="calificacion">
                         <option value="">Todas las estrellas</option>
@@ -638,8 +649,8 @@ try {
                         <option value="1" <?php echo $filtro_calificacion == '1' ? 'selected' : ''; ?>>1 Estrella</option>
                     </select>
                     
-                    <select name="tecnico">
-                        <option value="">Todos los técnicos</option>
+<select name="tecnico">
+                         <option value=""><?php echo empty($vista_tipo) ? 'Todos los Técnicos' : ($vista_tipo == 'infraestructura' ? 'Todos los Infraestructura' : 'Todos los OATI'); ?></option>
                         <?php foreach ($tecnicos as $tec): ?>
                             <option value="<?php echo $tec['id']; ?>" <?php echo $filtro_tecnico == $tec['id'] ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($tec['nombre']); ?>

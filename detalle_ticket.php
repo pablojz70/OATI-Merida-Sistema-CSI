@@ -46,7 +46,7 @@ $ticket = $result_ticket->fetch_assoc();
 
 // Verificar permisos
 $es_propietario = $ticket['usuario_id'] == $usuario_id;
-$es_tecnico = $_SESSION['privilegio'] === 'tecnico' || $_SESSION['privilegio'] === 'admin';
+$es_tecnico = in_array($_SESSION['privilegio'], ['admin', 'oati', 'infraestructura']);
 
 if (!$es_propietario && !$es_tecnico) {
     header('Location: ver_tickets.php');
@@ -100,8 +100,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
 <body class="no-sidebar">
     <div class="header">
         <div class="top-logo-bar-vt">
-            <?php if (file_exists('imagen/oati.png')): ?>
-                <img src="imagen/oati.png" alt="Logo OATI">
+            <?php if (file_exists('imagen/logo2.png')): ?>
+                <img src="imagen/logo2.png" alt="Logo OATI">
             <?php else: ?>
                 <div class="logo-placeholder">OATI</div>
             <?php endif; ?>
@@ -110,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
             <img src="imagen/vacio.png">
         </div>
         <div class="system-info-vt">
-            <h1>Centro de Soporte Informático</h1>
+            <h1>Centro de Soporte</h1>
             <p>Detalle del Ticket</p>
         </div>
         <div class="header-right">
@@ -241,11 +241,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
                             <div class="info-value"><?php echo htmlspecialchars($ticket['area_nombre']); ?></div>
                         </div>
                         <div class="info-item">
+                            <div class="info-label">Tipo de Atención</div>
+                            <div class="info-value">
+                                <?php if (($ticket['area_tipo'] ?? 'informatica') == 'informatica'): ?>
+                                    Informática (OATI)
+                                <?php else: ?>
+                                    Infraestructura
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="info-item">
                             <div class="info-label">Servicio</div>
                             <div class="info-value"><?php echo htmlspecialchars($ticket['servicio_nombre']); ?></div>
                         </div>
                         <div class="info-item">
-                            <div class="info-label">Técnico Asignado</div>
+                            <div class="info-label">Asignado a</div>
                             <div class="info-value">
                                 <?php if ($ticket['tecnico_nombre']): ?>
                                     <?php echo htmlspecialchars($ticket['tecnico_nombre']); ?>

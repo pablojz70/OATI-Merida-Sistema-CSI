@@ -80,7 +80,7 @@ try {
     registrarLogCron("INFO: Exportando " . count($tables) . " tablas");
     
     // Crear archivo SQL
-    $sql = "-- Backup automático del Sistema CSI\n";
+    $sql = "-- Backup automático del Areas Operativas: Infraestructura - OATI\n";
     $sql .= "-- Generado automáticamente: " . date('Y-m-d H:i:s') . "\n";
     $sql .= "-- Frecuencia: " . $config['frecuencia'] . "\n\n";
     $sql .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
@@ -259,7 +259,7 @@ function formatBytes($bytes, $decimals = 2) {
 function enviarNotificacionEmail($nombre_archivo, $tamano, $tablas, $registros) {
     // Configuración del email
     $para = 'admin@dominio.com'; // Cambiar por email real
-    $asunto = 'Backup Automático Completado - Sistema CSI';
+    $asunto = 'Backup Automático Completado - Areas Operativas: Infraestructura - OATI';
     
     $mensaje = "
     <html>
@@ -267,7 +267,7 @@ function enviarNotificacionEmail($nombre_archivo, $tamano, $tablas, $registros) 
         <title>Backup Automático Completado</title>
     </head>
     <body>
-        <h2>Backup Automático del Sistema CSI</h2>
+        <h2>Backup Automático del Areas Operativas: Infraestructura - OATI</h2>
         <p>Se ha completado exitosamente el backup automático de la base de datos.</p>
         
         <h3>Detalles del Backup:</h3>
@@ -293,7 +293,7 @@ function enviarNotificacionEmail($nombre_archivo, $tamano, $tablas, $registros) 
     $headers = [
         'MIME-Version: 1.0',
         'Content-type: text/html; charset=utf-8',
-        'From: Sistema CSI <no-reply@dominio.com>',
+        'From: Areas Operativas: Infraestructura - OATI <no-reply@dominio.com>',
         'X-Mailer: PHP/' . phpversion()
     ];
     

@@ -1,12 +1,12 @@
-<!-- MENÚ PARA TÉCNICOS -->
+<!-- MENÚ PARA OATI -->
 <?php
 // Incluir conexión a la base de datos
 require_once __DIR__ . '/../config/database.php';
 
-// Obtener cantidad de tickets disponibles (Nuevo sin técnico asignado)
+// Obtener cantidad de tickets disponibles (Nuevo sin OATI asignado, solo Informática)
 $disponibles_count = 0;
 try {
-    $stmt_disponibles = $conn->prepare("SELECT COUNT(*) as total FROM Tickets WHERE estado = 'Nuevo' AND tecnico_asignado IS NULL");
+    $stmt_disponibles = $conn->prepare("SELECT COUNT(*) as total FROM Tickets WHERE estado = 'Nuevo' AND oati_asignado IS NULL AND area_tipo = 'informatica'");
     $stmt_disponibles->execute();
     $disponibles_count = $stmt_disponibles->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
 } catch (Exception $e) {}
@@ -56,9 +56,9 @@ try {
         </li>
         
         <li>
-            <a href="docs/ManualTecnico.html" target="_blank" class="<?php echo basename($_SERVER['PHP_SELF']) == 'ManualTecnico.html' ? 'active' : ''; ?>">
+            <a href="docs/ManualOATI.html" target="_blank" class="<?php echo basename($_SERVER['PHP_SELF']) == 'ManualOATI.html' ? 'active' : ''; ?>">
                 <img src="imagen/manual.png" alt="Manual" class="menu-icon">
-                <span>Manual de Técnico</span>
+                <span>Manual de OATI</span>
             </a>
         </li>
     </ul>

@@ -1,15 +1,15 @@
 <?php
 
-// Configuración del Sistema CSI
+// Configuración del Areas Operativas: Infraestructura - OATI
 // Archivo generado automáticamente
 
 $sistema_config = [];
 
 // Configuración general
-$sistema_config['sistema_nombre'] = 'Sistema CSI';
+$sistema_config['sistema_nombre'] = 'Areas Operativas: Infraestructura - OATI';
 $sistema_config['sistema_descripcion'] = 'Sistema de Control de Soporte Informático';
 $sistema_config['sistema_version'] = '1.0.0';
-$sistema_config['sistema_url'] = 'http://localhost/sistema_csi';
+$sistema_config['sistema_url'] = 'http://localhost/sistema_tickets';
 $sistema_config['sistema_email'] = 'soporte@csi.gob.mx';
 $sistema_config['sistema_telefono'] = '+52 999 123 4567';
 
@@ -28,7 +28,7 @@ $sistema_config['email_smtp_port'] = 587;
 $sistema_config['email_smtp_user'] = '';
 $sistema_config['email_smtp_pass'] = '';
 $sistema_config['email_from'] = 'no-reply@csi.gob.mx';
-$sistema_config['email_from_name'] = 'Sistema CSI';
+$sistema_config['email_from_name'] = 'Areas Operativas: Infraestructura - OATI';
 
 // Configuración de seguridad
 $sistema_config['seguridad_intentos_login'] = 3;
@@ -54,7 +54,7 @@ $sistema_config['limpiar_logs_dias'] = 90;
 // Configuración de apariencia
 $sistema_config['tema_color_primario'] = '#3498db';
 $sistema_config['tema_color_secundario'] = '#2ecc71';
-$sistema_config['tema_logo'] = 'assets/logo.png';
+$sistema_config['tema_logo'] = 'assets/logo2.png';
 $sistema_config['tema_favicon'] = 'assets/favicon.ico';
 $sistema_config['tema_modo_oscuro'] = false;
 

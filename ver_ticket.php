@@ -19,7 +19,7 @@ if (!$id_usuario) {
 
 // Conexión a base de datos
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -42,16 +42,16 @@ try {
                    d.nombre_corto as dependencia_corto,
                    u.nombre as usuario_nombre,
                    u.dependencia_id as usuario_dependencia_id,
-                   du.nombre as usuario_dependencia_nombre,
-                   du.nombre_corto as usuario_dependencia_corto,
-                   tech.nombre as tecnico_nombre
+du.nombre as usuario_dependencia_nombre,
+                    du.nombre_corto as usuario_dependencia_corto,
+                    tech.nombre as oati_nombre
             FROM Tickets t
             JOIN AreasSoporte a ON t.area_id = a.id
             JOIN Servicios s ON t.servicio_id = s.id
             JOIN Dependencias d ON t.dependencia_id = d.id
             JOIN Usuarios u ON t.usuario_id = u.id
             LEFT JOIN Dependencias du ON u.dependencia_id = du.id
-            LEFT JOIN Usuarios tech ON t.tecnico_asignado = tech.id
+            LEFT JOIN Usuarios tech ON t.oati_asignado = tech.id
             WHERE t.id = ?";
             
     $stmt = $conn->prepare($sql);
@@ -74,8 +74,8 @@ try {
         $puede_ver = true;
     } elseif ($privilegio == 'director') {
         $puede_ver = true;
-    } elseif ($privilegio == 'tecnico') {
-        $puede_ver = ($ticket['tecnico_asignado'] == $id_usuario);
+    } elseif ($privilegio == 'oati') {
+        $puede_ver = ($ticket['oati_asignado'] == $id_usuario);
     } elseif ($privilegio == 'usuario') {
         $puede_ver = ($ticket['usuario_id'] == $id_usuario);
     } elseif ($privilegio == 'bienes') {
@@ -85,7 +85,7 @@ try {
     if (!$puede_ver) {
         if ($privilegio == 'admin' || $privilegio == 'director') {
             $redirect_url = 'todos_tickets.php';
-        } elseif ($privilegio == 'tecnico') {
+        } elseif ($privilegio == 'oati') {
             $redirect_url = 'tickets_asignados.php';
         } elseif ($privilegio == 'bienes') {
             $redirect_url = 'bandeja_bienes.php';
@@ -153,7 +153,7 @@ if ($ticket_esta_cerrado && $ticket['usuario_id'] == $id_usuario) {
                     $id_usuario, 
                     $calificacion, 
                     $comentario,
-                    $ticket['tecnico_asignado']
+$ticket['oati_asignado']
                 ]);
                 
                 // Recargar la evaluación
@@ -217,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                 
                 if ($puede_eliminar) {
                     // Ruta base de archivos adjuntos
-                    $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_csi/adjuntos/";
+                     $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_tickets/adjuntos/";
                     $ruta_completa_archivo = $ruta_base_adjuntos . $archivo_info['ruta_archivo'];
                     
                     // Eliminar archivo físico
@@ -1150,11 +1150,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
     <!-- HEADER PERSONALIZADO -->
     <header class="top-header">
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img" 
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img" 
                  onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI5IiBmaWxsPSIjMWExYjk3Ii8+PHBhdGggZD0iTTEwIDE1SDMwTTEwIDIwSDI1TTEwIDI1SDIwIiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+';">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
-                <p class="system-sub-custom">Sistema CSI</p>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
+                <p class="system-sub-custom">Areas Operativas: Infraestructura - OATI</p>
             </div>
         </div>
         
@@ -1215,8 +1215,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                     <!-- Botón EDITAR (solo para el creador si está en estado Nuevo, o admin, o director) -->
                     <?php if (
                         ($ticket['usuario_id'] == $id_usuario && 
-                        empty($ticket['tecnico_asignado']) && 
-                        $ticket['estado'] == 'Nuevo') ||
+                         empty($ticket['oati_asignado']) && 
+                         $ticket['estado'] == 'Nuevo') ||
                         ($privilegio == 'admin')
                     ): ?>
                         <a href="editar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action edit" title="Editar ticket">
@@ -1224,17 +1224,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                         </a>
                     <?php endif; ?>
                     
-                    <!-- Botón PROCESAR (admin o técnico asignado, solo si no está cerrado) -->
-                    <?php 
-                    $ticketCerrado = strpos($ticket['estado'], 'Cerrado') !== false;
-                    if (($privilegio == 'admin' || ($privilegio == 'tecnico' && $ticket['tecnico_asignado'] == $id_usuario)) && !$ticketCerrado): ?>
+<!-- Botón PROCESAR (admin o técnico asignado, solo si no está cerrado) -->
+                     <?php 
+                     $ticketCerrado = strpos($ticket['estado'], 'Cerrado') !== false;
+                     if (($privilegio == 'admin' || ($privilegio == 'oati' && $ticket['oati_asignado'] == $id_usuario)) && !$ticketCerrado): ?>
                         <a href="procesar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action procesar" title="Procesar ticket">
                             <i class="fas fa-tools"></i>
                         </a>
                     <?php endif; ?>
                     
-                    <!-- Botón CERRAR (solo si no está cerrado) -->
-                    <?php if (($privilegio == 'admin' || ($privilegio == 'tecnico' && $ticket['tecnico_asignado'] == $id_usuario)) && !$ticketCerrado): ?>
+<!-- Botón CERRAR (solo si no está cerrado) -->
+                     <?php if (($privilegio == 'admin' || ($privilegio == 'oati' && $ticket['oati_asignado'] == $id_usuario)) && !$ticketCerrado): ?>
                         <a href="cerrar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action close" title="Cerrar ticket">
                             <i class="fas fa-check"></i>
                         </a>
@@ -1305,6 +1305,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                             <?php echo htmlspecialchars($ticket['servicio_nombre']); ?>
                         </span>
                     </div>
+                    <div class="info-item-ticket">
+                        <span class="info-label-ticket">Tipo de Atención</span>
+                        <span class="info-value-ticket">
+                            <?php if (($ticket['area_tipo'] ?? 'informatica') == 'infraestructura'): ?>
+                                Infraestructura
+                            <?php else: ?>
+                                Informática (OATI)
+                            <?php endif; ?>
+                        </span>
+                    </div>
                 </div>
                 
                 <!-- INFORMACIÓN DE USUARIOS -->
@@ -1372,16 +1382,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                         </div>
                     </div>
                     
-                    <?php if (!empty($ticket['tecnico_nombre'])): ?>
-                    <div class="info-item-ticket">
-                        <span class="info-label-ticket">Técnico Asignado</span>
-                        <span class="info-value-ticket">
-                            <strong><?php echo htmlspecialchars($ticket['tecnico_nombre']); ?></strong>
-                        </span>
-                    </div>
+<?php if (!empty($ticket['oati_nombre'])): ?>
+                     <div class="info-item-ticket">
+                         <span class="info-label-ticket">OATI Asignado</span>
+                         <span class="info-value-ticket">
+                             <strong><?php echo htmlspecialchars($ticket['oati_nombre']); ?></strong>
+                         </span>
+                     </div>
                     <?php else: ?>
                     <div class="info-item-ticket">
-                        <span class="info-label-ticket">Técnico Asignado</span>
+                        <span class="info-label-ticket">Asignado a</span>
                         <span class="info-value-ticket empty-data">
                             No asignado
                             <?php if ($privilegio == 'admin'): ?>
@@ -1687,7 +1697,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                         </div>
                     </div>
                     
-                    <?php if ($ticket['tecnico_asignado'] && !empty($ticket['tecnico_nombre'])): ?>
+                    <?php if ($ticket['oati_asignado'] && !empty($ticket['oati_nombre'])): ?>
                     <div class="timeline-item">
                         <div class="timeline-time">
                             <?php 
@@ -1696,7 +1706,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                             ?>
                         </div>
                         <div class="timeline-content">
-                            <strong>Asignado a</strong> <?php echo htmlspecialchars($ticket['tecnico_nombre']); ?>
+                            <strong>Asignado a</strong> <?php echo htmlspecialchars($ticket['oati_nombre']); ?>
                         </div>
                     </div>
                     <?php endif; ?>

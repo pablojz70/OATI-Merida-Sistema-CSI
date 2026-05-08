@@ -3,7 +3,7 @@
 session_start();
 
 // Verificar sesión
-if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['admin', 'tecnico'])) {
+if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['admin', 'oati', 'infraestructura'])) {
     echo json_encode(['success' => false, 'message' => 'Acceso no autorizado']);
     exit();
 }
@@ -19,7 +19,7 @@ if (!$usuario_id) {
 
 // Conexión a base de datos
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -70,7 +70,7 @@ try {
     }
     
     // Verificar permisos
-    if ($privilegio == 'tecnico') {
+    if ($privilegio == 'oati' || $privilegio == 'infraestructura') {
         // Técnicos solo pueden cambiar tickets asignados a ellos
         if ($ticket['tecnico_asignado'] != $usuario_id) {
             echo json_encode(['success' => false, 'message' => 'No tienes permisos para este ticket']);

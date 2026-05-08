@@ -18,30 +18,59 @@ $id_usuario = $_SESSION['usuario_id'] ?? $_SESSION['id_usuario'] ?? null;
 $usuario_nombre = $_SESSION['nombre'] ?? 'Administrador';
 $privilegio = $_SESSION['privilegio'];
 
-// Obtener áreas para filtros
-$stmt_areas = $conn->prepare("SELECT id, nombre FROM AreasSoporte WHERE activa = 1 ORDER BY orden, nombre");
+// Variables para filtros (deben ir ANTES de las consultas que los usan)
+$filtros = [
+    'fecha_desde' => $_GET['fecha_desde'] ?? '',
+    'fecha_hasta' => $_GET['fecha_hasta'] ?? '',
+    'area_id' => $_GET['area_id'] ?? '',
+    'oati_id' => $_GET['tecnico_id'] ?? '',
+    'dependencia_id' => $_GET['dependencia_id'] ?? '',
+    'area_tipo' => $_GET['area_tipo'] ?? '',
+    'tipo_reporte' => $_GET['tipo_reporte'] ?? 'general',
+    'vista_tipo' => $_GET['vista_tipo'] ?? ''
+];
+
+// Sincronizar vista_tipo y area_tipo
+if (!empty($filtros['area_tipo']) && empty($filtros['vista_tipo'])) {
+    $filtros['vista_tipo'] = $filtros['area_tipo'] == 'infraestructura' ? 'infraestructura' : 'oati';
+}
+if (!empty($filtros['vista_tipo']) && empty($filtros['area_tipo'])) {
+    $filtros['area_tipo'] = $filtros['vista_tipo'] == 'infraestructura' ? 'infraestructura' : 'informatica';
+}
+$vista_tipo = $filtros['vista_tipo'];
+
+// Obtener áreas para filtros (ahora $vista_tipo ya está definido)
+$area_tipo_areas = "";
+if ($vista_tipo === 'oati') {
+    $area_tipo_areas = " AND tipo = 'informatica'";
+} elseif ($vista_tipo === 'infraestructura') {
+    $area_tipo_areas = " AND tipo = 'infraestructura'";
+}
+$stmt_areas = $conn->prepare("SELECT id, nombre FROM AreasSoporte WHERE activa = 1{$area_tipo_areas} ORDER BY orden, nombre");
 $stmt_areas->execute();
 $areas_result = $stmt_areas->fetchAll(PDO::FETCH_ASSOC);
 
-// Obtener técnicos
-$stmt_tecnicos = $conn->prepare("SELECT id, nombre FROM Usuarios WHERE privilegio = 'tecnico' AND activo = 1 ORDER BY nombre");
+// Obtener OATI / Infraestructura según vista (más admins)
+$admins_list = $conn->prepare("SELECT id, nombre FROM Usuarios WHERE privilegio = 'admin' AND activo = 1 ORDER BY nombre");
+$admins_list->execute();
+$admins_result = $admins_list->fetchAll(PDO::FETCH_ASSOC);
+
+if ($vista_tipo === 'infraestructura') {
+    $stmt_tecnicos = $conn->prepare("SELECT id, nombre FROM Usuarios WHERE privilegio = 'infraestructura' AND activo = 1 ORDER BY nombre");
+} elseif ($vista_tipo === 'oati') {
+    $stmt_tecnicos = $conn->prepare("SELECT id, nombre FROM Usuarios WHERE privilegio = 'oati' AND activo = 1 ORDER BY nombre");
+} else {
+    $stmt_tecnicos = $conn->prepare("SELECT id, nombre FROM Usuarios WHERE privilegio IN ('oati', 'infraestructura') AND activo = 1 ORDER BY nombre");
+}
 $stmt_tecnicos->execute();
 $tecnicos_result = $stmt_tecnicos->fetchAll(PDO::FETCH_ASSOC);
+// Combinar admins con técnicos
+$tecnicos_result = array_merge($admins_result, $tecnicos_result);
 
 // Obtener dependencias para filtros - NUEVO
 $stmt_dependencias = $conn->prepare("SELECT id, nombre, nombre_corto FROM Dependencias WHERE activa = 1 ORDER BY nombre_corto, nombre");
 $stmt_dependencias->execute();
 $dependencias_result = $stmt_dependencias->fetchAll(PDO::FETCH_ASSOC);
-
-// Variables para filtros
-$filtros = [
-    'fecha_desde' => $_GET['fecha_desde'] ?? '',
-    'fecha_hasta' => $_GET['fecha_hasta'] ?? '',
-    'area_id' => $_GET['area_id'] ?? '',
-    'tecnico_id' => $_GET['tecnico_id'] ?? '',
-    'dependencia_id' => $_GET['dependencia_id'] ?? '', // NUEVO
-    'tipo_reporte' => $_GET['tipo_reporte'] ?? 'general'
-];
 
 // Construir consulta base para estadísticas
 $where_conditions = [];
@@ -62,14 +91,25 @@ if (!empty($filtros['area_id'])) {
     $params[':area_id'] = $filtros['area_id'];
 }
 
-if (!empty($filtros['tecnico_id'])) {
-    $where_conditions[] = "t.tecnico_asignado = :tecnico_id";
-    $params[':tecnico_id'] = $filtros['tecnico_id'];
+if (!empty($filtros['oati_id'])) {
+
+        $where_conditions[] = "t.oati_asignado = :oati_id";
+
+        $params[':oati_id'] = $filtros['oati_id'];
 }
 
 if (!empty($filtros['dependencia_id'])) {
     $where_conditions[] = "t.dependencia_id = :dependencia_id";
     $params[':dependencia_id'] = $filtros['dependencia_id'];
+}
+
+if (!empty($filtros['area_tipo'])) {
+    $where_conditions[] = "t.area_tipo = :area_tipo";
+    $params[':area_tipo'] = $filtros['area_tipo'];
+} elseif (!empty($filtros['vista_tipo'])) {
+    $area_tipo_val = ($filtros['vista_tipo'] == 'infraestructura') ? 'infraestructura' : 'informatica';
+    $where_conditions[] = "t.area_tipo = :area_tipo_vista";
+    $params[':area_tipo_vista'] = $area_tipo_val;
 }
 
 $where_sql = "";
@@ -135,21 +175,22 @@ try {
 } catch (PDOException $e) {}
 
 // Top 5 técnicos con más tickets
-$top_tecnicos = [];
-try {
-    $top_tec_sql = "SELECT 
-        tec.nombre,
-        COUNT(t.id) as total
-    FROM Tickets t
-    LEFT JOIN Usuarios tec ON t.tecnico_asignado = tec.id
-    $where_sql
-    GROUP BY t.tecnico_asignado, tec.nombre
-    ORDER BY total DESC
-    LIMIT 5";
-    $stmt_top = $conn->prepare($top_tec_sql);
-    $stmt_top->execute($params);
-    $top_tecnicos = $stmt_top->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {}
+        $top_oatis = [];
+        try {
+        $top_oati_sql = "SELECT 
+                oati.id,
+                oati.nombre as oati_nombre,
+                COUNT(t.id) as total_tickets
+            FROM Tickets t
+            LEFT JOIN Usuarios oati ON t.oati_asignado = oati.id
+            $where_sql
+            GROUP BY t.oati_asignado, oati.id, oati.nombre
+            ORDER BY total_tickets DESC
+            LIMIT 5";
+           $stmt_top = $conn->prepare($top_oati_sql);
+           $stmt_top->execute($params);
+           $top_oatis = $stmt_top->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {}
 
 // Datos para gráfico por estado (detallado)
 $por_estado = [];
@@ -202,20 +243,20 @@ try {
 // Obtener datos según tipo de reporte
 $reporte_data = [];
 try {
-    if ($filtros['tipo_reporte'] == 'por_tecnico') {
-        $reporte_sql = "SELECT 
-            tec.nombre as tecnico_nombre,
-            COUNT(t.id) as total_tickets,
-            SUM(CASE WHEN t.estado = 'Cerrado Exitosamente' THEN 1 ELSE 0 END) as cerrados,
-            SUM(CASE WHEN t.estado != 'Cerrado Exitosamente' AND t.estado != 'Cerrado No Exitoso' THEN 1 ELSE 0 END) as pendientes,
-            AVG(CASE WHEN t.estado = 'Cerrado Exitosamente' THEN TIMESTAMPDIFF(HOUR, t.fecha_creacion, t.fecha_cierre) ELSE NULL END) as tiempo_promedio,
-            MAX(CASE WHEN t.estado != 'Cerrado Exitosamente' AND t.estado != 'Cerrado No Exitoso' 
-                THEN TIMESTAMPDIFF(HOUR, t.fecha_creacion, NOW()) ELSE 0 END) as max_tiempo_espera
-        FROM Tickets t
-        LEFT JOIN Usuarios tec ON t.tecnico_asignado = tec.id
-        $where_sql
-        GROUP BY t.tecnico_asignado, tec.nombre
-        ORDER BY total_tickets DESC";
+if ($filtros['tipo_reporte'] == 'por_tecnico') {
+         $reporte_sql = "SELECT 
+             oati.nombre as oati_nombre,
+             COUNT(t.id) as total_tickets,
+             SUM(CASE WHEN t.estado = 'Cerrado Exitosamente' THEN 1 ELSE 0 END) as cerrados,
+             SUM(CASE WHEN t.estado != 'Cerrado Exitosamente' AND t.estado != 'Cerrado No Exitoso' THEN 1 ELSE 0 END) as pendientes,
+             AVG(CASE WHEN t.estado = 'Cerrado Exitosamente' THEN TIMESTAMPDIFF(HOUR, t.fecha_creacion, t.fecha_cierre) ELSE NULL END) as tiempo_promedio,
+             MAX(CASE WHEN t.estado != 'Cerrado Exitosamente' AND t.estado != 'Cerrado No Exitoso' 
+                 THEN TIMESTAMPDIFF(HOUR, t.fecha_creacion, NOW()) ELSE 0 END) as max_tiempo_espera
+         FROM Tickets t
+              LEFT JOIN Usuarios oati ON t.oati_asignado = oati.id
+              $where_sql
+              GROUP BY t.oati_asignado, oati.id, oati.nombre
+             ORDER BY total_tickets DESC";
         
         $reporte_stmt = $conn->prepare($reporte_sql);
         $reporte_stmt->execute($params);
@@ -259,25 +300,24 @@ try {
         
     } else {
         // Reporte general
-        $reporte_sql = "SELECT 
-            t.id,
-            t.numero_ticket,
-            t.asunto,
-            t.prioridad,
-            t.estado,
-            t.fecha_creacion,
-            t.fecha_cierre,
-            TIMESTAMPDIFF(HOUR, t.fecha_creacion, COALESCE(t.fecha_cierre, NOW())) as horas_resolucion,
-            a.nombre as area_nombre,
-            u.nombre as usuario_nombre,
-            tec.nombre as tecnico_nombre
-        FROM Tickets t
-        LEFT JOIN AreasSoporte a ON t.area_id = a.id
-        LEFT JOIN Usuarios u ON t.usuario_id = u.id
-        LEFT JOIN Usuarios tec ON t.tecnico_asignado = tec.id
-        $where_sql
-        ORDER BY t.fecha_creacion DESC
-        LIMIT 100";
+         $reporte_sql = "SELECT 
+             t.numero_ticket,
+             t.asunto,
+             t.prioridad,
+             t.estado,
+             t.fecha_creacion,
+             t.fecha_cierre,
+             TIMESTAMPDIFF(HOUR, t.fecha_creacion, COALESCE(t.fecha_cierre, NOW())) as horas_resolucion,
+             a.nombre as area_nombre,
+             u.nombre as usuario_nombre,
+             oati.nombre as oati_nombre
+         FROM Tickets t
+         LEFT JOIN AreasSoporte a ON t.area_id = a.id
+         LEFT JOIN Usuarios u ON t.usuario_id = u.id
+         LEFT JOIN Usuarios oati ON t.oati_asignado = oati.id
+         $where_sql
+         ORDER BY t.fecha_creacion DESC
+         LIMIT 100";
         
         $reporte_stmt = $conn->prepare($reporte_sql);
         $reporte_stmt->execute($params);
@@ -831,11 +871,11 @@ try {
     <header class="top-header">
         <!-- LOGO OATI Y TÍTULO -->
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img" 
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img" 
                  onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI1IiBmaWxsPSIjMWExYjk3Ii8+PHBhdGggZD0iTTEwIDE1SDMwTTEwIDIwSDI1TTEwIDI1SDIwIiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=';">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
-                <p class="system-sub-custom">Sistema CSI</p>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
+                <p class="system-sub-custom">Areas Operativas: Infraestructura - OATI</p>
             </div>
         </div>
         
@@ -867,7 +907,15 @@ try {
         <main class="main-content-custom">
             <!-- HEADER DE REPORTES -->
             <div class="reportes-header-compact">
-                <h1><img src="imagen/Bar Chart.png" alt="Reportes" style="width:24px;height:24px;object-fit:contain;"> Reportes y Estadísticas</h1>
+                <h1><img src="imagen/Bar Chart.png" alt="Reportes" style="width:24px;height:24px;object-fit:contain;"> 
+                    <?php if ($vista_tipo == 'oati'): ?>
+                        Reportes OATI
+                    <?php elseif ($vista_tipo == 'infraestructura'): ?>
+                        Reportes Infraestructura
+                    <?php else: ?>
+                        Reportes y Estadísticas
+                    <?php endif; ?>
+                </h1>
                 <div class="header-actions">
                     <button class="btn-header-action btn-export" onclick="exportarReporte()">
                         <img src="imagen/Document.png" alt="Exportar" style="width:16px;height:16px;object-fit:contain;"> Exportar
@@ -896,16 +944,16 @@ try {
                     }
                     if ($area_nombre) $texto_filtros[] = "Área: " . $area_nombre;
                 }
-                if ($filtros['tecnico_id']) {
-                    $tecnico_nombre = '';
-                    foreach ($tecnicos_result as $tecnico) {
-                        if ($tecnico['id'] == $filtros['tecnico_id']) {
-                            $tecnico_nombre = $tecnico['nombre'];
-                            break;
-                        }
-                    }
-                    if ($tecnico_nombre) $texto_filtros[] = "Técnico: " . $tecnico_nombre;
-                }
+if ($filtros['oati_id']) {
+                      $oati_nombre = '';
+                      foreach ($tecnicos_result as $tecnico) {
+                          if ($tecnico['id'] == $filtros['oati_id']) {
+                              $oati_nombre = $tecnico['nombre'];
+                              break;
+                          }
+                      }
+                      if ($oati_nombre) $texto_filtros[] = "OATI: " . $oati_nombre;
+                  }
                 if ($filtros['dependencia_id']) {
                     $dependencia_nombre = '';
                     foreach ($dependencias_result as $dep) {
@@ -916,11 +964,30 @@ try {
                     }
                     if ($dependencia_nombre) $texto_filtros[] = "Dependencia: " . $dependencia_nombre;
                 }
+                if ($filtros['vista_tipo']) {
+                    $texto_filtros[] = "Vista: " . ($filtros['vista_tipo'] == 'infraestructura' ? 'Infraestructura' : 'OATI');
+                }
                 
                 if (!empty($texto_filtros)) {
                     echo " | " . implode(' | ', $texto_filtros);
                 }
                 ?>
+            </div>
+            
+            <!-- BOTONES DE NAVEGACIÓN POR TIPO -->
+            <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
+                <a href="admin_reportes.php" class="btn-filter" 
+                   style="background: <?php echo empty($vista_tipo) ? '#1a2980' : '#6c757d'; ?>; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-list"></i> Todos
+                </a>
+                <a href="admin_reportes.php?vista_tipo=oati" class="btn-filter" 
+                   style="background: <?php echo $vista_tipo == 'oati' ? '#3498db' : '#6c757d'; ?>; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-laptop-code"></i> OATI
+                </a>
+                <a href="admin_reportes.php?vista_tipo=infraestructura" class="btn-filter" 
+                   style="background: <?php echo $vista_tipo == 'infraestructura' ? '#17a2b8' : '#6c757d'; ?>; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-tools"></i> Infraestructura
+                </a>
             </div>
             
             <!-- ESTADÍSTICAS CON ENLACES -->
@@ -1003,12 +1070,12 @@ try {
             </div>
             
             <?php elseif ($filtros['tipo_reporte'] == 'por_tecnico'): ?>
-            <!-- Reporte Por Técnico: Solo gráficos de técnicos -->
+            <!-- Reporte Por OATI: Solo gráficos de OATI -->
             <div class="charts-grid">
                 <div class="chart-card">
                     <div class="chart-title">
                         <i class="fas fa-trophy" style="color:#f39c12;"></i>
-                        Ranking de Técnicos
+                        Ranking de OATI
                     </div>
                     <div class="chart-container">
                         <canvas id="chartDesempenio"></canvas>
@@ -1018,7 +1085,7 @@ try {
                 <div class="chart-card">
                     <div class="chart-title">
                         <i class="fas fa-chart-bar" style="color:#1a2980;"></i>
-                        Tickets por Técnico
+                        Tickets por OATI
                     </div>
                     <div class="chart-container">
                         <canvas id="chartTecnicos"></canvas>
@@ -1108,6 +1175,7 @@ try {
             <!-- FILTROS -->
             <div class="filtros-container-compact">
                 <form method="GET" action="" id="formFiltros">
+                    <input type="hidden" name="vista_tipo" value="<?php echo htmlspecialchars($vista_tipo); ?>">
                     <div class="filtros-grid-compact">
                         <div class="form-group-compact">
                             <label for="fecha_desde" class="form-label-compact">
@@ -1127,35 +1195,37 @@ try {
                                    value="<?php echo htmlspecialchars($filtros['fecha_hasta']); ?>">
                         </div>
                         
-                        <div class="form-group-compact">
-                            <label for="area_id" class="form-label-compact">
-                                <i class="fas fa-layer-group"></i> Área
-                            </label>
-                            <select id="area_id" name="area_id" class="form-select-compact">
-                                <option value="">Todas las áreas</option>
-                                <?php 
-                                foreach ($areas_result as $area) {
-                                    $selected = ($filtros['area_id'] == $area['id']) ? 'selected' : '';
-                                    echo "<option value='{$area['id']}' $selected>{$area['nombre']}</option>";
-                                }
-                                ?>
-                            </select>
-                        </div>
+                        <?php if (!empty($vista_tipo)): ?>
+                         <div class="form-group-compact">
+                             <label for="area_id" class="form-label-compact">
+                                 <i class="fas fa-layer-group"></i> Área
+                             </label>
+                             <select id="area_id" name="area_id" class="form-select-compact">
+                                 <option value="">Todas las áreas</option>
+                                 <?php 
+                                 foreach ($areas_result as $area) {
+                                     $selected = ($filtros['area_id'] == $area['id']) ? 'selected' : '';
+                                     echo "<option value='{$area['id']}' $selected>{$area['nombre']}</option>";
+                                 }
+                                 ?>
+                             </select>
+                         </div>
+                        <?php endif; ?>
                         
-                        <div class="form-group-compact">
-                            <label for="tecnico_id" class="form-label-compact">
-                                <i class="fas fa-user-cog"></i> Técnico
-                            </label>
-                            <select id="tecnico_id" name="tecnico_id" class="form-select-compact">
-                                <option value="">Todos los técnicos</option>
-                                <?php 
-                                foreach ($tecnicos_result as $tecnico) {
-                                    $selected = ($filtros['tecnico_id'] == $tecnico['id']) ? 'selected' : '';
-                                    echo "<option value='{$tecnico['id']}' $selected>{$tecnico['nombre']}</option>";
-                                }
-                                ?>
-                            </select>
-                        </div>
+ <div class="form-group-compact">
+  <label for="oati_id" class="form-label-compact">
+                                    <i class="fas fa-user-cog"></i> <?php echo empty($vista_tipo) ? 'Tipo / Asignado' : ($vista_tipo == 'infraestructura' ? 'Infraestructura' : 'OATI'); ?>
+                                </label>
+                              <select id="oati_id" name="oati_id" class="form-select-compact">
+                                  <option value=""><?php echo empty($vista_tipo) ? 'Todos' : 'Todos los ' . ($vista_tipo == 'infraestructura' ? 'Infraestructura' : 'OATI'); ?></option>
+                                  <?php 
+                                  foreach ($tecnicos_result as $tecnico) {
+                                      $selected = ($filtros['oati_id'] == $tecnico['id']) ? 'selected' : '';
+                                      echo "<option value='{$tecnico['id']}' $selected>{$tecnico['nombre']}</option>";
+                                  }
+                                  ?>
+                              </select>
+                          </div>
                         
                         <div class="form-group-compact">
                             <label for="dependencia_id" class="form-label-compact">
@@ -1173,25 +1243,51 @@ try {
                             </select>
                         </div>
                         
-                        <div class="form-group-compact">
-                            <label for="tipo_reporte" class="form-label-compact">
-                                <i class="fas fa-chart-pie"></i> Tipo de Reporte
-                            </label>
-                            <select id="tipo_reporte" name="tipo_reporte" class="form-select-compact">
-                                <option value="general" <?php echo $filtros['tipo_reporte'] == 'general' ? 'selected' : ''; ?>>General</option>
-                                <option value="por_tecnico" <?php echo $filtros['tipo_reporte'] == 'por_tecnico' ? 'selected' : ''; ?>>Por Técnico</option>
-                                <option value="por_area" <?php echo $filtros['tipo_reporte'] == 'por_area' ? 'selected' : ''; ?>>Por Área</option>
-                                <option value="por_dependencia" <?php echo $filtros['tipo_reporte'] == 'por_dependencia' ? 'selected' : ''; ?>>Por Dependencia</option>
-                            </select>
-                        </div>
+                        <?php if (empty($vista_tipo)): ?>
+                         <div class="form-group-compact">
+                             <label for="area_tipo" class="form-label-compact">
+                                 <i class="fas fa-filter"></i> Tipo de Atención
+                             </label>
+                             <select id="area_tipo" name="area_tipo" class="form-select-compact">
+                                 <option value="">Todos</option>
+                                 <option value="informatica" <?php echo $filtros['area_tipo'] == 'informatica' ? 'selected' : ''; ?>>Informática (OATI)</option>
+                                 <option value="infraestructura" <?php echo $filtros['area_tipo'] == 'infraestructura' ? 'selected' : ''; ?>>Infraestructura</option>
+                             </select>
+                         </div>
+                        <?php endif; ?>
+                        
+                        <?php if (empty($vista_tipo)): ?>
+                         <div class="form-group-compact">
+                             <label for="tipo_reporte" class="form-label-compact">
+                                 <i class="fas fa-chart-pie"></i> Tipo de Reporte
+                             </label>
+                             <select id="tipo_reporte" name="tipo_reporte" class="form-select-compact">
+                                 <option value="general" <?php echo $filtros['tipo_reporte'] == 'general' ? 'selected' : ''; ?>>General</option>
+                                 <option value="por_dependencia" <?php echo $filtros['tipo_reporte'] == 'por_dependencia' ? 'selected' : ''; ?>>Por Dependencia</option>
+                             </select>
+                         </div>
+                        <?php endif; ?>
+                        <?php if ($vista_tipo == 'oati' || $vista_tipo == 'infraestructura'): ?>
+                         <div class="form-group-compact">
+                             <label for="tipo_reporte" class="form-label-compact">
+                                 <i class="fas fa-chart-pie"></i> Tipo de Reporte
+                             </label>
+                             <select id="tipo_reporte" name="tipo_reporte" class="form-select-compact">
+                                 <option value="general" <?php echo $filtros['tipo_reporte'] == 'general' ? 'selected' : ''; ?>>General</option>
+                                 <option value="por_tecnico" <?php echo $filtros['tipo_reporte'] == 'por_tecnico' ? 'selected' : ''; ?>>Por OATI</option>
+                                 <option value="por_area" <?php echo $filtros['tipo_reporte'] == 'por_area' ? 'selected' : ''; ?>>Por Área</option>
+                                 <option value="por_dependencia" <?php echo $filtros['tipo_reporte'] == 'por_dependencia' ? 'selected' : ''; ?>>Por Dependencia</option>
+                             </select>
+                         </div>
+                        <?php endif; ?>
                     </div>
                     
                     <div class="filtros-actions-compact">
+                        <button type="submit" class="btn-filtro-compact btn-generar">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
                         <button type="button" class="btn-filtro-compact btn-limpiar-compact" onclick="limpiarFiltros()">
                             <i class="fas fa-times"></i> Limpiar
-                        </button>
-                        <button type="submit" class="btn-filtro-compact btn-generar">
-                            <i class="fas fa-search"></i> Generar Reporte
                         </button>
                     </div>
                 </form>
@@ -1203,15 +1299,8 @@ try {
                     <div>
                         <i class="fas fa-list"></i>
                         <?php 
-                        if ($filtros['tipo_reporte'] == 'por_tecnico') {
-                            echo "Desempeño por Técnico";
-                        } elseif ($filtros['tipo_reporte'] == 'por_area') {
-                            echo "Tickets por Área";
-                        } elseif ($filtros['tipo_reporte'] == 'por_dependencia') {
-                            echo "Tickets por Dependencia";
-                        } else {
-                            echo "Tickets Recientes";
-                        }
+                        $nombre_reporte = $filtros['tipo_reporte'] == 'general' ? 'General' : ($filtros['tipo_reporte'] == 'por_tecnico' ? 'Por OATI' : ($filtros['tipo_reporte'] == 'por_area' ? 'Por Área' : ($filtros['tipo_reporte'] == 'por_dependencia' ? 'Por Dependencia' : 'General')));
+                        echo "Reporte $nombre_reporte";
                         ?>
                     </div>
                     <div style="font-weight: normal; color: #666; font-size: 11px;">
@@ -1220,175 +1309,80 @@ try {
                 </div>
                 
                 <div class="tabla-content-compact">
-                    <?php if ($filtros['tipo_reporte'] == 'por_tecnico'): ?>
-                        <!-- Reporte por Técnico -->
-                        <table class="tabla-reporte-compact" id="tablaTecnicos">
-                            <thead>
-                                <tr>
-                                    <th>Técnico</th>
-                                    <th>Total</th>
-                                    <th>Resueltos</th>
-                                    <th>Pendientes</th>
-                                    <th>Tiempo Prom. (h)</th>
-                                    <th>Máx. Espera (h)</th>
-                                    <th>Eficiencia</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($reporte_data as $row): 
-                                    $eficiencia = $row['total_tickets'] > 0 ? round(($row['cerrados']/$row['total_tickets'])*100, 1) : 0;
-                                    $max_tiempo = $row['max_tiempo_espera'] ?? 0;
-                                ?>
-                                <tr>
-                                    <td><strong><?php echo htmlspecialchars($row['tecnico_nombre'] ?? 'No asignado'); ?></strong></td>
-                                    <td><span class="badge-reporte badge-prioridad-baja"><?php echo $row['total_tickets']; ?></span></td>
-                                    <td><span class="badge-reporte badge-estado-cerrado_exitosamente"><?php echo $row['cerrados']; ?></span></td>
-                                    <td><span class="badge-reporte badge-estado-en_proceso"><?php echo $row['pendientes']; ?></span></td>
-                                    <td><?php echo round($row['tiempo_promedio'] ?? 0, 1); ?></td>
-                                    <td class="<?php echo $max_tiempo > 48 ? 'tiempo-critico' : 'tiempo-normal'; ?>">
-                                        <?php echo $max_tiempo; ?>
-                                    </td>
-                                    <td>
-                                        <div class="progress-container-compact">
-                                            <div class="progress-fill-compact progress-<?php echo $eficiencia >= 80 ? 'baja' : ($eficiencia >= 60 ? 'media' : 'alta'); ?>" 
-                                                 style="width: <?php echo min($eficiencia, 100); ?>%">
-                                                <?php echo $eficiencia; ?>%
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                        
-                    <?php elseif ($filtros['tipo_reporte'] == 'por_area'): ?>
-                        <!-- Reporte por Área -->
-                        <table class="tabla-reporte-compact" id="tablaAreas">
-                            <thead>
-                                <tr>
-                                    <th>Área</th>
-                                    <th>Total</th>
-                                    <th>Resueltos</th>
-                                    <th>Pendientes</th>
-                                    <th>Tiempo Prom. (h)</th>
-                                    <th>% Resolución</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($reporte_data as $row): 
-                                    $porcentaje = $row['total_tickets'] > 0 ? round(($row['cerrados']/$row['total_tickets'])*100, 1) : 0;
-                                ?>
-                                <tr>
-                                    <td><strong><?php echo htmlspecialchars($row['area_nombre'] ?? 'Sin área'); ?></strong></td>
-                                    <td><span class="badge-reporte badge-prioridad-baja"><?php echo $row['total_tickets']; ?></span></td>
-                                    <td><span class="badge-reporte badge-estado-cerrado_exitosamente"><?php echo $row['cerrados']; ?></span></td>
-                                    <td><span class="badge-reporte badge-estado-en_proceso"><?php echo $row['pendientes']; ?></span></td>
-                                    <td><?php echo round($row['tiempo_promedio'] ?? 0, 1); ?></td>
-                                    <td>
-                                        <div class="progress-container-compact">
-                                            <div class="progress-fill-compact progress-<?php echo $porcentaje >= 80 ? 'baja' : ($porcentaje >= 60 ? 'media' : 'alta'); ?>" 
-                                                 style="width: <?php echo min($porcentaje, 100); ?>%">
-                                                <?php echo $porcentaje; ?>%
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                        
-                    <?php elseif ($filtros['tipo_reporte'] == 'por_dependencia'): ?>
-                        <!-- Reporte por Dependencia -->
-                        <table class="tabla-reporte-compact" id="tablaDependencias">
-                            <thead>
-                                <tr>
-                                    <th>Dependencia</th>
-                                    <th>Nombre Corto</th>
-                                    <th>Responsable</th>
-                                    <th>Total</th>
-                                    <th>Resueltos</th>
-                                    <th>Pendientes</th>
-                                    <th>Tiempo Prom. (h)</th>
-                                    <th>% Resolución</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($reporte_data as $row): 
-                                    $porcentaje = $row['total_tickets'] > 0 ? round(($row['cerrados']/$row['total_tickets'])*100, 1) : 0;
-                                ?>
-                                <tr>
-                                    <td><strong><?php echo htmlspecialchars($row['dependencia_nombre'] ?? 'Sin dependencia'); ?></strong></td>
-                                    <td><span class="nombre-corto-badge"><?php echo htmlspecialchars($row['dependencia_corto'] ?? 'N/A'); ?></span></td>
-                                    <td><?php echo htmlspecialchars($row['responsable'] ?? 'No asignado'); ?></td>
-                                    <td><span class="badge-reporte badge-prioridad-baja"><?php echo $row['total_tickets']; ?></span></td>
-                                    <td><span class="badge-reporte badge-estado-cerrado_exitosamente"><?php echo $row['cerrados']; ?></span></td>
-                                    <td><span class="badge-reporte badge-estado-en_proceso"><?php echo $row['pendientes']; ?></span></td>
-                                    <td><?php echo round($row['tiempo_promedio'] ?? 0, 1); ?></td>
-                                    <td>
-                                        <div class="progress-container-compact">
-                                            <div class="progress-fill-compact progress-<?php echo $porcentaje >= 80 ? 'baja' : ($porcentaje >= 60 ? 'media' : 'alta'); ?>" 
-                                                 style="width: <?php echo min($porcentaje, 100); ?>%">
-                                                <?php echo $porcentaje; ?>%
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                        
+                    <?php if (empty($reporte_data)): ?>
+                        <div style="text-align: center; padding: 30px; color: #666;">
+                            <i class="fas fa-inbox" style="font-size: 32px; opacity: 0.3; margin-bottom: 10px;"></i>
+                            <p>No se encontraron datos para los filtros seleccionados.</p>
+                        </div>
                     <?php else: ?>
-                        <!-- Reporte General -->
-                        <table class="tabla-reporte-compact" id="tablaGeneral">
-                            <thead>
-                                <tr>
-                                    <th>Ticket #</th>
+                    <table class="tabla-reporte-compact" id="tablaReportes">
+                        <thead>
+                            <tr>
+                                <?php if ($filtros['tipo_reporte'] == 'por_tecnico'): ?>
+                                    <th>OATI</th>
+                                    <th>Total Tickets</th>
+                                    <th>Cerrados</th>
+                                    <th>Pendientes</th>
+                                    <th>Tiempo Promedio (hrs)</th>
+                                <?php elseif ($filtros['tipo_reporte'] == 'por_area'): ?>
+                                    <th>Área</th>
+                                    <th>Total Tickets</th>
+                                    <th>Cerrados</th>
+                                    <th>Pendientes</th>
+                                    <th>Tiempo Promedio (hrs)</th>
+                                <?php elseif ($filtros['tipo_reporte'] == 'por_dependencia'): ?>
+                                    <th>Dependencia</th>
+                                    <th>Total Tickets</th>
+                                    <th>Cerrados</th>
+                                    <th>Pendientes</th>
+                                    <th>Tiempo Promedio (hrs)</th>
+                                <?php else: ?>
+                                    <th>Ticket</th>
                                     <th>Asunto</th>
                                     <th>Área</th>
+                                    <th>Usuario</th>
+                                    <th>OATI</th>
                                     <th>Prioridad</th>
                                     <th>Estado</th>
-                                    <th>Técnico</th>
                                     <th>Fecha</th>
-                                    <th>Tiempo (h)</th>
-                                    <th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($reporte_data as $ticket): 
-                                    $horas = $ticket['horas_resolucion'] ?? 0;
-                                ?>
-                                <tr>
-                                    <td><strong><?php echo htmlspecialchars($ticket['numero_ticket'] ?? 'TICK-' . $ticket['id']); ?></strong></td>
-                                    <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                        <?php echo htmlspecialchars($ticket['asunto'] ?? ''); ?>
-                                    </td>
-                                    <td><?php echo htmlspecialchars($ticket['area_nombre'] ?? 'N/A'); ?></td>
-                                    <td>
-                                        <span class="badge-reporte badge-prioridad-<?php echo $ticket['prioridad'] ?? 'baja'; ?>">
-                                            <?php echo ucfirst($ticket['prioridad'] ?? ''); ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge-reporte badge-estado-<?php echo strtolower(str_replace(' ', '_', $ticket['estado'] ?? 'nuevo')); ?>">
-                                            <?php echo ucfirst(str_replace('_', ' ', $ticket['estado'] ?? '')); ?>
-                                        </span>
-                                    </td>
-                                    <td><?php echo htmlspecialchars($ticket['tecnico_nombre'] ?? 'No asignado'); ?></td>
-                                    <td><?php echo date('d/m H:i', strtotime($ticket['fecha_creacion'] ?? '')); ?></td>
-                                    <td class="<?php echo $horas > 48 ? 'tiempo-critico' : 'tiempo-normal'; ?>">
-                                        <?php echo $horas; ?>
-                                    </td>
-                                    <td>
-                                        <a href="ver_ticket.php?id=<?php echo $ticket['id']; ?>" 
-                                           class="btn-header-action btn-action-small" 
-                                           style="background: #3498db; color: white;">
-                                            <img src="imagen/ojo.png" alt="Ver" style="width:12px;height:12px;"> Ver
-                                        </a>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                                <?php endif; ?>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($reporte_data as $row): ?>
+                            <tr>
+                                <?php if ($filtros['tipo_reporte'] == 'por_tecnico'): ?>
+                                    <td><strong><?php echo htmlspecialchars($row['oati_nombre'] ?? 'No asignado'); ?></strong></td>
+                                    <td><?php echo $row['total_tickets']; ?></td>
+                                    <td><?php echo $row['cerrados']; ?></td>
+                                    <td><?php echo $row['pendientes']; ?></td>
+                                    <td><?php echo round($row['tiempo_promedio'] ?? 0, 1); ?></td>
+                                <?php elseif ($filtros['tipo_reporte'] == 'por_area'): ?>
+                                    <td><strong><?php echo htmlspecialchars($row['area_nombre'] ?? ''); ?></strong></td>
+                                    <td><?php echo $row['total_tickets']; ?></td>
+                                    <td><?php echo $row['cerrados']; ?></td>
+                                    <td><?php echo $row['pendientes']; ?></td>
+                                    <td><?php echo round($row['tiempo_promedio'] ?? 0, 1); ?></td>
+                                <?php elseif ($filtros['tipo_reporte'] == 'por_dependencia'): ?>
+                                    <td><strong><?php echo htmlspecialchars($row['dependencia_nombre'] ?? ''); ?></strong></td>
+                                    <td><?php echo $row['total_tickets']; ?></td>
+                                    <td><?php echo $row['cerrados']; ?></td>
+                                    <td><?php echo $row['pendientes']; ?></td>
+                                    <td><?php echo round($row['tiempo_promedio'] ?? 0, 1); ?></td>
+                                <?php else: ?>
+                                    <td><strong><?php echo htmlspecialchars($row['numero_ticket'] ?? ''); ?></strong></td>
+                                    <td><?php echo htmlspecialchars(substr($row['asunto'] ?? '', 0, 40)); ?></td>
+                                    <td><?php echo htmlspecialchars($row['area_nombre'] ?? ''); ?></td>
+                                    <td><?php echo htmlspecialchars($row['usuario_nombre'] ?? ''); ?></td>
+                                    <td><?php echo htmlspecialchars($row['oati_nombre'] ?? 'No asignado'); ?></td>
+                                    <td><span class="priority-indicator priority-<?php echo strtolower($row['prioridad'] ?? ''); ?>"><?php echo strtoupper(substr($row['prioridad'] ?? '', 0, 1)); ?></span></td>
+                                    <td><span class="badge-estado-ticket estado-<?php echo strtolower(str_replace(' ', '-', $row['estado'] ?? '')); ?>"><?php echo htmlspecialchars($row['estado'] ?? ''); ?></span></td>
+                                    <td><?php echo date('d/m/Y', strtotime($row['fecha_creacion'] ?? '')); ?></td>
+                                <?php endif; ?>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                     <?php endif; ?>
                 </div>
             </div>
@@ -1413,7 +1407,7 @@ try {
         // Datos para los gráficos
         const datosTendencia = <?php echo json_encode($tendencia_mensual); ?>;
         const datosPrioridad = <?php echo json_encode($por_prioridad); ?>;
-        const datosTopTecnicos = <?php echo json_encode($top_tecnicos); ?>;
+        const datosTopTecnicos = <?php echo json_encode($top_oatis); ?>;
         const datosPorEstado = <?php echo json_encode($por_estado); ?>;
         const datosPorArea = <?php echo json_encode($por_area); ?>;
         const datosPorDependencia = <?php echo json_encode($por_dependencia); ?>;
@@ -1619,10 +1613,10 @@ try {
                     new Chart(ctxTecnicos, {
                         type: 'bar',
                         data: {
-                            labels: datosTopTecnicos.map(d => d.nombre ? d.nombre.substring(0, 15) : 'Sin asignar'),
+                            labels: datosTopTecnicos.map(d => (d.oati_nombre || d.nombre || 'Sin asignar').substring(0, 15)),
                             datasets: [{
                                 label: 'Tickets',
-                                data: datosTopTecnicos.map(d => d.total),
+                                data: datosTopTecnicos.map(d => d.total_tickets || d.total || 0),
                                 backgroundColor: coloresMulti,
                                 borderRadius: 6,
                                 borderSkipped: false
@@ -1669,7 +1663,7 @@ try {
                     const datos = reporteData.map(d => {
                         const eficiencia = d.total_tickets > 0 ? Math.round((d.cerrados / d.total_tickets) * 100) : 0;
                         return {
-                            nombre: d.tecnico_nombre || 'Sin asignar',
+                            nombre: d.oati_nombre || d.tecnico_nombre || 'Sin asignar',
                             eficiencia: eficiencia
                         };
                     });

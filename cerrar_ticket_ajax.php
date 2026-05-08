@@ -3,7 +3,7 @@
 session_start();
 
 // Verificar sesión
-if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['admin', 'tecnico'])) {
+if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['admin', 'OATI'])) {
     echo json_encode(['success' => false, 'message' => 'Acceso no autorizado']);
     exit();
 }
@@ -18,7 +18,7 @@ if (!$usuario_id) {
 
 // Conexión a BD
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Error de conexión']);
@@ -54,8 +54,8 @@ try {
     }
     
     // Verificar permisos
-    if ($privilegio == 'tecnico') {
-        if ($ticket['tecnico_asignado'] != $usuario_id) {
+     if ($privilegio == 'OATI') {
+        if ($ticket['oati_asignado'] != $usuario_id) {
             echo json_encode(['success' => false, 'message' => 'No tienes permisos para cerrar este ticket']);
             exit();
         }

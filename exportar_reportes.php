@@ -60,7 +60,7 @@ function exportarPDF() {
     </head>
     <body>
         <div class='header'>
-            <h1>Sistema CSI - Reporte de Tickets</h1>
+            <h1>Areas Operativas: Infraestructura - OATI - Reporte de Tickets</h1>
             <p>Período: $fecha_inicio al $fecha_fin</p>
             <p>Generado el: " . date('d/m/Y H:i') . "</p>
         </div>

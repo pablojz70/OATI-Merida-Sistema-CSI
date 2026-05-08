@@ -15,7 +15,7 @@ function esAdministrador() {
 }
 
 function esTecnico() {
-    return isset($_SESSION['privilegio']) && ($_SESSION['privilegio'] === 'tecnico' || $_SESSION['privilegio'] === 'admin');
+    return isset($_SESSION['privilegio']) && ($_SESSION['privilegio'] === 'oati' || $_SESSION['privilegio'] === 'admin' || $_SESSION['privilegio'] === 'infraestructura');
 }
 
 function obtenerUsuarioId() {

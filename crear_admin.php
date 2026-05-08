@@ -84,7 +84,7 @@ if ($result->num_rows > 0) {
 echo "<hr><h3>🔑 Credenciales para acceso:</h3>";
 echo "Usuario: <strong>pablo</strong><br>";
 echo "Contraseña: <strong>1234</strong><br>";
-echo "URL: <a href='index.php'>http://localhost/sistema_csi/</a><br>";
+echo "URL: <a href='index.php'>http://localhost/sistema_tickets/</a><br>";
 
 echo "<hr><h3>🔧 Verificación de contraseña:</h3>";
 echo "<form method='post'>";

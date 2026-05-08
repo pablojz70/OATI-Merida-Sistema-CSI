@@ -90,7 +90,7 @@ function crearBackup() {
     }
     
     // Crear archivo SQL
-    $sql = "-- Backup del Sistema CSI\n";
+    $sql = "-- Backup del Areas Operativas: Infraestructura - OATI\n";
     $sql .= "-- Generado: " . date('Y-m-d H:i:s') . "\n";
     $sql .= "-- Base de datos: " . DB_NAME . "\n\n";
     

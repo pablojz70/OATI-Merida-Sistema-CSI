@@ -8,7 +8,7 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['privilegio'] != 'admin') {
 }
 
 // Conexión a la base de datos
-$conn = new mysqli('localhost', 'root', '', 'sistema_csi');
+$conn = new mysqli('localhost', 'root', '', 'sistema_tickets');
 if ($conn->connect_error) {
     die("Error de conexión a la base de datos: " . $conn->connect_error);
 }
@@ -42,11 +42,11 @@ switch ($periodo) {
         break;
 }
 
-// Obtener métricas de técnicos
+// Obtener métricas de OATI
 $metricas_tecnicos = $conn->query("
     SELECT 
         u.id,
-        u.nombre as tecnico_nombre,
+        u.nombre as oati_nombre,
         COUNT(t.id) as total_tickets,
         SUM(CASE WHEN t.estado = 'cerrado' THEN 1 ELSE 0 END) as tickets_cerrados,
         SUM(CASE WHEN t.estado = 'en_proceso' THEN 1 ELSE 0 END) as tickets_en_proceso,
@@ -58,10 +58,10 @@ $metricas_tecnicos = $conn->query("
         MAX(CASE WHEN t.estado != 'cerrado' THEN TIMESTAMPDIFF(HOUR, t.fecha_creacion, NOW()) ELSE 0 END) as max_tiempo_espera,
         (SUM(CASE WHEN t.estado = 'cerrado' THEN 1 ELSE 0 END) / COUNT(t.id) * 100) as porcentaje_cierre
     FROM Tickets t
-    INNER JOIN Usuarios u ON t.tecnico_asignado = u.id
+    INNER JOIN Usuarios u ON t.oati_asignado = u.id
     WHERE t.fecha_creacion >= '$fecha_inicio 00:00:00'
         AND t.fecha_creacion <= '$fecha_fin 23:59:59'
-        AND u.privilegio = 'tecnico'
+        AND u.privilegio = 'oati'
         AND u.activo = 1
     GROUP BY u.id, u.nombre
     ORDER BY total_tickets DESC
@@ -92,7 +92,7 @@ $porcentaje_alta = $total_tickets > 0 ? ($tickets_alta / $total_tickets) * 100 :
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Métricas y Desempeño - Sistema CSI</title>
+    <title>Métricas y Desempeño - Areas Operativas: Infraestructura - OATI</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
@@ -537,7 +537,7 @@ $porcentaje_alta = $total_tickets > 0 ? ($tickets_alta / $total_tickets) * 100 :
                     <!DOCTYPE html>
                     <html>
                     <head>
-                        <title>Métricas de Desempeño - Sistema CSI</title>
+                        <title>Métricas de Desempeño - Areas Operativas: Infraestructura - OATI</title>
                         <style>
                             body { font-family: Arial, sans-serif; margin: 20px; }
                             .print-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
@@ -559,7 +559,7 @@ $porcentaje_alta = $total_tickets > 0 ? ($tickets_alta / $total_tickets) * 100 :
                     </head>
                     <body>
                         <div class="print-header">
-                            <h1>Métricas de Desempeño - Sistema CSI</h1>
+                            <h1>Métricas de Desempeño - Areas Operativas: Infraestructura - OATI</h1>
                             <p>Reporte generado el <?php echo date('d/m/Y H:i'); ?></p>
                         </div>
                         <div class="print-info">
@@ -571,7 +571,7 @@ $porcentaje_alta = $total_tickets > 0 ? ($tickets_alta / $total_tickets) * 100 :
                         </div>
                         ${printContent}
                         <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #666;">
-                            <p>Reporte generado por el Sistema CSI - <?php echo date('d/m/Y H:i:s'); ?></p>
+                            <p>Reporte generado por el Areas Operativas: Infraestructura - OATI - <?php echo date('d/m/Y H:i:s'); ?></p>
                         </div>
                     </body>
                     </html>

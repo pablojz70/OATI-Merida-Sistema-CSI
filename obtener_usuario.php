@@ -18,7 +18,7 @@ if (!$id_usuario || $privilegio !== 'admin') {
 
 // 3. CONEXIÓN A LA BASE DE DATOS CON PDO
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("Error de conexión a la base de datos: " . $e->getMessage());
@@ -67,8 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
         $mensaje = "El nombre es obligatorio";
         $tipo_mensaje = "error";
     } elseif (empty($email)) {
-        $mensaje = "El correo es obligatorio";
-        $tipo_mensaje = "error";
+        $email = ''; // Correo opcional, dejar vacío si no se ingresa
     } else {
         // Variables para contraseña
         $nueva_password = $_POST['nueva_password'] ?? '';
@@ -132,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Editar Usuario - Sistema CSI</title>
+    <title>Editar Usuario - Areas Operativas: Infraestructura - OATI</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/estilos2.css">
     <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
@@ -497,10 +496,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
     <header class="top-header">
         <!-- LOGO OATI Y TÍTULO -->
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img" 
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img" 
                  onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI1IiBmaWxsPSIjMWExYjk3Ii8+PHBhdGggZD0iTTEwIDE1SDMwTTEwIDIwSDI1TTEwIDI1SDIwIiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+';">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
                 <p class="system-sub-custom">Editar Usuario</p>
             </div>
         </div>
@@ -606,7 +605,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
                                 <label for="email">Correo electrónico *</label>
                                 <input type="email" id="email" name="email" 
                                        value="<?php echo htmlspecialchars($usuario['correo'] ?? ''); ?>" 
-                                       required placeholder="usuario@correo.com">
+                                       placeholder="usuario@correo.com (opcional)">
                             </div>
                             
                             <!-- Campo de nombre de usuario (solo lectura) -->
@@ -660,13 +659,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
                             
                             <div class="form-group-compact">
                                 <label for="privilegio">Tipo de Usuario *</label>
-                                <select id="privilegio" name="privilegio" required>
-                                    <option value="usuario" <?php echo ($usuario['privilegio'] ?? '') == 'usuario' ? 'selected' : ''; ?>>Usuario Normal</option>
-                                    <option value="tecnico" <?php echo ($usuario['privilegio'] ?? '') == 'tecnico' ? 'selected' : ''; ?>>Técnico</option>
-                                    <option value="bienes" <?php echo ($usuario['privilegio'] ?? '') == 'bienes' ? 'selected' : ''; ?>>Bienes</option>
-                                    <option value="director" <?php echo ($usuario['privilegio'] ?? '') == 'director' ? 'selected' : ''; ?>>Director</option>
-                                    <option value="admin" <?php echo ($usuario['privilegio'] ?? '') == 'admin' ? 'selected' : ''; ?>>Administrador</option>
-                                </select>
+<select id="privilegio" name="privilegio" required>
+    <?php
+    $opciones = [
+        'usuario'        => 'Usuario Normal',
+        'oati'           => 'OATI',
+        'infraestructura'=> 'Infraestructura',
+        'director'       => 'Director',
+        'admin'          => 'Administrador',
+        'bienes'         => 'Bienes'
+    ];
+    foreach ($opciones as $valor => $texto) {
+        $selected = ($usuario['privilegio'] ?? '') === $valor ? 'selected' : '';
+        echo "<option value=\"{$valor}\" {$selected}>{$texto}</option>";
+    }
+    ?>
+</select>
                             </div>
                             
                             <div class="form-group-compact">
@@ -799,8 +807,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
                 return false;
             }
             
-            // Validar email básico
-            if (!email.includes('@')) {
+            // Validar email solo si se ingresó
+            if (email && !email.includes('@')) {
                 alert('Ingresa un correo electrónico válido.');
                 document.getElementById('email').focus();
                 return false;

@@ -10,7 +10,7 @@ if (isset($_SESSION['usuario_id'])) {
 
 // Conexión a la base de datos usando PDO
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", 'root', '');
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", 'root', '');
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch(PDOException $e) {
@@ -122,18 +122,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Sistema CSI</title>
+    <title>Login - Centro de Soporte</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+body {
+    background: linear-gradient(135deg, #e9ecef 0%, #6c757d 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
         
         .login-container {
             width: 100%;
@@ -275,10 +275,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="login-box">
             <div class="login-header">
                 <div class="login-logo-container">
-                    <img src="imagen/DAR.png" alt="Logo DAR" class="login-logo">
+                    <img src="imagen/logo2.png" alt="Logo DAR" class="login-logo">
                 </div>
-                <h1>Sistema CSI</h1>
-                <p>Centro de Soporte Informático</p>
+                <h1>Centro de Soporte</h1>
+                <p>Areas Operativas: Infraestructura - OATI</p>
             </div>
             
             <div class="login-body">
@@ -317,7 +317,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <div class="login-footer">
                     <p>¿Problemas para ingresar? Dirígete a la Oficina de Apoyo Técnico Informático de la Dirección Administrativa Regional de Mérida. <span style="font-size: 14px; font-weight: bold;">OATI - DAR - Mérida</span></p>
-                    <p>Versión 1.1.20</p>
+                    <p>Versión 2</p>
                 </div>
             </div>
         </div>

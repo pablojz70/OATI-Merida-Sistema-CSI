@@ -8,7 +8,7 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['privilegio'] != 'admin') {
 }
 
 // Conexión a la base de datos
-$conn = new mysqli('localhost', 'root', '', 'sistema_csi');
+$conn = new mysqli('localhost', 'root', '', 'sistema_tickets');
 if ($conn->connect_error) {
     die("Error de conexión a la base de datos: " . $conn->connect_error);
 }
@@ -62,7 +62,7 @@ $metricas_tecnicos = $conn->query("
     INNER JOIN Usuarios u ON t.tecnico_asignado = u.id
     WHERE t.fecha_creacion >= '$fecha_inicio 00:00:00'
         AND t.fecha_creacion <= '$fecha_fin 23:59:59'
-        AND u.privilegio = 'tecnico'
+        AND u.privilegio IN ('oati', 'infraestructura')
         AND u.activo = 1
     GROUP BY u.id, u.nombre
     ORDER BY COUNT(t.id) DESC

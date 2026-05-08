@@ -36,7 +36,7 @@ try {
     $adjuntos = $stmt_adjuntos->fetchAll();
     
     foreach ($adjuntos as $adjunto) {
-        $ruta_completa = '/opt/lampp/htdocs/sistema_csi/adjuntos/' . $adjunto['ruta_archivo'];
+         $ruta_completa = '/opt/lampp/htdocs/sistema_tickets/adjuntos/' . $adjunto['ruta_archivo'];
         if (file_exists($ruta_completa)) {
             unlink($ruta_completa);
         }

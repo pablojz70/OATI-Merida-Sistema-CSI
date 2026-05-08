@@ -45,7 +45,7 @@ $es_solo_lectura = ($privilegio == 'director');
 
 // CONEXIÓN A LA BASE DE DATOS CON PDO
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("Error de conexión a la base de datos: " . $e->getMessage());
@@ -60,8 +60,17 @@ $filtros = [
     'dependencia_id' => $_GET['dependencia_id'] ?? '',
     'fecha_desde' => $_GET['fecha_desde'] ?? '',
     'fecha_hasta' => $_GET['fecha_hasta'] ?? '',
-    'busqueda' => $_GET['busqueda'] ?? ''
+    'busqueda' => $_GET['busqueda'] ?? '',
+    'tipo' => $_GET['tipo'] ?? '',
+    'area_tipo' => $_GET['area_tipo'] ?? ''
 ];
+
+// Si no hay tipo seleccionado, por defecto es 'todos'
+$vista_tipo = $filtros['tipo'];
+// Si viene area_tipo en GET, se lo asignamos a tipo (para compatibilidad)
+if (!empty($filtros['area_tipo']) && empty($vista_tipo)) {
+    $vista_tipo = ($filtros['area_tipo'] == 'infraestructura') ? 'infraestructura' : 'oati';
+}
 
 // MODIFICACIÓN: Determinar el comportamiento según el filtro de estado
 // Si hay filtro de prioridad, mostrar todos los estados (no solo activos)
@@ -79,7 +88,7 @@ $query = "SELECT t.*, a.nombre as area_nombre, s.nombre as servicio_nombre,
           JOIN Servicios s ON t.servicio_id = s.id
           JOIN Dependencias d ON t.dependencia_id = d.id
           JOIN Usuarios u ON t.usuario_id = u.id
-          LEFT JOIN Usuarios tech ON t.tecnico_asignado = tech.id
+           LEFT JOIN Usuarios tech ON t.oati_asignado = tech.id
           WHERE 1=1";
 
 $params = [];
@@ -114,9 +123,9 @@ if (!empty($filtros['area_id'])) {
 
 if (!empty($filtros['tecnico_id'])) {
     if ($filtros['tecnico_id'] === 'sin_asignar') {
-        $query .= " AND t.tecnico_asignado IS NULL";
+         $query .= " AND t.oati_asignado IS NULL";
     } else {
-        $query .= " AND t.tecnico_asignado = ?";
+         $query .= " AND t.oati_asignado = ?";
         $params[] = $filtros['tecnico_id'];
         $param_types[] = PDO::PARAM_INT;
     }
@@ -143,14 +152,17 @@ if (!empty($filtros['fecha_hasta'])) {
 if (!empty($filtros['busqueda'])) {
     $query .= " AND (t.asunto LIKE ? OR t.descripcion LIKE ? OR u.nombre LIKE ? OR t.numero_ticket LIKE ?)";
     $busqueda = "%{$filtros['busqueda']}%";
-    $params[] = $busqueda;
-    $params[] = $busqueda;
-    $params[] = $busqueda;
-    $params[] = $busqueda;
-    $param_types[] = PDO::PARAM_STR;
-    $param_types[] = PDO::PARAM_STR;
-    $param_types[] = PDO::PARAM_STR;
-    $param_types[] = PDO::PARAM_STR;
+    $params[] = $busqueda; $param_types[] = PDO::PARAM_STR;
+    $params[] = $busqueda; $param_types[] = PDO::PARAM_STR;
+    $params[] = $busqueda; $param_types[] = PDO::PARAM_STR;
+    $params[] = $busqueda; $param_types[] = PDO::PARAM_STR;
+}
+
+// Filtro por tipo de atención (vista OATI o Infraestructura)
+if ($vista_tipo === 'oati') {
+    $query .= " AND t.area_tipo = 'informatica'";
+} elseif ($vista_tipo === 'infraestructura') {
+    $query .= " AND t.area_tipo = 'infraestructura'";
 }
 
 // Ordenar
@@ -166,12 +178,27 @@ if (!empty($params)) {
 $stmt->execute();
 $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Obtener datos para filtros - MODIFICADO para obtener nombre_corto
-$areas = $conn->query("SELECT id, nombre FROM AreasSoporte ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+// Obtener datos para filtros - MODIFICADO para obtener nombre_corto y tipo
+$area_tipo_cond = "";
+if ($vista_tipo === 'oati') {
+    $area_tipo_cond = " WHERE tipo = 'informatica'";
+} elseif ($vista_tipo === 'infraestructura') {
+    $area_tipo_cond = " WHERE tipo = 'infraestructura'";
+}
+$areas = $conn->query("SELECT id, nombre FROM AreasSoporte{$area_tipo_cond} ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtener admins y técnicos para asignación
-$admins = $conn->query("SELECT id, nombre FROM Usuarios WHERE privilegio = 'admin' AND activo = 1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
-$tecnicos_query = $conn->query("SELECT id, nombre FROM Usuarios WHERE privilegio = 'tecnico' ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+$admins = $conn->query("SELECT id, nombre, privilegio FROM Usuarios WHERE privilegio = 'admin' AND activo = 1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+
+// Obtener usuarios según la vista
+if ($vista_tipo === 'infraestructura') {
+    $tecnicos_query = $conn->query("SELECT id, nombre, privilegio FROM Usuarios WHERE privilegio = 'infraestructura' ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+} elseif ($vista_tipo === 'oati') {
+    $tecnicos_query = $conn->query("SELECT id, nombre, privilegio FROM Usuarios WHERE privilegio = 'oati' ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    // Vista 'todos' - mostrar OATI e Infraestructura
+    $tecnicos_query = $conn->query("SELECT id, nombre, privilegio FROM Usuarios WHERE privilegio IN ('oati', 'infraestructura') ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+}
 
 // Combinar admins y técnicos, marcando admins
 $tecnicos = [];
@@ -190,6 +217,15 @@ foreach ($tecnicos_query as $tec) {
 $dependencias = $conn->query("SELECT id, nombre_corto, nombre FROM Dependencias ORDER BY nombre_corto")->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtener estadísticas generales
+$stats_tipo_where = "";
+$stats_tipo_and = "";
+if ($vista_tipo === 'oati') {
+    $stats_tipo_where = " WHERE area_tipo = 'informatica'";
+    $stats_tipo_and = " AND area_tipo = 'informatica'";
+} elseif ($vista_tipo === 'infraestructura') {
+    $stats_tipo_where = " WHERE area_tipo = 'infraestructura'";
+    $stats_tipo_and = " AND area_tipo = 'infraestructura'";
+}
 $stats_query = "SELECT 
     COUNT(*) as total,
     SUM(CASE WHEN estado = 'Nuevo' THEN 1 ELSE 0 END) as nuevos,
@@ -197,13 +233,13 @@ $stats_query = "SELECT
     SUM(CASE WHEN estado = 'En Proceso' THEN 1 ELSE 0 END) as en_proceso,
     SUM(CASE WHEN estado LIKE 'Cerrado%' THEN 1 ELSE 0 END) as cerrados,
     SUM(CASE WHEN prioridad = 'urgente' THEN 1 ELSE 0 END) as urgentes
-    FROM Tickets";
+    FROM Tickets{$stats_tipo_where}";
     
 $stats_stmt = $conn->query($stats_query);
 $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
 
 // MODIFICACIÓN: Obtener contador de tickets activos para mostrar en el filtro
-$activos_query = "SELECT COUNT(*) as total_activos FROM Tickets WHERE estado IN ('Nuevo', 'Asignado', 'En Proceso')";
+$activos_query = "SELECT COUNT(*) as total_activos FROM Tickets WHERE estado IN ('Nuevo', 'Asignado', 'En Proceso'){$stats_tipo_and}";
 $activos_stmt = $conn->query($activos_query);
 $activos_data = $activos_stmt->fetch(PDO::FETCH_ASSOC);
 $total_activos = $activos_data['total_activos'] ?? 0;
@@ -804,6 +840,17 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                 height: 24px;
             }
         }
+        
+        .row-oati td {
+            background: #e3f2fd !important;
+        }
+        .row-infra td {
+            background: #f5f5f5 !important;
+        }
+        .table-tickets tbody tr.row-oati:hover td,
+        .table-tickets tbody tr.row-infra:hover td {
+            filter: brightness(0.97);
+        }
     </style>
 </head>
 <body>
@@ -811,11 +858,11 @@ $total_activos = $activos_data['total_activos'] ?? 0;
     <header class="top-header">
         <!-- LOGO OATI Y TÍTULO -->
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img" 
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img" 
                  onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI1IiBmaWxsPSIjMWExYjk3Ii8+PHBhdGggZD0iTTEwIDE1SDMwTTEwIDIwSDI1TTEwIDI1SDIwIiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4+';">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
-                <p class="system-sub-custom">Sistema CSI</p>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
+                <p class="system-sub-custom">Areas Operativas: Infraestructura - OATI</p>
             </div>
         </div>
         
@@ -848,9 +895,43 @@ $total_activos = $activos_data['total_activos'] ?? 0;
             <!-- ENCABEZADO DE PÁGINA -->
             <div class="page-header-custom">
                 <h1 class="page-title-custom">
-                    <img src="imagen/Cabinet.png" alt="Tickets" class="title-icon"> Todos los Tickets
+                    <img src="imagen/Cabinet.png" alt="Tickets" class="title-icon"> 
+                    <?php if ($vista_tipo == 'oati'): ?>
+                        Tickets OATI
+                    <?php elseif ($vista_tipo == 'infraestructura'): ?>
+                        Tickets Infraestructura
+                    <?php else: ?>
+                        Todos los Tickets
+                    <?php endif; ?>
                 </h1>
-                <p class="page-subtitle-custom">Vista completa de todos los tickets del sistema</p>
+                <p class="page-subtitle-custom">
+                    <?php if ($vista_tipo == 'oati'): ?>
+                        Vista filtrada: solo tickets de Informática (OATI)
+                    <?php elseif ($vista_tipo == 'infraestructura'): ?>
+                        Vista filtrada: solo tickets de Infraestructura
+                    <?php else: ?>
+                        Vista completa de todos los tickets del sistema
+                    <?php endif; ?>
+                </p>
+            </div>
+            
+            <!-- BOTONES DE NAVEGACIÓN POR TIPO -->
+            <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
+                <a href="todos_tickets.php" 
+                   class="btn-filter" 
+                   style="background: <?php echo empty($vista_tipo) ? '#1a2980' : '#6c757d'; ?>; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-list"></i> Todos
+                </a>
+                <a href="todos_tickets.php?tipo=oati" 
+                   class="btn-filter" 
+                   style="background: <?php echo $vista_tipo == 'oati' ? '#3498db' : '#6c757d'; ?>; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-laptop-code"></i> OATI
+                </a>
+                <a href="todos_tickets.php?tipo=infraestructura" 
+                   class="btn-filter" 
+                   style="background: <?php echo $vista_tipo == 'infraestructura' ? '#17a2b8' : '#6c757d'; ?>; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-tools"></i> Infraestructura
+                </a>
             </div>
             
             <!-- MENSAJES DE ÉXITO/ERROR -->
@@ -941,7 +1022,8 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                     <h3><i class="fas fa-filter"></i> Filtros Avanzados</h3>
                 </div>
                 
-                <form method="GET" action="todos_tickets.php">
+                <form method="GET" action="todos_tickets.php<?php echo !empty($vista_tipo) ? '?tipo=' . urlencode($vista_tipo) : ''; ?>">
+                    <input type="hidden" name="tipo" value="<?php echo htmlspecialchars($vista_tipo); ?>">
                     <div class="filtros-grid-custom">
                         <div class="form-group-filtro-custom">
                             <label for="estado">Estado:</label>
@@ -980,7 +1062,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                         </div>
                         
                         <div class="form-group-filtro-custom">
-                            <label for="tecnico_id">Técnico:</label>
+                            <label for="tecnico_id"><?php echo empty($vista_tipo) ? 'Tipo / Asignado:' : ($vista_tipo == 'infraestructura' ? 'Infraestructura:' : 'OATI:'); ?></label>
                             <select id="tecnico_id" name="tecnico_id">
                                 <option value="">Todos</option>
                                 <option value="sin_asignar" <?php echo $filtros['tecnico_id'] == 'sin_asignar' ? 'selected' : ''; ?>>Sin asignar</option>
@@ -1062,7 +1144,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                 <th>Asunto</th>
                                 <th>Usuario</th>
                                 <th>Dependencia</th>
-                                <th>Técnico</th>
+                                <th><?php echo $vista_tipo == 'infraestructura' ? 'Asignado' : 'OATI'; ?></th>
                                 <th style="width: 90px;">Estado</th>
                                 <th>Prioridad</th>
                                 <th>Fecha</th>
@@ -1072,7 +1154,8 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                         <tbody>
                             <?php if (!empty($tickets)): ?>
                                 <?php foreach ($tickets as $ticket): ?>
-                                <tr>
+                                <?php $fila_clase = (($ticket['area_tipo'] ?? 'informatica') == 'infraestructura') ? 'row-infra' : 'row-oati'; ?>
+                                <tr class="<?php echo $fila_clase; ?>">
                                     <td title="<?php echo htmlspecialchars($ticket['asunto'] ?? ''); ?>">
                                         <?php echo htmlspecialchars(substr($ticket['asunto'] ?? '', 0, 40)); ?>
                                         <?php if (strlen($ticket['asunto'] ?? '') > 40): ?>...<?php endif; ?>
@@ -1171,26 +1254,18 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                             </a>
                                             
                                             <?php if (!$es_solo_lectura): ?>
-                                            <!-- Botón Asignar - Solo admin, si no está cerrado -->
+                                            <!-- Botón Asignar - según tipo de ticket -->
                                             <?php 
-                                            $ticketAsignado = !empty($ticket['tecnico_asignado']);
+                                            $ticketAsignado = !empty($ticket['oati_asignado']);
                                             $ticketCerrado = !empty($ticket['estado']) && strpos($ticket['estado'], 'Cerrado') !== false;
+                                            $tipo_label = (($ticket['area_tipo'] ?? 'informatica') == 'infraestructura') ? 'Infraestructura' : 'OATI';
                                             
                                             if (!$ticketCerrado): ?>
-                                                <button onclick="asignarTicket(<?php echo $ticket['id']; ?>, event)" 
+                                                <button onclick="asignarTicket(<?php echo $ticket['id']; ?>, '<?php echo $ticket['area_tipo'] ?? 'informatica'; ?>', event)" 
                                                         class="btn-accion-ticket btn-asignar-ticket <?php echo $ticketAsignado ? 'disabled' : ''; ?>" 
-                                                        title="<?php echo $ticketAsignado ? 'Ticket ya asignado a: '.htmlspecialchars($ticket['tecnico_nombre'] ?? '') : 'Asignar técnico'; ?>"
+                                                        title="<?php echo $ticketAsignado ? 'Ticket ya asignado a: '.htmlspecialchars($ticket['tecnico_nombre'] ?? '') : 'Asignar '.$tipo_label; ?>"
                                                         <?php echo $ticketAsignado ? 'disabled' : ''; ?>>
                                                     <img src="imagen/<?php echo $ticketAsignado ? 'TecnicoAsignado.png' : 'TecnicoAsignar.png'; ?>" alt="<?php echo $ticketAsignado ? 'Asignado' : 'Asignar'; ?>" style="width:12px;height:12px;">
-                                                </button>
-                                            <?php endif; ?>
-                                            
-                                            <!-- Botón Cerrar - Solo admin, si no está cerrado -->
-                                            <?php if (!$ticketCerrado): ?>
-                                                <button onclick="verificarAntesDeCerrar(<?php echo $ticket['id']; ?>)" 
-                                                        class="btn-accion-ticket btn-cerrar-ticket" 
-                                                        title="Cerrar ticket">
-                                                    <img src="imagen/CerrarTicket.png" alt="Cerrar" style="width:12px;height:12px;">
                                                 </button>
                                             <?php endif; ?>
                                             
@@ -1218,7 +1293,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
             <div class="footer-custom">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        Centro de Soporte Informático CSI • 
+                        Centro de Soporte CSI • 
                         Mostrando <?php echo count($tickets); ?> tickets
                         <?php if ($mostrar_solo_activos && empty($filtros['estado'])): ?>
                             (activos)
@@ -1250,7 +1325,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                         <option value="">-- Seleccionar --</option>
                         <?php foreach ($tecnicos as $tecnico): ?>
                         <?php $is_admin = isset($tecnico['is_admin']) && $tecnico['is_admin']; ?>
-                        <option value="<?php echo $tecnico['id']; ?>">
+                        <option value="<?php echo $tecnico['id']; ?>" data-privilegio="<?php echo $is_admin ? 'admin' : ($tecnico['privilegio'] ?? 'oati'); ?>">
                             <?php echo htmlspecialchars($tecnico['nombre']); ?><?php echo $is_admin ? ' ⭐' : ''; ?>
                         </option>
                         <?php endforeach; ?>
@@ -1322,7 +1397,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
     // FUNCIONES PARA MODALES
     
     // Abrir modal de asignación - CORREGIDA
-    function asignarTicket(ticketId, event) {
+    function asignarTicket(ticketId, areaTipo, event) {
         // Prevenir cualquier comportamiento por defecto
         if (event) {
             event.preventDefault();
@@ -1330,11 +1405,10 @@ $total_activos = $activos_data['total_activos'] ?? 0;
         }
         
         console.log('=== ASIGNAR TICKET ===');
-        console.log('Ticket ID recibido:', ticketId);
+        console.log('Ticket ID:', ticketId, 'Tipo:', areaTipo);
         
         // Obtener el campo oculto
         const ticketIdField = document.getElementById('ticket-id-asignar');
-        console.log('Campo encontrado:', ticketIdField);
         
         if (!ticketIdField) {
             console.error('ERROR: No se encontró el campo ticket-id-asignar');
@@ -1344,23 +1418,30 @@ $total_activos = $activos_data['total_activos'] ?? 0;
         
         // Establecer el valor
         ticketIdField.value = ticketId;
-        console.log('Valor establecido en campo:', ticketIdField.value);
         
-        // Resetear el formulario (opcional)
-        document.getElementById('tecnico-asignar').selectedIndex = 0;
+        // Resetear el formulario
         document.getElementById('prioridad-asignar').value = 'media';
+        
+        // Filtrar opciones del select según área
+        const select = document.getElementById('tecnico-asignar');
+        const options = select.options;
+        for (let i = 0; i < options.length; i++) {
+            const opt = options[i];
+            if (opt.value === '') continue;
+            const priv = opt.getAttribute('data-privilegio');
+            if (priv === 'admin' || priv === areaTipo || (areaTipo === 'informatica' && priv === 'oati')) {
+                opt.style.display = '';
+            } else {
+                opt.style.display = 'none';
+            }
+        }
+        select.selectedIndex = 0;
         
         // Mostrar el modal
         const modal = document.getElementById('modal-asignar');
         if (modal) {
             modal.style.display = 'block';
-            console.log('Modal mostrado correctamente');
-        } else {
-            console.error('ERROR: No se encontró el modal');
         }
-        
-        // Log final
-        console.log('=== FIN ASIGNAR TICKET ===');
     }
     
     // Cerrar modal de asignación
@@ -1444,6 +1525,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
         // Enviar la petición
         fetch('procesar_asignacion_ajax.php', {
             method: 'POST',
+            credentials: 'same-origin',
             body: formData
         })
         .then(response => {
@@ -1488,6 +1570,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
         
         fetch('cerrar_ticket_ajax.php', {
             method: 'POST',
+            credentials: 'same-origin',
             body: formData
         })
         .then(response => response.json())

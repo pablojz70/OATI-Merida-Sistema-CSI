@@ -16,7 +16,7 @@ if (!$id_usuario) {
 }
 
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -56,7 +56,7 @@ try {
         exit();
     }
     
-    if (!empty($ticket['tecnico_asignado']) && $privilegio != 'admin' && $privilegio != 'director') {
+    if (!empty($ticket['oati_asignado']) && $privilegio != 'admin' && $privilegio != 'director') {
         header('Location: ver_ticket.php?id=' . $ticket_id . '?error=no_editable');
         exit();
     }
@@ -99,10 +99,22 @@ try {
 
 $areas = [];
 try {
-    $stmt = $conn->query("SELECT id, nombre FROM AreasSoporte WHERE activa = 1 AND todosven = 1 ORDER BY orden, nombre");
+    $stmt = $conn->query("SELECT id, nombre, tipo FROM AreasSoporte WHERE activa = 1 AND todosven = 1 ORDER BY orden, nombre");
     $areas = $stmt->fetchAll();
 } catch (Exception $e) {
     error_log("Error cargando áreas: " . $e->getMessage());
+}
+
+// Separar áreas por tipo
+$areas_informatica = [];
+$areas_infraestructura = [];
+foreach ($areas as $area) {
+    $tipo = $area['tipo'] ?? 'informatica';
+    if ($tipo == 'informatica') {
+        $areas_informatica[] = $area;
+    } else {
+        $areas_infraestructura[] = $area;
+    }
 }
 
 $servicios_del_ticket = [];
@@ -133,10 +145,12 @@ $datos = [
     'descripcion' => $ticket['descripcion'],
     'prioridad' => $ticket['prioridad'] ?? 'Media',
     'numero_bien' => $ticket['numero_bien'] ?? '',
-    'serial' => $ticket['serial'] ?? ''
+    'serial' => $ticket['serial'] ?? '',
+    'area_tipo' => $ticket['area_tipo'] ?? 'informatica'
 ];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $datos['area_tipo'] = $_POST['area_tipo'] ?? 'informatica';
     $datos['area_id'] = intval($_POST['area_id'] ?? 0);
     $datos['servicio_id'] = intval($_POST['servicio_id'] ?? 0);
     $datos['dependencia_id'] = intval($_POST['dependencia_id'] ?? 0);
@@ -173,14 +187,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     if (empty($errores)) {
         try {
-            $campos_update = "dependencia_id = ?, lugar_area = ?, area_id = ?, servicio_id = ?, asunto = ?, descripcion = ?";
+            $campos_update = "dependencia_id = ?, lugar_area = ?, area_id = ?, servicio_id = ?, asunto = ?, descripcion = ?, area_tipo = ?";
             $valores_update = [
                 $datos['dependencia_id'],
                 $datos['lugar_area'],
                 $datos['area_id'],
                 $datos['servicio_id'],
                 $datos['asunto'],
-                $datos['descripcion']
+                $datos['descripcion'],
+                $datos['area_tipo']
             ];
             
             if ($privilegio == 'admin' && !empty($datos['prioridad'])) {
@@ -206,7 +221,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt_update->execute($valores_update);
             
             if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
-                $ruta_base = "/opt/lampp/htdocs/sistema_csi/adjuntos/tickets/";
+                 $ruta_base = "/opt/lampp/htdocs/sistema_tickets/adjuntos/tickets/";
                 
                 foreach($_FILES['archivos']['tmp_name'] as $key => $tmp_name) {
                     if($_FILES['archivos']['error'][$key] === UPLOAD_ERR_OK) {
@@ -482,9 +497,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <body>
     <header class="top-header">
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img">
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
                 <p class="system-sub-custom">Editar Ticket</p>
             </div>
         </div>
@@ -576,6 +591,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                    placeholder="Ej: Sala de Audiencias, Recepción, Oficina 201"
                                    maxlength="150" required>
                         </div>
+                        
+                        <!-- TIPO DE ATENCIÓN -->
+                        <div class="form-group">
+                            <label>Tipo de Atención *</label>
+                            <div class="radio-group">
+                                <label><input type="radio" name="area_tipo" value="informatica" <?php echo ($datos['area_tipo'] ?? 'informatica') == 'informatica' ? 'checked' : ''; ?> onchange="cambiarTipo(this.value)"> Informática (OATI)</label>
+                                <label><input type="radio" name="area_tipo" value="infraestructura" <?php echo ($datos['area_tipo'] ?? 'informatica') == 'infraestructura' ? 'checked' : ''; ?> onchange="cambiarTipo(this.value)"> Infraestructura</label>
+                            </div>
+                        </div>
+                        
+                        <script>
+                        var areasInformatica = <?php echo json_encode($areas_informatica); ?>;
+                        var areasInfraestructura = <?php echo json_encode($areas_infraestructura); ?>;
+                        
+                        function cambiarTipo(tipo) {
+                            var select = document.getElementById('area_id');
+                            var options = select.options;
+                            for (var i = 0; i < options.length; i++) {
+                                var opt = options[i];
+                                if (opt.value === '') continue;
+                                if (opt.getAttribute('data-tipo') === tipo) {
+                                    opt.style.display = '';
+                                    opt.disabled = false;
+                                } else {
+                                    opt.style.display = 'none';
+                                    opt.disabled = true;
+                                }
+                            }
+                            // Reset selection if hidden
+                            if (select.selectedIndex > 0 && select.options[select.selectedIndex].disabled) {
+                                select.selectedIndex = 0;
+                                $(select).trigger('change');
+                            }
+                        }
+                        // Initialize on page load
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var checked = document.querySelector('input[name="area_tipo"]:checked');
+                            if (checked) cambiarTipo(checked.value);
+                        });
+                        </script>
+                        
                     </div>
                     
                     <div class="form-card">
@@ -586,7 +642,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <select class="form-control" id="area_id" name="area_id" required>
                                 <option value="">-- Seleccionar --</option>
                                 <?php foreach ($areas as $area): ?>
-                                    <option value="<?php echo $area['id']; ?>" 
+                                    <option value="<?php echo $area['id']; ?>" data-tipo="<?php echo $area['tipo'] ?? 'informatica'; ?>" 
                                             <?php echo $datos['area_id'] == $area['id'] ? 'selected' : ''; ?>>
                                         <?php echo htmlspecialchars($area['nombre']); ?>
                                     </option>

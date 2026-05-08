@@ -20,7 +20,7 @@ if (!$usuario_id) {
 
 // CONEXIÓN A BASE DE DATOS
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -133,7 +133,7 @@ $sql_tickets = "SELECT t.*, a.nombre as area_nombre, s.nombre as servicio_nombre
                 FROM Tickets t
                 LEFT JOIN AreasSoporte a ON t.area_id = a.id
                 LEFT JOIN Servicios s ON t.servicio_id = s.id
-                LEFT JOIN Usuarios tec ON t.tecnico_asignado = tec.id
+                 LEFT JOIN Usuarios tec ON t.oati_asignado = tec.id
                 WHERE t.usuario_id = ?
                 ORDER BY t.fecha_creacion DESC
                 LIMIT 5";
@@ -142,7 +142,7 @@ $stmt_tickets->execute([$usuario_id]);
 $tickets_usuario = $stmt_tickets->fetchAll();
 
 // 8. ESTABLECER TÍTULO PARA LA CABECERA
-$titulo_pagina = "Dashboard - Sistema CSI";
+$titulo_pagina = "Dashboard - Areas Operativas: Infraestructura - OATI";
 
 // 9. INCLUIR CABECERA (config/config.php ya incluye database.php)
 include 'includes/header.php';
@@ -160,7 +160,7 @@ if (!file_exists($menu_archivo)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Perfil - Sistema CSI</title>
+    <title>Mi Perfil - Areas Operativas: Infraestructura - OATI</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/estilos2.css">
     <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
@@ -515,11 +515,11 @@ if (!file_exists($menu_archivo)) {
     <header class="top-header">
         <!-- LOGO OATI Y TÍTULO -->
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img" 
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img" 
                  onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI1IiBmaWxsPSIjMWExYjk3Ii8+PHBhdGggZD0iTTEwIDE1SDMwTTEwIDIwSDI1TTEwIDI1SDIwIiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+';">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
-                <p class="system-sub-custom">Sistema CSI</p>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
+                <p class="system-sub-custom">Areas Operativas: Infraestructura - OATI</p>
             </div>
         </div>
         

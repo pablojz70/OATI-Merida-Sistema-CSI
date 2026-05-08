@@ -131,7 +131,7 @@ try {
 }
 
 // 7. ESTABLECER TÍTULO PARA LA CABECERA
-$titulo_pagina = "Gestión de Dependencias - Sistema CSI";
+$titulo_pagina = "Gestión de Dependencias - Areas Operativas: Infraestructura - OATI";
 
 // 8. INCLUIR CABECERA (RUTA CORREGIDA)
 include 'includes/header.php';
@@ -458,10 +458,10 @@ if (!file_exists($menu_archivo)) {
     <!-- HEADER PERSONALIZADO -->
     <header class="top-header">
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img" 
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img" 
                  onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI5IiBmaWxsPSIjMWExYjk3Ii8+PHBhdGggZD0iTTEwIDE1SDMwTTEwIDIwSDI1TTEwIDI1SDIwIiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+';">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
                 <p class="system-sub-custom">Gestión de Dependencias</p>
             </div>
         </div>

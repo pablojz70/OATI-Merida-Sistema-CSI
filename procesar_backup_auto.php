@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'])) {
         
         // Crear archivo de configuración para cron
         $config_content = "<?php
-// Configuración de Backups Automáticos - Sistema CSI
+// Configuración de Backups Automáticos - Areas Operativas: Infraestructura - OATI
 return [
     'frecuencia' => 'semanal',
     'hora' => '02:00',
@@ -34,12 +34,12 @@ return [
         
         // Crear script de backup automático
         $script_content = '#!/bin/bash
-# Script de Backup Automático - Sistema CSI
+# Script de Backup Automático - Areas Operativas: Infraestructura - OATI
 FECHA=$(date +"%Y-%m-%d_%H-%M-%S")
 BACKUP_FILE="' . realpath($backup_dir) . '/backup_auto_${FECHA}.sql"
 
 # Crear backup
-mysqldump --user=root --password= --host=localhost sistema_csi > "${BACKUP_FILE}"
+mysqldump --user=root --password= --host=localhost sistema_tickets > "${BACKUP_FILE}"
 
 # Comprimir backup
 gzip "${BACKUP_FILE}"

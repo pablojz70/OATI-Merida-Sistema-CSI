@@ -5,7 +5,7 @@ session_start();
 // Compatible con ambos sistemas de sesión
 $id_usuario = $_SESSION['id_usuario'] ?? $_SESSION['usuario_id'] ?? null;
 
-if (!$id_usuario || !in_array(($_SESSION['privilegio'] ?? ''), ['admin', 'tecnico'], true)) {
+if (!$id_usuario || !in_array(($_SESSION['privilegio'] ?? ''), ['admin', 'oati', 'infraestructura'], true)) {
     header('Location: index.php');
     exit();
 }
@@ -33,19 +33,19 @@ if ($ticket_id <= 0) {
 
 // Obtener datos del ticket
 try {
-    $sql = "SELECT t.*, 
-                   u.nombre as usuario_nombre,
-                   d.nombre as dependencia_nombre,
-                   tech.nombre as tecnico_nombre,
-                   a.nombre as area_nombre,
-                   s.nombre as servicio_nombre
-            FROM Tickets t
-            JOIN Usuarios u ON t.usuario_id = u.id
-            JOIN Dependencias d ON t.dependencia_id = d.id
-            JOIN AreasSoporte a ON t.area_id = a.id
-            JOIN Servicios s ON t.servicio_id = s.id
-            LEFT JOIN Usuarios tech ON t.tecnico_asignado = tech.id
-            WHERE t.id = ?";
+$sql = "SELECT t.*, 
+                    u.nombre as usuario_nombre,
+                    d.nombre as dependencia_nombre,
+                    tech.nombre as oati_nombre,
+                    a.nombre as area_nombre,
+                    s.nombre as servicio_nombre
+             FROM Tickets t
+             JOIN Usuarios u ON t.usuario_id = u.id
+             JOIN Dependencias d ON t.dependencia_id = d.id
+             JOIN AreasSoporte a ON t.area_id = a.id
+             JOIN Servicios s ON t.servicio_id = s.id
+             LEFT JOIN Usuarios tech ON t.oati_asignado = tech.id
+             WHERE t.id = ?";
     
     $stmt = $conn->prepare($sql);
     $stmt->execute([$ticket_id]);
@@ -56,8 +56,8 @@ try {
         exit();
     }
     
-    // Verificar si el técnico puede editar (solo si está asignado a él)
-    if ($privilegio == 'tecnico' && $ticket['tecnico_asignado'] != $id_usuario) {
+    // Verificar si el OATI puede editar (solo si está asignado a él)
+    if ($privilegio == 'oati' && $ticket['oati_asignado'] != $id_usuario) {
         header('Location: tickets_asignados.php?error=no_asignado');
         exit();
     }
@@ -116,9 +116,13 @@ if ($privilegio == 'admin') {
         }
         unset($admin);
         
-        // Obtener técnicos normales
-        $sql_tecnicos = "SELECT id, nombre FROM Usuarios WHERE privilegio = 'tecnico' AND activo = 1 ORDER BY nombre";
-        $tecnicos_normales = $conn->query($sql_tecnicos)->fetchAll(PDO::FETCH_ASSOC);
+        // Obtener técnicos según tipo de atención
+        $area_tipo_ticket = $ticket['area_tipo'] ?? 'informatica';
+        $privilegio_tecnicos = ($area_tipo_ticket == 'infraestructura') ? 'infraestructura' : 'oati';
+        $sql_tecnicos = "SELECT id, nombre FROM Usuarios WHERE privilegio = :privilegio AND activo = 1 ORDER BY nombre";
+        $stmt_tecnicos = $conn->prepare($sql_tecnicos);
+        $stmt_tecnicos->execute([':privilegio' => $privilegio_tecnicos]);
+        $tecnicos_normales = $stmt_tecnicos->fetchAll(PDO::FETCH_ASSOC);
         
         // Combinar: admins primero, luego técnicos
         $tecnicos = array_merge($admins, $tecnicos_normales);
@@ -150,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $conn->beginTransaction();
         
         $nuevo_estado = $_POST['estado'] ?? $ticket['estado'];
-        $tecnico_asignado = $_POST['tecnico_asignado'] ?? $ticket['tecnico_asignado'];
+        $oati_asignado = $_POST['tecnico_asignado'] ?? $ticket['oati_asignado'];
         $prioridad = $_POST['prioridad'] ?? $ticket['prioridad'];
         $solucion = trim($_POST['solucion'] ?? '');
         $numero_bien = trim($_POST['numero_bien'] ?? '');
@@ -164,12 +168,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $es_cierre = ($nuevo_estado == 'Cerrado Exitosamente' || $nuevo_estado == 'Cerrado No Exitoso');
             
             $sql_update = "UPDATE Tickets SET 
-                          estado = :estado,
-                          prioridad = :prioridad,
-                          tecnico_asignado = :tecnico_asignado,
-                          compartido_bienes = :compartido_bienes,
-                          numero_bien = :numero_bien,
-                          serial = :serial";
+                           estado = :estado,
+                           prioridad = :prioridad,
+                           oati_asignado = :oati_asignado,
+                           compartido_bienes = :compartido_bienes,
+                           numero_bien = :numero_bien,
+                           serial = :serial";
             
             // Agregar solución solo si no está vacía
             if (!empty($solucion)) {
@@ -187,7 +191,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $params = [
                 ':estado' => $nuevo_estado,
                 ':prioridad' => $prioridad,
-                ':tecnico_asignado' => $tecnico_asignado ?: null,
+                ':oati_asignado' => $oati_asignado ?: null,
                 ':compartido_bienes' => !empty($_POST['compartido_bienes']) ? 1 : 0,
                 ':numero_bien' => $numero_bien ?: null,
                 ':serial' => $serial ?: null,
@@ -208,8 +212,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     
                     $accion = "Ticket " . ($es_cierre ? "cerrado" : "actualizado");
                     $detalle = "Estado: {$nuevo_estado}, Prioridad: {$prioridad}";
-                    if ($tecnico_asignado) {
-                        $detalle .= ", Técnico asignado: ID {$tecnico_asignado}";
+                    if ($oati_asignado) {
+                        $detalle .= ", OATI asignado: ID {$oati_asignado}";
                     }
                     
                     $stmt_hist = $conn->prepare($sql_historial);
@@ -245,7 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 // Determinar el título según la acción
 $titulo = "Editar Ticket";
-if ($action == 'assign') $titulo = "Asignar Técnico";
+if ($action == 'assign') $titulo = "Asignar OATI";
 if ($action == 'close') $titulo = "Cerrar Ticket";
 
 // Procesar archivos
@@ -544,11 +548,11 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
     <!-- HEADER PERSONALIZADO -->
     <header class="top-header">
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img" 
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img" 
                  onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI1IiBmaWxsPSIjMWExYjk3Ii8+PHBhdGggZD0iTTEwIDE1SDMwTTEwIDIwSDI1TTEwIDI1SDIwIiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+';">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
-                <p class="system-sub-custom">Sistema CSI</p>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
+                <p class="system-sub-custom">Areas Operativas: Infraestructura - OATI</p>
             </div>
         </div>
         
@@ -653,14 +657,15 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
                             <select name="tecnico_asignado" class="form-control">
                                 <option value="">-- Sin asignar --</option>
                                 <?php foreach ($tecnicos as $tecnico): ?>
-                                <?php $selected = ($tecnico['id'] == $ticket['tecnico_asignado']) ? 'selected' : ''; ?>
+                                <?php $selected = ($tecnico['id'] == $ticket['oati_asignado']) ? 'selected' : ''; ?>
                                 <?php $is_admin = isset($tecnico['is_admin']) && $tecnico['is_admin']; ?>
                                 <option value="<?php echo $tecnico['id']; ?>" <?php echo $selected; ?>>
                                     <?php echo htmlspecialchars($tecnico['nombre']); ?><?php echo $is_admin ? ' ⭐' : ''; ?>
                                 </option>
                                 <?php endforeach; ?>
                             </select>
-                            <small style="font-size: 10px; color: #666;">Selecciona un técnico o asígnalo a ti mismo (⭐)</small>
+                            <?php $tipo_label = ($ticket['area_tipo'] ?? 'informatica') == 'infraestructura' ? 'Infraestructura' : 'OATI'; ?>
+                            <small style="font-size: 10px; color: #666;">Selecciona un <?php echo $tipo_label; ?> o asígnalo a ti mismo (⭐)</small>
                         </div>
                         <?php endif; ?>
                         

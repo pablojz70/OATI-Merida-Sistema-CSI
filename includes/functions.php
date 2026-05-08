@@ -26,13 +26,14 @@ function getAdminStats($conn) {
         (SELECT COUNT(*) FROM Tickets) as total_tickets,
         (SELECT COUNT(*) FROM Tickets WHERE estado = 'Nuevo') as tickets_nuevos,
         (SELECT COUNT(*) FROM Tickets WHERE estado = 'Asignado') as tickets_asignados,
+        (SELECT COUNT(*) FROM Tickets WHERE estado = 'En Proceso') as tickets_en_proceso,
         (SELECT COUNT(*) FROM Tickets WHERE estado = 'Cerrado Exitosamente') as tickets_cerrados";
     
     $stmt = $conn->query($query);
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function getTecnicoStats($conn, $tecnico_id) {
+function getOatiStats($conn, $oati_id) {
     if (!tableExists($conn, 'Tickets')) {
         return ['tickets_asignados' => '0', 'tickets_resueltos' => '0'];
     }
@@ -41,10 +42,10 @@ function getTecnicoStats($conn, $tecnico_id) {
         COUNT(CASE WHEN estado IN ('Asignado', 'En Proceso') THEN 1 END) as tickets_asignados,
         COUNT(CASE WHEN estado = 'Cerrado Exitosamente' THEN 1 END) as tickets_resueltos
         FROM Tickets 
-        WHERE tecnico_asignado = :tecnico_id";
+        WHERE oati_asignado = :oati_id";
     
     $stmt = $conn->prepare($query);
-    $stmt->execute([':tecnico_id' => $tecnico_id]);
+    $stmt->execute([':oati_id' => $oati_id]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
@@ -79,12 +80,12 @@ function getRecentTickets($conn, $user_id, $privilegio, $limit = 5) {
             $stmt = $conn->prepare($query);
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $stmt->execute();
-        } elseif ($privilegio == 'tecnico') {
+        } elseif ($privilegio == 'oati' || $privilegio == 'infraestructura') {
             $query = "SELECT t.*, u.nombre as usuario_nombre, d.nombre as dependencia_nombre
                      FROM Tickets t
                      LEFT JOIN Usuarios u ON t.usuario_id = u.id
                      LEFT JOIN Dependencias d ON t.dependencia_id = d.id
-                     WHERE t.tecnico_asignado = :user_id 
+                     WHERE t.oati_asignado = :user_id 
                      ORDER BY t.fecha_creacion DESC LIMIT :limit";
             $stmt = $conn->prepare($query);
             $stmt->bindValue(':user_id', $user_id, PDO::PARAM_INT);
@@ -198,16 +199,23 @@ function getUserIdFromSession() {
     return null;
 }
 
-// Verificar privilegios
-function checkPrivilege($required) {
-    $privilegio = $_SESSION['privilegio'] ?? 'usuario';
-    $hierarchy = ['usuario' => 1, 'tecnico' => 2, 'admin' => 3];
-    
-    $user_level = $hierarchy[$privilegio] ?? 0;
-    $required_level = $hierarchy[$required] ?? 0;
-    
-    return $user_level >= $required_level;
-}
+ // Verificar privilegios
+ function checkPrivilege($required) {
+     $privilegio = $_SESSION['privilegio'] ?? 'usuario';
+     $hierarchy = [
+         'usuario' => 1,
+         'director' => 1,
+         'bienes' => 1,
+         'infraestructura' => 1,
+         'oati' => 2,
+         'admin' => 3
+     ];
+     
+     $user_level = $hierarchy[$privilegio] ?? 0;
+     $required_level = $hierarchy[$required] ?? 0;
+     
+     return $user_level >= $required_level;
+ }
 
 // Verificar estructura de la base de datos
 function checkDatabaseStructure($conn) {

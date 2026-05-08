@@ -18,7 +18,7 @@ if (!tienePermiso($_SESSION['privilegio'], 'crear_tickets')) {
 $dependencias = obtenerDependencias();
 
 // $areas = obtenerAreasSoporte();
-if ($_SESSION['privilegio'] === 'admin' || $_SESSION['privilegio'] === 'tecnico') {
+if ($_SESSION['privilegio'] === 'admin' || $_SESSION['privilegio'] === 'oati') {
     // Administradores y técnicos ven TODAS las áreas
     $areas = obtenerAreasSoporte();
 } else {
@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Nuevo Ticket - Sistema CSI</title>
+    <title>Crear Nuevo Ticket - Areas Operativas: Infraestructura - OATI</title>
     <link rel="stylesheet" href="css/estilos.css">
     <style>
         body {
@@ -230,7 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $menu_file = '';
     switch ($_SESSION['privilegio']) {
         case 'admin': $menu_file = 'includes/menu_admin.php'; break;
-        case 'tecnico': $menu_file = 'includes/menu_tecnico.php'; break;
+        case 'oati': $menu_file = 'includes/menu_oati.php'; break;
         default: $menu_file = 'includes/menu_usuario.php'; break;
     }
     

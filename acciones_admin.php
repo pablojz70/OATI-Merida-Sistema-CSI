@@ -9,7 +9,7 @@ if (!isset($_SESSION['privilegio']) || $_SESSION['privilegio'] != 'admin') {
 }
 
 // Conexión a la base de datos
-$conn = new mysqli('localhost', 'root', '', 'sistema_csi');
+$conn = new mysqli('localhost', 'root', '', 'sistema_tickets');
 if ($conn->connect_error) {
     echo json_encode(['success' => false, 'message' => 'Error de conexión']);
     exit();
@@ -32,16 +32,26 @@ switch ($accion) {
             exit();
         }
         
-        // Verificar que el técnico existe y es técnico
-        $check_tecnico = $conn->query("SELECT id FROM Usuarios WHERE id = $tecnico_id AND privilegio = 'tecnico'");
+        // Obtener area_tipo del ticket para determinar el privilegio requerido
+        $result_ticket = $conn->query("SELECT area_tipo FROM Tickets WHERE id = $ticket_id");
+        if (!$result_ticket || $result_ticket->num_rows == 0) {
+            echo json_encode(['success' => false, 'message' => 'Ticket no encontrado']);
+            exit();
+        }
+        $ticket_data = $result_ticket->fetch_assoc();
+        $area_tipo = $ticket_data['area_tipo'] ?? 'informatica';
+        $privilegio_requerido = ($area_tipo == 'infraestructura') ? 'infraestructura' : 'oati';
+        
+        // Verificar que el usuario existe y tiene el privilegio correcto
+        $check_tecnico = $conn->query("SELECT id FROM Usuarios WHERE id = $tecnico_id AND privilegio = '$privilegio_requerido'");
         if ($check_tecnico->num_rows == 0) {
-            echo json_encode(['success' => false, 'message' => 'Técnico no válido']);
+            echo json_encode(['success' => false, 'message' => 'Usuario no válido para este tipo de atención']);
             exit();
         }
         
         // Asignar ticket
         $sql = "UPDATE Tickets SET 
-                tecnico_asignado = $tecnico_id,
+                oati_asignado = $tecnico_id,
                 prioridad = '$prioridad',
                 estado = 'Asignado',
                 fecha_asignacion = NOW()
@@ -105,11 +115,11 @@ switch ($accion) {
             exit();
         }
         
-        $sql = "SELECT t.*, u.nombre as usuario_nombre, tech.nombre as tecnico_nombre
-                FROM Tickets t
-                LEFT JOIN Usuarios u ON t.usuario_id = u.id
-                LEFT JOIN Usuarios tech ON t.tecnico_asignado = tech.id
-                WHERE t.id = $ticket_id";
+$sql = "SELECT t.*, u.nombre as usuario_nombre, tech.nombre as oati_nombre
+                 FROM Tickets t
+                 LEFT JOIN Usuarios u ON t.usuario_id = u.id
+                 LEFT JOIN Usuarios tech ON t.oati_asignado = tech.id
+                 WHERE t.id = $ticket_id";
         
         $result = $conn->query($sql);
         

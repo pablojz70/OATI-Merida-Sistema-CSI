@@ -86,6 +86,13 @@
         </li>
         
         <li>
+            <a href="admin_insumos.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_insumos.php' ? 'active' : ''; ?>">
+                <img src="imagen/Settings.png" alt="Insumos" class="menu-icon">
+                <span>Insumos Faltantes</span>
+            </a>
+        </li>
+        
+        <li>
             <a href="docs/ManualAdministrador.html" target="_blank" class="<?php echo basename($_SERVER['PHP_SELF']) == 'ManualAdministrador.html' ? 'active' : ''; ?>">
                 <img src="imagen/manual.png" alt="Manual" class="menu-icon">
                 <span>Manual de Administrador</span>

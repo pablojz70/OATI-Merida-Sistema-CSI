@@ -1,3 +1,0 @@
-# .htaccess en la raíz del proyecto
-php_flag display_errors on
-php_value error_reporting -1

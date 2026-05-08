@@ -7,7 +7,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // Verificar sesión
-if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['admin', 'tecnico'])) {
+if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['admin', 'oati', 'infraestructura'])) {
     header('Location: index.php');
     exit();
 }
@@ -25,7 +25,7 @@ if (!$ticket_id) {
 
 // CONEXIÓN A BASE DE DATOS
 try {
-    $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -37,17 +37,17 @@ $query = "SELECT t.*,
           a.nombre as area_nombre, 
           s.nombre as servicio_nombre,
           d.nombre as dependencia_nombre, 
-          u.nombre as usuario_nombre,
-          tech.nombre as tecnico_nombre,
-          TIMESTAMPDIFF(HOUR, t.fecha_creacion, NOW()) as horas_transcurridas,
-          TIMESTAMPDIFF(DAY, t.fecha_creacion, NOW()) as dias_transcurridos
-          FROM Tickets t
-          JOIN AreasSoporte a ON t.area_id = a.id
-          JOIN Servicios s ON t.servicio_id = s.id
-          JOIN Dependencias d ON t.dependencia_id = d.id
-          JOIN Usuarios u ON t.usuario_id = u.id
-          LEFT JOIN Usuarios tech ON t.tecnico_asignado = tech.id
-          WHERE t.id = ?";
+           u.nombre as usuario_nombre,
+           tech.nombre as oati_nombre,
+           TIMESTAMPDIFF(HOUR, t.fecha_creacion, NOW()) as horas_transcurridas,
+           TIMESTAMPDIFF(DAY, t.fecha_creacion, NOW()) as dias_transcurridas
+           FROM Tickets t
+           JOIN AreasSoporte a ON t.area_id = a.id
+           JOIN Servicios s ON t.servicio_id = s.id
+           JOIN Dependencias d ON t.dependencia_id = d.id
+           JOIN Usuarios u ON t.usuario_id = u.id
+           LEFT JOIN Usuarios tech ON t.oati_asignado = tech.id
+           WHERE t.id = ?";
 
 try {
     $stmt = $conn->prepare($query);
@@ -78,9 +78,9 @@ try {
     die("Error al obtener información del ticket: " . $e->getMessage());
 }
 
-// Verificar permisos para técnicos
-if ($privilegio == 'tecnico') {
-    if ($ticket['tecnico_asignado'] != $id_usuario) {
+// Verificar permisos para OATI
+if ($privilegio == 'oati') {
+    if ($ticket['oati_asignado'] != $id_usuario) {
         die("
             <!DOCTYPE html>
             <html>
@@ -146,168 +146,101 @@ function calcularTiempoResolucion($fecha_creacion) {
         
         return trim($result) ?: '0h';
     } catch (Exception $e) {
+        error_log("Error al calcular tiempo de resolución: " . $e->getMessage());
         return '0h';
     }
 }
 
-// Procesar el formulario de cierre
-$mensaje = '';
+// Procesar formulario de cierre
 $error = '';
 $success = false;
+$archivos_subidos = 0;
+$mensaje = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
     $tipo_cierre = $_POST['tipo_cierre'] ?? 'exitoso';
     $solucion = trim($_POST['solucion'] ?? '');
     
-    // Validaciones
     if (empty($solucion)) {
         $error = "Debe ingresar la solución o motivo del cierre";
     } else {
-        // Determinar el estado final
         $estado_final = ($tipo_cierre == 'exitoso') ? 'Cerrado Exitosamente' : 'Cerrado No Exitoso';
         
         try {
-            // Iniciar transacción
             $conn->beginTransaction();
             
-            // Si es ADMIN y el ticket NO tiene técnico asignado, asignar al admin como técnico
-            $tecnico_asignar = null;
-            if ($privilegio == 'admin' && empty($ticket['tecnico_asignado'])) {
-                $tecnico_asignar = $id_usuario;
+            $oati_asignar = null;
+            if ($privilegio == 'admin' && empty($ticket['oati_asignado'])) {
+                $oati_asignar = $id_usuario;
             }
             
-            // Actualizar el ticket
-            if ($tecnico_asignar) {
-                $update_query = "UPDATE Tickets SET 
-                                estado = :estado,
-                                solucion = :solucion,
-                                tecnico_asignado = :tecnico_asignado,
-                                fecha_cierre = NOW()
-                                WHERE id = :id";
-                
-                $update_stmt = $conn->prepare($update_query);
-                $update_stmt->execute([
-                    ':estado' => $estado_final,
-                    ':solucion' => $solucion,
-                    ':tecnico_asignado' => $tecnico_asignar,
-                    ':id' => $ticket_id
-                ]);
+            if ($oati_asignar) {
+                $update_query = "UPDATE Tickets SET estado = :estado, solucion = :solucion, oati_asignado = :oati_asignado, fecha_cierre = NOW() WHERE id = :id";
+                $stmt = $conn->prepare($update_query);
+                $stmt->execute([':estado' => $estado_final, ':solucion' => $solucion, ':oati_asignado' => $oati_asignar, ':id' => $ticket_id]);
             } else {
-                $update_query = "UPDATE Tickets SET 
-                                estado = :estado,
-                                solucion = :solucion,
-                                fecha_cierre = NOW()
-                                WHERE id = :id";
-                
-                $update_stmt = $conn->prepare($update_query);
-                $update_stmt->execute([
-                    ':estado' => $estado_final,
-                    ':solucion' => $solucion,
-                    ':id' => $ticket_id
-                ]);
+                $update_query = "UPDATE Tickets SET estado = :estado, solucion = :solucion, fecha_cierre = NOW() WHERE id = :id";
+                $stmt = $conn->prepare($update_query);
+                $stmt->execute([':estado' => $estado_final, ':solucion' => $solucion, ':id' => $ticket_id]);
             }
             
-            // Procesar archivos adjuntos si hay
-            $archivos_subidos = 0;
+            // Procesar archivos adjuntos
             if (isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
-                $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_csi/adjuntos/tickets/";
-                
+                $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_tickets/adjuntos/tickets/";
+                if (!is_dir($ruta_base_adjuntos)) mkdir($ruta_base_adjuntos, 0777, true);
                 foreach ($_FILES['archivos']['tmp_name'] as $key => $tmp_name) {
                     if ($_FILES['archivos']['error'][$key] === UPLOAD_ERR_OK) {
-                        $nombre_original = $_FILES['archivos']['name'][$key];
-                        $tamano = $_FILES['archivos']['size'][$key];
+                        $nombre = $_FILES['archivos']['name'][$key];
                         $tipo = $_FILES['archivos']['type'][$key];
-                        
-                        // Verificar tamaño (10MB máximo)
-                        if ($tamano > 10 * 1024 * 1024) {
-                            continue;
-                        }
-                        
-                        // Crear carpeta si no existe
-                        $anio = date('Y');
-                        $mes = date('m');
-                        $carpeta_destino = $ruta_base_adjuntos . "{$anio}/{$mes}/";
-                        if (!file_exists($carpeta_destino)) {
-                            mkdir($carpeta_destino, 0755, true);
-                        }
-                        
-                        // Generar nombre único
-                        $nombre_sanitizado = preg_replace('/[^a-zA-Z0-9._-]/', '_', $nombre_original);
-                        $nombre_guardado = uniqid() . '_' . $ticket_id . '_' . $nombre_sanitizado;
-                        $ruta_completa = $carpeta_destino . $nombre_guardado;
-                        $ruta_db = "tickets/{$anio}/{$mes}/{$nombre_guardado}";
-                        
-                        // Mover archivo
-                        if (move_uploaded_file($tmp_name, $ruta_completa)) {
-                            // Insertar en base de datos
+                        $tamano = $_FILES['archivos']['size'][$key];
+                        $archivo_id = md5(uniqid()) . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $nombre);
+                        $ruta_destino = $ruta_base_adjuntos . $archivo_id;
+                        if (move_uploaded_file($tmp_name, $ruta_destino)) {
                             try {
-                                $sql_adjunto = "INSERT INTO TicketAdjuntos 
-                                              (ticket_id, nombre_archivo, tipo_archivo, tamano_bytes, ruta_archivo, subido_por) 
-                                              VALUES (?, ?, ?, ?, ?, ?)";
-                                $stmt_adjunto = $conn->prepare($sql_adjunto);
-                                $stmt_adjunto->execute([$ticket_id, $nombre_original, $tipo, $tamano, $ruta_db, $id_usuario]);
+                                $stmt_adj = $conn->prepare("INSERT INTO TicketAdjuntos (ticket_id, nombre_archivo, archivo_id, tipo_archivo, tamano, usuario_id, fecha_subida) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+                                $stmt_adj->execute([$ticket_id, $nombre, $archivo_id, $tipo, $tamano, $id_usuario]);
                                 $archivos_subidos++;
-                            } catch (PDOException $e) {
-                                error_log("Error guardando adjunto: " . $e->getMessage());
-                            }
+                            } catch (Exception $e) {}
                         }
                     }
                 }
             }
             
-            // Intentar insertar en historial (si la tabla existe)
-            try {
-                // Primero verificar si la tabla existe
-                $check_table = $conn->query("SHOW TABLES LIKE 'HistorialTickets'")->fetch();
-                if ($check_table) {
-                    $descripcion_historial = "Ticket cerrado como: $estado_final";
-                    if ($archivos_subidos > 0) {
-                        $descripcion_historial .= ". Se adjuntaron $archivos_subidos archivo(s).";
-                    }
-                    
-                    $historial_query = "INSERT INTO HistorialTickets 
-                                       (ticket_id, usuario_id, accion, descripcion, fecha) 
-                                       VALUES (:ticket_id, :usuario_id, :accion, :descripcion, NOW())";
-                    
-                    $historial_stmt = $conn->prepare($historial_query);
-                    $historial_stmt->execute([
-                        ':ticket_id' => $ticket_id,
-                        ':usuario_id' => $id_usuario,
-                        ':accion' => 'cierre',
-                        ':descripcion' => $descripcion_historial
-                    ]);
+            // Guardar insumos faltantes
+            if ($tipo_cierre == 'no_exitoso' && isset($_POST['insumos']) && is_array($_POST['insumos'])) {
+                $area_tipo = $ticket['area_tipo'] ?? 'informatica';
+                $insumo_stmt = $conn->prepare("INSERT INTO InsumosFaltantes (ticket_id, insumo, fecha, tipo, adquirido, adquirido_por) VALUES (?, ?, ?, ?, ?, ?)");
+                foreach ($_POST['insumos'] as $i => $insumo) {
+                    $insumo_nombre = trim($insumo);
+                    if (empty($insumo_nombre)) continue;
+                    $fecha = !empty($_POST['insumos_fecha'][$i]) ? $_POST['insumos_fecha'][$i] : date('Y-m-d');
+                    $adquirido = isset($_POST['insumos_adquirido'][$i]) ? 1 : 0;
+                    $adquirido_por = !empty($_POST['insumos_adquirido_por'][$i]) ? substr(trim($_POST['insumos_adquirido_por'][$i]), 0, 20) : null;
+                    $insumo_stmt->execute([$ticket_id, $insumo_nombre, $fecha, $area_tipo, $adquirido, $adquirido_por]);
                 }
-            } catch (PDOException $e) {
-                // Si falla el historial, continuar igual (no crítico)
-                error_log("No se pudo registrar en historial: " . $e->getMessage());
             }
+            
+            // Registrar en Historial
+            try {
+                $sql_hist = "INSERT INTO HistorialTickets (ticket_id, usuario_id, accion, detalle, fecha_accion) VALUES (?, ?, 'cerrado', ?, NOW())";
+                $stmt_hist = $conn->prepare($sql_hist);
+                $stmt_hist->execute([$ticket_id, $id_usuario, "Ticket cerrado como: {$estado_final}"]);
+            } catch (Exception $e) {}
             
             $conn->commit();
             $success = true;
             
-            // Registrar en Logs del sistema
+            // Registrar en Logs
             try {
                 $ip = $_SERVER['REMOTE_ADDR'] ?? 'CLI';
-                $user_agent = substr($_SERVER['HTTP_USER_AGENT'] ?? 'CLI', 0, 500);
-                $sql_log = "INSERT INTO Logs (usuario_id, accion, descripcion, ip, user_agent, ticket_id, fecha) 
-                            VALUES (:usuario_id, :accion, :descripcion, :ip, :user_agent, :ticket_id, NOW())";
-                $stmt_log = $conn->prepare($sql_log);
-                $stmt_log->execute([
-                    ':usuario_id' => $id_usuario,
-                    ':accion' => 'CERRAR_TICKET',
-                    ':descripcion' => "Ticket #{$ticket['numero_ticket']} cerrado como: {$estado_final} - Solución: " . substr($solucion, 0, 100),
-                    ':ip' => $ip,
-                    ':user_agent' => $user_agent,
-                    ':ticket_id' => $ticket_id
-                ]);
-            } catch (Exception $e) {
-                error_log("Error al registrar log de cierre: " . $e->getMessage());
-            }
+                $ua = substr($_SERVER['HTTP_USER_AGENT'] ?? 'CLI', 0, 500);
+                $log_sql = "INSERT INTO Logs (usuario_id, accion, descripcion, ip, user_agent, ticket_id, fecha) VALUES (?, ?, ?, ?, ?, ?, NOW())";
+                $stmt_log = $conn->prepare($log_sql);
+                $stmt_log->execute([$id_usuario, 'CERRAR_TICKET', "Ticket #{$ticket['numero_ticket']} cerrado como: {$estado_final}", $ip, $ua, $ticket_id]);
+            } catch (Exception $e) {}
             
             $mensaje = "✅ Ticket cerrado exitosamente como: " . htmlspecialchars($estado_final);
-            if ($archivos_subidos > 0) {
-                $mensaje .= " ($archivos_subidos archivo(s) adjuntado(s))";
-            }
+            if ($archivos_subidos > 0) $mensaje .= " ($archivos_subidos archivo(s) adjuntado(s))";
             
         } catch (PDOException $e) {
             $conn->rollBack();
@@ -760,11 +693,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
     <!-- HEADER COMPACTO -->
     <header class="top-header">
         <div class="logo-oati">
-            <img src="imagen/oati.png" alt="Logo OATI" class="logo-oati-img" 
+            <img src="imagen/logo2.png" alt="Logo OATI" class="logo-oati-img" 
                  onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI1IiBmaWxsPSIjMWExYjk3Ii8+PHBhdGggZD0iTTEwIDE1SDMwTTEwIDIwSDI1TTEwIDI1SDIwIiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=';">
             <div class="system-titles-custom">
-                <h1 class="system-name-custom">Centro de Soporte Informático</h1>
-                <p class="system-sub-custom">Sistema CSI</p>
+                <h1 class="system-name-custom">Centro de Soporte</h1>
+                <p class="system-sub-custom">Areas Operativas: Infraestructura - OATI</p>
             </div>
         </div>
         
@@ -962,6 +895,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
                         </div>
                     </div>
                     
+                    <!-- INSUMOS FALTANTES (solo para Cerrado No Exitoso) -->
+                    <div id="insumos-section" style="display: none;">
+                        <div class="form-group-custom" style="border: 2px dashed #e74c3c; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                            <label style="color: #e74c3c; font-weight: 600;">
+                                <i class="fas fa-tools"></i> Insumos Faltantes para Solucionar
+                                <small style="font-weight: normal; color: #666;"> (Registra los insumos necesarios)</small>
+                            </label>
+                            <div id="insumos-list">
+                                <div class="insumo-row" style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap;">
+                                    <input type="text" name="insumos[]" class="form-control" placeholder="Describa el insumo faltante" style="flex: 1; min-width: 150px;" required>
+                                    <input type="date" name="insumos_fecha[]" class="form-control" style="width: 130px;" value="<?php echo date('Y-m-d'); ?>" required>
+                                    <label style="margin: 0; font-size: 12px; white-space: nowrap;">
+                                        <input type="checkbox" name="insumos_adquirido[]" value="1"> Adquirido
+                                    </label>
+                                    <input type="text" name="insumos_adquirido_por[]" class="form-control" placeholder="Adquirido por:" style="width: 140px;" maxlength="20">
+                                    <button type="button" class="btn-remove-insumo" onclick="this.parentElement.remove()" style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 18px; padding: 0 5px;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button" onclick="agregarInsumo()" style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 5px;">
+                                <i class="fas fa-plus"></i> Agregar otro insumo
+                            </button>
+                            <small style="display: block; margin-top: 5px; color: #666;">
+                                <i class="fas fa-info-circle"></i> Ticket #<?php echo htmlspecialchars($ticket['numero_ticket']); ?> | <?php echo ($ticket['area_tipo'] ?? 'informatica') == 'infraestructura' ? 'Infraestructura' : 'OATI'; ?>
+                            </small>
+                        </div>
+                    </div>
+                    
                     <!-- ADJUNTOS -->
                     <div class="form-group-custom">
                         <label for="archivos">
@@ -985,7 +947,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
                     
                     <!-- ACCIONES -->
                     <div class="form-actions-custom">
-                        <a href="<?php echo $privilegio == 'admin' ? 'todos_tickets.php' : ($privilegio == 'tecnico' ? 'tickets_asignados.php' : 'mis_tickets.php'); ?>" 
+                        <a href="<?php echo $privilegio == 'admin' ? 'todos_tickets.php' : (in_array($privilegio,['oati','infraestructura']) ? 'tickets_asignados.php' : 'mis_tickets.php'); ?>" 
                            class="btn-accion-custom btn-cancelar-custom">
                             <i class="fas fa-times"></i> Cancelar
                         </a>
@@ -1005,7 +967,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
                     </div>
                     <script>
                         setTimeout(function() {
-                            window.location.href = "<?php echo $privilegio == 'admin' ? 'todos_tickets.php' : ($privilegio == 'tecnico' ? 'tickets_asignados.php' : 'mis_tickets.php'); ?>";
+                            window.location.href = "<?php echo $privilegio == 'admin' ? 'todos_tickets.php' : (in_array($privilegio,['oati','infraestructura']) ? 'tickets_asignados.php' : 'mis_tickets.php'); ?>";
                         }, 2000);
                     </script>
                 <?php endif; ?>
@@ -1015,7 +977,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
             <div class="footer-custom">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        Centro de Soporte Informático CSI • 
+                        Centro de Soporte CSI • 
                         Cerrando ticket #<?php echo htmlspecialchars($ticket['numero_ticket'] ?? $ticket_id); ?>
                     </div>
                     <div style="font-size: 9px; color: #27ae60;">
@@ -1047,6 +1009,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
         if (radio) {
             radio.checked = true;
         }
+        
+        // Mostrar/ocultar sección de insumos faltantes
+        const insumosSection = document.getElementById('insumos-section');
+        if (insumosSection) {
+            insumosSection.style.display = (tipo === 'no_exitoso') ? 'block' : 'none';
+        }
+    }
+    
+    function agregarInsumo() {
+        const list = document.getElementById('insumos-list');
+        const row = document.createElement('div');
+        row.className = 'insumo-row';
+        row.style.cssText = 'display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap;';
+        const hoy = new Date().toISOString().split('T')[0];
+        row.innerHTML = `
+            <input type="text" name="insumos[]" class="form-control" placeholder="Describa el insumo faltante" style="flex: 1; min-width: 150px;" required>
+            <input type="date" name="insumos_fecha[]" class="form-control" style="width: 130px;" value="${hoy}" required>
+            <label style="margin: 0; font-size: 12px; white-space: nowrap;">
+                <input type="checkbox" name="insumos_adquirido[]" value="1"> Adquirido
+            </label>
+            <input type="text" name="insumos_adquirido_por[]" class="form-control" placeholder="Adquirido por:" style="width: 140px;" maxlength="20">
+            <button type="button" class="btn-remove-insumo" onclick="this.parentElement.remove()" style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 18px; padding: 0 5px;">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        list.appendChild(row);
     }
     
     // Inicializar selección

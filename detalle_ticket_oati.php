@@ -1,10 +1,10 @@
 <?php
-// detalle_ticket_tecnico.php
+// detalle_ticket_oati.php
 require_once 'config/session.php';
 require_once 'config/database.php';
 
 // Verificar que el usuario sea técnico
-if ($_SESSION['privilegio'] != 'tecnico') {
+if ($_SESSION['privilegio'] != 'oati') {
     header('Location: dashboard.php');
     exit();
 }
@@ -74,7 +74,7 @@ $comentarios = $stmt_comentarios->get_result();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalle del Ticket - Sistema CSI</title>
+    <title>Detalle del Ticket - Areas Operativas: Infraestructura - OATI</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
     <style>
@@ -147,7 +147,7 @@ $comentarios = $stmt_comentarios->get_result();
     
     <div class="container">
         <div class="sidebar">
-            <?php include 'includes/menu_tecnico.php'; ?>
+            <?php include 'includes/menu_oati.php'; ?>
         </div>
         
         <div class="main-content">
