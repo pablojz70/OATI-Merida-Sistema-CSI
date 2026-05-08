@@ -1,0 +1,102 @@
+[2026-04-23 11:07:34] === INICIANDO BACKUP ===
+[2026-04-23 11:07:34] Base de datos: sistema_csi
+[2026-04-23 11:07:34] Tipo de backup: completo
+[2026-04-23 11:07:34] Archivo: backup_FULL_2026-04-23_11-07-34.sql.gz
+[2026-04-23 11:07:34] Tablas encontradas: 12
+[2026-04-23 11:07:34] Procesando tabla: Adjuntos
+[2026-04-23 11:07:34] Procesando tabla: AreasSoporte
+[2026-04-23 11:07:34] Procesando tabla: BackupConfig
+[2026-04-23 11:07:34] Procesando tabla: Dependencias
+[2026-04-23 11:07:34] Procesando tabla: HistorialTickets
+[2026-04-23 11:07:34] Procesando tabla: Logs
+[2026-04-23 11:07:34] Procesando tabla: Servicios
+[2026-04-23 11:07:34] Procesando tabla: TicketAdjuntos
+[2026-04-23 11:07:34] Procesando tabla: TicketEvaluaciones
+[2026-04-23 11:07:34] Procesando tabla: Tickets
+[2026-04-23 11:07:34] Procesando tabla: Usuarios
+[2026-04-23 11:07:34] Procesando tabla: configuraciones
+[2026-04-23 11:07:34] Comprimiendo archivo...
+[2026-04-23 11:07:34] Backup creado exitosamente!
+[2026-04-23 11:07:34] Tamaño: 0.04 MB
+[2026-04-23 11:07:34] Ruta: /opt/lampp/htdocs/sistema_csi/backups/backup_FULL_2026-04-23_11-07-34.sql.gz
+[2026-04-23 11:07:34] Limpiando backups antiguos (más de 30 días)...
+[2026-04-23 11:07:34] Backups eliminados: 0
+[2026-04-23 11:07:34] === BACKUP COMPLETADO ===
+
+[2026-04-23 11:13:16] === INICIANDO BACKUP ===
+[2026-04-23 11:13:16] Base de datos: sistema_csi
+[2026-04-23 11:13:16] Tipo de backup: completo
+[2026-04-23 11:13:16] Archivo: backup_FULL_2026-04-23_11-13-16.sql.gz
+[2026-04-23 11:13:16] Tablas encontradas: 12
+[2026-04-23 11:13:16] Procesando tabla: Adjuntos
+[2026-04-23 11:13:17] Procesando tabla: AreasSoporte
+[2026-04-23 11:13:17] Procesando tabla: BackupConfig
+[2026-04-23 11:13:17] Procesando tabla: Dependencias
+[2026-04-23 11:13:17] Procesando tabla: HistorialTickets
+[2026-04-23 11:13:17] Procesando tabla: Logs
+[2026-04-23 11:13:17] Procesando tabla: Servicios
+[2026-04-23 11:13:17] Procesando tabla: TicketAdjuntos
+[2026-04-23 11:13:17] Procesando tabla: TicketEvaluaciones
+[2026-04-23 11:13:17] Procesando tabla: Tickets
+[2026-04-23 11:13:17] Procesando tabla: Usuarios
+[2026-04-23 11:13:17] Procesando tabla: configuraciones
+[2026-04-23 11:13:17] Comprimiendo archivo...
+[2026-04-23 11:13:17] Backup creado exitosamente!
+[2026-04-23 11:13:17] Tamaño: 0.04 MB
+[2026-04-23 11:13:17] Ruta: /opt/lampp/htdocs/sistema_csi/backups/backup_FULL_2026-04-23_11-13-16.sql.gz
+[2026-04-23 11:13:17] Limpiando backups antiguos (más de 30 días)...
+[2026-04-23 11:13:17] Backups eliminados: 0
+[2026-04-23 11:13:17] === BACKUP COMPLETADO ===
+
+[2026-04-23 11:13:32] === INICIANDO BACKUP ===
+[2026-04-23 11:13:32] Base de datos: sistema_csi
+[2026-04-23 11:13:32] Tipo de backup: completo
+[2026-04-23 11:13:32] Archivo: backup_FULL_2026-04-23_11-13-32.sql.gz
+[2026-04-23 11:13:32] Tablas encontradas: 12
+[2026-04-23 11:13:32] Procesando tabla: Adjuntos
+[2026-04-23 11:13:32] Procesando tabla: AreasSoporte
+[2026-04-23 11:13:32] Procesando tabla: BackupConfig
+[2026-04-23 11:13:32] Procesando tabla: Dependencias
+[2026-04-23 11:13:32] Procesando tabla: HistorialTickets
+[2026-04-23 11:13:32] Procesando tabla: Logs
+[2026-04-23 11:13:32] Procesando tabla: Servicios
+[2026-04-23 11:13:32] Procesando tabla: TicketAdjuntos
+[2026-04-23 11:13:32] Procesando tabla: TicketEvaluaciones
+[2026-04-23 11:13:32] Procesando tabla: Tickets
+[2026-04-23 11:13:32] Procesando tabla: Usuarios
+[2026-04-23 11:13:32] Procesando tabla: configuraciones
+[2026-04-23 11:13:32] Comprimiendo archivo...
+[2026-04-23 11:13:32] Backup creado exitosamente!
+[2026-04-23 11:13:32] Tamaño: 0.04 MB
+[2026-04-23 11:13:32] Ruta: /opt/lampp/htdocs/sistema_csi/backups/backup_FULL_2026-04-23_11-13-32.sql.gz
+[2026-04-23 11:13:32] Limpiando backups antiguos (más de 30 días)...
+[2026-04-23 11:13:32] Backups eliminados: 0
+[2026-04-23 11:13:32] === BACKUP COMPLETADO ===
+
+[2026-04-23 11:13:42] === INICIANDO BACKUP ===
+[2026-04-23 11:13:42] Base de datos: sistema_csi
+[2026-04-23 11:13:42] Tipo de backup: completo
+[2026-04-23 11:13:42] Archivo: backup_FULL_2026-04-23_11-13-42.sql.gz
+[2026-04-23 11:13:42] Tablas encontradas: 12
+[2026-04-23 11:13:42] Procesando tabla: Adjuntos
+[2026-04-23 11:13:42] Procesando tabla: AreasSoporte
+[2026-04-23 11:13:42] Procesando tabla: BackupConfig
+[2026-04-23 11:13:42] Procesando tabla: Dependencias
+[2026-04-23 11:13:42] Procesando tabla: HistorialTickets
+[2026-04-23 11:13:42] Procesando tabla: Logs
+[2026-04-23 11:13:42] Procesando tabla: Servicios
+[2026-04-23 11:13:42] Procesando tabla: TicketAdjuntos
+[2026-04-23 11:13:42] Procesando tabla: TicketEvaluaciones
+[2026-04-23 11:13:42] Procesando tabla: Tickets
+[2026-04-23 11:13:42] Procesando tabla: Usuarios
+[2026-04-23 11:13:42] Procesando tabla: configuraciones
+[2026-04-23 11:13:42] Comprimiendo archivo...
+[2026-04-23 11:13:42] Incluyendo archivos adjuntos...
+[2026-04-23 11:13:42] Adjuntos copiados a: /opt/lampp/htdocs/sistema_csi/backups/adjuntos_2026-04-23_11-13-42
+[2026-04-23 11:13:42] Backup creado exitosamente!
+[2026-04-23 11:13:42] Tamaño: 0.04 MB
+[2026-04-23 11:13:42] Ruta: /opt/lampp/htdocs/sistema_csi/backups/backup_FULL_2026-04-23_11-13-42.sql.gz
+[2026-04-23 11:13:42] Limpiando backups antiguos (más de 30 días)...
+[2026-04-23 11:13:42] Backups eliminados: 0
+[2026-04-23 11:13:42] === BACKUP COMPLETADO ===
+

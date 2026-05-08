@@ -1,0 +1,383 @@
+/* css/dashboard.css - Estilos específicos del dashboard */
+
+/* HEADER */
+.dashboard-header {
+    background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+    color: white;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.dashboard-header-left h1 {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.dashboard-header-left p {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.dashboard-header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.dashboard-user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+}
+
+.dashboard-user-info i {
+    font-size: 18px;
+}
+
+.dashboard-privilegio-badge {
+    background: #ff9800;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.dashboard-btn-logout {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+.dashboard-btn-logout:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* CONTAINER */
+.dashboard-container {
+    display: flex;
+    min-height: calc(100vh - 80px);
+}
+
+/* SIDEBAR */
+.dashboard-sidebar {
+    width: 250px;
+    background: white;
+    border-right: 1px solid #e0e0e0;
+    padding: 20px 0;
+}
+
+.dashboard-sidebar-menu {
+    list-style: none;
+}
+
+.dashboard-sidebar-menu li {
+    margin-bottom: 5px;
+}
+
+.dashboard-sidebar-menu a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px 25px;
+    color: #555;
+    text-decoration: none;
+    transition: all 0.3s;
+    border-left: 4px solid transparent;
+}
+
+.dashboard-sidebar-menu a:hover {
+    background: #f8f9fa;
+    color: #1a2980;
+    border-left-color: #1a2980;
+}
+
+.dashboard-sidebar-menu a.active {
+    background: #f0f7ff;
+    color: #1a2980;
+    border-left-color: #1a2980;
+    font-weight: 600;
+}
+
+.dashboard-sidebar-menu i {
+    width: 20px;
+    text-align: center;
+}
+
+/* MAIN CONTENT */
+.dashboard-main-content {
+    flex: 1;
+    padding: 30px;
+}
+
+.dashboard-welcome-section {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border-left: 4px solid #1a2980;
+}
+
+.dashboard-welcome-section h2 {
+    color: #1a2980;
+    margin-bottom: 10px;
+}
+
+.dashboard-welcome-section p {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.dashboard-quick-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.dashboard-btn-primary {
+    background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.3s;
+}
+
+.dashboard-btn-primary:hover {
+    transform: translateY(-2px);
+    color: white;
+}
+
+.dashboard-btn-secondary {
+    background: #6c757d;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.3s;
+}
+
+.dashboard-btn-secondary:hover {
+    background: #5a6268;
+    color: white;
+}
+
+/* STATS CARDS */
+.dashboard-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.dashboard-stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    transition: transform 0.3s;
+}
+
+.dashboard-stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.dashboard-stat-card.total {
+    border-top: 4px solid #1a2980;
+}
+
+.dashboard-stat-card.nuevo {
+    border-top: 4px solid #3498db;
+}
+
+.dashboard-stat-card.proceso {
+    border-top: 4px solid #f39c12;
+}
+
+.dashboard-stat-card.cerrado {
+    border-top: 4px solid #27ae60;
+}
+
+.dashboard-stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.dashboard-stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+}
+
+.dashboard-total .dashboard-stat-icon { background: #1a2980; }
+.dashboard-nuevo .dashboard-stat-icon { background: #3498db; }
+.dashboard-proceso .dashboard-stat-icon { background: #f39c12; }
+.dashboard-cerrado .dashboard-stat-icon { background: #27ae60; }
+
+.dashboard-stat-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.dashboard-stat-label {
+    color: #7f8c8d;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+/* RECENT TICKETS */
+.dashboard-recent-tickets {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.dashboard-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.dashboard-section-header h3 {
+    color: #2c3e50;
+    font-size: 18px;
+}
+
+.dashboard-tickets-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.dashboard-tickets-table th {
+    text-align: left;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.dashboard-tickets-table td {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.dashboard-tickets-table tr:hover {
+    background: #f8f9fa;
+}
+
+.dashboard-ticket-number {
+    font-weight: 600;
+    color: #1a2980;
+}
+
+.dashboard-ticket-asunto {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dashboard-estado-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.dashboard-estado-nuevo { background: #e3f2fd; color: #1976d2; }
+.dashboard-estado-asignado { background: #fff3e0; color: #f57c00; }
+.dashboard-estado-en-proceso { background: #f3e5f5; color: #7b1fa2; }
+.dashboard-estado-cerrado-exitosamente { background: #e8f5e9; color: #388e3c; }
+.dashboard-estado-cerrado-no-exitoso { background: #ffebee; color: #d32f2f; }
+
+.dashboard-no-data {
+    text-align: center;
+    padding: 40px;
+    color: #7f8c8d;
+}
+
+.dashboard-no-data i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+    
+    .dashboard-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .dashboard-sidebar-menu {
+        display: flex;
+        overflow-x: auto;
+    }
+    
+    .dashboard-sidebar-menu li {
+        margin-bottom: 0;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .dashboard-quick-actions {
+        flex-direction: column;
+    }
+    
+    .dashboard-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-tickets-table {
+        display: block;
+        overflow-x: auto;
+    }
+}
