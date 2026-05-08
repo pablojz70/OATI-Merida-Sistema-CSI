@@ -27,7 +27,6 @@ jobs:
       - name: Run OpenCode
         uses: anomalyco/opencode/github@latest
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_BASE_URL: https://openrouter.ai/api/v1
+          OPENROUTER_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         with:
-          model: openai/anthropic/claude-sonnet-4-20250514
+          model: openrouter/anthropic/claude-sonnet-4-20250514
