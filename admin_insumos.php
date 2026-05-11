@@ -2,7 +2,7 @@
 // admin_insumos.php - Lista de Insumos Faltantes (admin editable)
 session_start();
 
-if (!isset($_SESSION['privilegio']) || $_SESSION['privilegio'] != 'admin') {
+if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['admin', 'director'])) {
     header('Location: index.php');
     exit();
 }
