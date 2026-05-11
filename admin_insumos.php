@@ -105,7 +105,7 @@ $stats_query = "SELECT
 $stats = $conn->query($stats_query)->fetch(PDO::FETCH_ASSOC);
 
 // Obtener tickets para el select de agregar
-$tickets = $conn->query("SELECT id, numero_ticket, asunto, area_tipo FROM Tickets ORDER BY id DESC LIMIT 100")->fetchAll(PDO::FETCH_ASSOC);
+$tickets = $conn->query("SELECT id, numero_ticket, asunto, area_tipo FROM Tickets WHERE estado = 'Cerrado No Exitoso' ORDER BY id DESC LIMIT 100")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="es">
