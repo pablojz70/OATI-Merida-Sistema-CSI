@@ -44,6 +44,13 @@
         </li>
         
         <li>
+            <a href="admin_insumos.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_insumos.php' ? 'active' : ''; ?>">
+                <img src="imagen/Tools.png" alt="Insumos" class="menu-icon">
+                <span>Insumos Faltantes</span>
+            </a>
+        </li>
+        
+        <li>
             <a href="perfil.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'perfil.php' ? 'active' : ''; ?>">
                 <img src="imagen/User.png" alt="Mi Perfil" class="menu-icon">
                 <span>Mi Perfil</span>
