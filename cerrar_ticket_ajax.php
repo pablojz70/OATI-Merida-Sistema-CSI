@@ -3,7 +3,7 @@
 session_start();
 
 // Verificar sesión
-if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['admin', 'OATI'])) {
+if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['admin', 'oati', 'infraestructura'])) {
     echo json_encode(['success' => false, 'message' => 'Acceso no autorizado']);
     exit();
 }

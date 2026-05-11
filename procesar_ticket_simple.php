@@ -72,7 +72,8 @@ try {
     // Verificar permisos
     if ($privilegio == 'oati' || $privilegio == 'infraestructura') {
         // Técnicos solo pueden cambiar tickets asignados a ellos
-        if ($ticket['tecnico_asignado'] != $usuario_id) {
+        $col_asignado = isset($ticket['oati_asignado']) ? 'oati_asignado' : 'tecnico_asignado';
+        if ($ticket[$col_asignado] != $usuario_id) {
             echo json_encode(['success' => false, 'message' => 'No tienes permisos para este ticket']);
             exit();
         }

@@ -3,7 +3,7 @@
 session_start();
 
 // Verificar que sea OATI o admin
-if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['oati', 'admin'])) {
+if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['oati', 'infraestructura', 'admin'])) {
     header('Location: index.php');
     exit();
 }
