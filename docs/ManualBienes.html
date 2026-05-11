@@ -44,7 +44,7 @@
     <h1>Manual de Bienes</h1>
     <h2>Centro de Soporte</h2>
     <p class="subtitulo">Guía para Usuarios de Bienes del Areas Operativas: Infraestructura - OATI</p>
-    <p class="version"><strong>Versión 1.0</strong><br>Abril 2026</p>
+    <p class="version"><strong>Versión 2.0</strong><br>Mayo 2026</p>
 </div>
 
 <div class="toc">
@@ -122,8 +122,10 @@
 <table>
     <tr><th>Campo</th><th>Descripción</th></tr>
     <tr><td>Dependencia</td><td>Lugar físico donde está el problema</td></tr>
-    <tr><td>Área de Soporte</td><td>Tipo de soporte necesario</td></tr>
-    <tr><td>Servicio Específico</td><td>Servicio particular</td></tr>
+    <tr><td>Lugar / Área</td><td>Especificar el lugar exacto (oficina, pasillo, etc.)</td></tr>
+    <tr><td>Tipo de Atención</td><td>Seleccione OATI (Informática) o Infraestructura (Mantenimiento)</td></tr>
+    <tr><td>Área de Soporte</td><td>Se actualiza según el tipo de atención seleccionado</td></tr>
+    <tr><td>Servicio Específico</td><td>Se actualiza según el área de soporte seleccionada</td></tr>
     <tr><td>Asunto</td><td>Título breve del problema</td></tr>
     <tr><td>Descripción</td><td>Detalle completo del problema o actividad</td></tr>
     <tr><td>Número de Bien (opcional)</td><td>Código del bien registrado en la institución</td></tr>
@@ -138,7 +140,20 @@
 
 <div class="nota-info"><strong>Nota:</strong> La "Dependencia" indica el lugar FÍSICO del problema, no su área de trabajo.</div>
 
-<h2>4.3 Número de Bien y Serial (Opcional)</h2>
+<h2>4.3 Tipo de Atención</h2>
+<p>Al crear un ticket, debe seleccionar el tipo de atención:</p>
+<ul>
+    <li><strong>OATI (Informática):</strong> Problemas con equipos de computación, impresoras, sistemas, redes, software</li>
+    <li><strong>Infraestructura:</strong> Problemas de mantenimiento, electricidad, plomería, mobiliario, estructura física</li>
+</ul>
+<p>Al seleccionar el tipo de atención:</p>
+<ul>
+    <li>Las listas de Área de Soporte y Servicio Específico se actualizan automáticamente</li>
+    <li>Solo mostrarán las opciones correspondientes al tipo de atención elegido</li>
+</ul>
+<div class="nota-info"><strong>Nota:</strong> Si selecciona OATI verá servicios de soporte técnico informático. Si selecciona Infraestructura verá servicios de mantenimiento general.</div>
+
+<h2>4.4 Número de Bien y Serial (Opcional)</h2>
 <p>Si el problema está relacionado con un equipo o bien registrado en la institución, puede ingresarlo para facilitar el soporte técnico.</p>
 <ol>
     <li><strong>Ingrese el Número de Bien</strong> (formato: 03-28-7258) o</li>
@@ -196,7 +211,7 @@
 
 <div class="footer">
     <p><strong>Areas Operativas: Infraestructura - OATI</strong> - Centro de Soporte</p>
-    <p>Manual de Bienes | Versión 1.0 | Abril 2026</p>
+    <p>Manual de Bienes | Versión 2.0 | Mayo 2026</p>
     <p style="margin-top: 15px; font-style: italic;">TSU. Pedagogo. Pablo Zambrano</p>
 </div>
 </body>
