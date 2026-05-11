@@ -8,7 +8,7 @@ echo "=== Corrección de Estado de Tickets ===\n\n";
 
 // Contar tickets inconsistentes
 $sql_check = "SELECT COUNT(*) as total FROM Tickets 
-              WHERE estado = 'Nuevo' AND tecnico_asignado IS NOT NULL";
+              WHERE estado = 'Nuevo' AND oati_asignado IS NOT NULL";
 $stmt = $conn->query($sql_check);
 $result = $stmt->fetch(PDO::FETCH_ASSOC);
 $inconsistentes = $result['total'];
@@ -19,8 +19,8 @@ if ($inconsistentes > 0) {
     // Mostrar los tickets afectados
     $sql_listar = "SELECT t.id, t.numero_ticket, t.asunto, t.estado, u.nombre as tecnico 
                    FROM Tickets t 
-                   LEFT JOIN Usuarios u ON t.tecnico_asignado = u.id
-                   WHERE t.estado = 'Nuevo' AND t.tecnico_asignado IS NOT NULL
+                   LEFT JOIN Usuarios u ON t.oati_asignado = u.id
+                   WHERE t.estado = 'Nuevo' AND t.oati_asignado IS NOT NULL
                    ORDER BY t.fecha_creacion DESC
                    LIMIT 20";
     $stmt_listar = $conn->query($sql_listar);
@@ -36,7 +36,7 @@ if ($inconsistentes > 0) {
     // Corregir los tickets
     $sql_update = "UPDATE Tickets 
                    SET estado = 'Asignado' 
-                   WHERE estado = 'Nuevo' AND tecnico_asignado IS NOT NULL";
+                   WHERE estado = 'Nuevo' AND oati_asignado IS NOT NULL";
     $stmt_update = $conn->query($sql_update);
     $afectados = $stmt_update->rowCount();
     

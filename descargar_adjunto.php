@@ -18,7 +18,7 @@ if (!$id_usuario) {
 
 // Conexión a base de datos
 try {
-     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -67,7 +67,7 @@ $sql = "SELECT ta.*, t.usuario_id as ticket_usuario_id, t.oati_asignado
     }
     
     // Ruta completa del archivo
-     $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_tickets/adjuntos/";
+     $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_csi/adjuntos/";
     $ruta_completa_archivo = $ruta_base_adjuntos . $adjunto['ruta_archivo'];
     
     // Verificar que el archivo existe

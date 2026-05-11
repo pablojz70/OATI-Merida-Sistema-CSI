@@ -11,7 +11,7 @@ $id_usuario = $_SESSION['id_usuario'] ?? $_SESSION['usuario_id'] ?? null;
 $usuario_nombre = $_SESSION['nombre'] ?? 'Bienes';
 
 try {
-     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("Error de conexión: " . $e->getMessage());
@@ -47,7 +47,7 @@ $sql_tickets = "SELECT t.*, a.nombre as area_nombre, s.nombre as servicio_nombre
     JOIN Servicios s ON t.servicio_id = s.id
     JOIN Dependencias d ON t.dependencia_id = d.id
     JOIN Usuarios u ON t.usuario_id = u.id
-    LEFT JOIN Usuarios u_tecnico ON t.tecnico_asignado = u_tecnico.id
+    LEFT JOIN Usuarios u_tecnico ON t.oati_asignado = u_tecnico.id
     WHERE $where
     ORDER BY t.fecha_creacion DESC
     LIMIT $offset, $por_pagina";

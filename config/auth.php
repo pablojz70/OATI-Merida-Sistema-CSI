@@ -3,14 +3,14 @@
 
 function requerirAutenticacion() {
     if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['privilegio'])) {
-        header('Location: /sistema_tickets/index.php');
+        header('Location: /sistema_csi/index.php');
         exit();
     }
 }
 
 function verificarPrivilegio($privilegioRequerido) {
     if (!isset($_SESSION['privilegio']) || $_SESSION['privilegio'] != $privilegioRequerido) {
-        header('Location: /sistema_tickets/dashboard.php');
+        header('Location: /sistema_csi/dashboard.php');
         exit();
     }
 }

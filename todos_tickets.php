@@ -45,7 +45,7 @@ $es_solo_lectura = ($privilegio == 'director');
 
 // CONEXIÓN A LA BASE DE DATOS CON PDO
 try {
-     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("Error de conexión a la base de datos: " . $e->getMessage());

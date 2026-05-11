@@ -39,7 +39,7 @@ FECHA=$(date +"%Y-%m-%d_%H-%M-%S")
 BACKUP_FILE="' . realpath($backup_dir) . '/backup_auto_${FECHA}.sql"
 
 # Crear backup
-mysqldump --user=root --password= --host=localhost sistema_tickets > "${BACKUP_FILE}"
+mysqldump --user=root --password= --host=localhost sistema_csi > "${BACKUP_FILE}"
 
 # Comprimir backup
 gzip "${BACKUP_FILE}"

@@ -20,7 +20,7 @@ $config = [
     'sistema_nombre' => 'Areas Operativas: Infraestructura - OATI',
     'sistema_descripcion' => 'Sistema de Control de Soporte Informático',
     'sistema_version' => '1.0.0',
-     'sistema_url' => 'http://localhost/sistema_tickets',
+     'sistema_url' => 'http://localhost/sistema_csi',
     'sistema_email' => 'soporte@csi.gob.mx',
     'sistema_telefono' => '+52 999 123 4567',
     

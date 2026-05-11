@@ -136,7 +136,7 @@ function exportarExcel() {
         JOIN areas a ON t.area_id = a.id
         JOIN usuarios u ON t.usuario_id = u.id
         JOIN dependencias d ON t.dependencia_id = d.id
-        LEFT JOIN usuarios tech ON t.tecnico_asignado = tech.id
+        LEFT JOIN usuarios tech ON t.oati_asignado = tech.id
         WHERE t.fecha_creacion BETWEEN ? AND ?
         ORDER BY t.fecha_creacion DESC";
     

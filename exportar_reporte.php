@@ -8,7 +8,7 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['privilegio'] != 'admin') {
 }
 
 // Conexión a la base de datos
-$conn = new mysqli('localhost', 'root', '', 'sistema_tickets');
+$conn = new mysqli('localhost', 'root', '', 'sistema_csi');
 if ($conn->connect_error) {
     die("Error de conexión a la base de datos: " . $conn->connect_error);
 }
@@ -47,7 +47,7 @@ if (!empty($filtros['area_id'])) {
 }
 
 if (!empty($filtros['tecnico_id'])) {
-    $where_conditions[] = "t.tecnico_asignado = ?";
+    $where_conditions[] = "t.oati_asignado = ?";
     $params[] = $filtros['tecnico_id'];
     $types .= "i";
 }
@@ -68,9 +68,9 @@ if ($filtros['tipo_reporte'] == 'por_tecnico') {
         MAX(TIMESTAMPDIFF(HOUR, t.fecha_creacion, NOW())) as 'Máx. Espera (h)',
         CONCAT(ROUND((SUM(CASE WHEN t.estado = 'cerrado' THEN 1 ELSE 0 END) / COUNT(t.id)) * 100, 1), '%') as 'Eficiencia'
     FROM Tickets t
-    LEFT JOIN Usuarios tec ON t.tecnico_asignado = tec.id
+    LEFT JOIN Usuarios tec ON t.oati_asignado = tec.id
     $where_sql
-    GROUP BY t.tecnico_asignado, tec.nombre
+    GROUP BY t.oati_asignado, tec.nombre
     ORDER BY COUNT(t.id) DESC";
     
     $filename = "reporte_tecnicos_" . date('Y-m-d_H-i') . ".xls";
@@ -115,7 +115,7 @@ if ($filtros['tipo_reporte'] == 'por_tecnico') {
     FROM Tickets t
     LEFT JOIN AreasSoporte a ON t.area_id = a.id
     LEFT JOIN Usuarios u ON t.usuario_id = u.id
-    LEFT JOIN Usuarios tec ON t.tecnico_asignado = tec.id
+    LEFT JOIN Usuarios tec ON t.oati_asignado = tec.id
     $where_sql
     ORDER BY t.fecha_creacion DESC";
     
