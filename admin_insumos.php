@@ -184,9 +184,9 @@ $tickets = $conn->query("SELECT id, numero_ticket, asunto, area_tipo FROM Ticket
             <?php endif; ?>
             
             <div class="stats-grid">
-                <div class="stat-card"><div class="num"><?php echo $stats['total'] ?? 0; ?></div><div class="lbl">Total Insumos</div></div>
-                <div class="stat-card pendientes"><div class="num"><?php echo $stats['pendientes'] ?? 0; ?></div><div class="lbl">Pendientes</div></div>
-                <div class="stat-card adquiridos"><div class="num"><?php echo $stats['adquiridos'] ?? 0; ?></div><div class="lbl">Adquiridos</div></div>
+                <a href="?adquirido=" class="stat-card" style="text-decoration:none; color:inherit; display:block;"><div class="num"><?php echo $stats['total'] ?? 0; ?></div><div class="lbl">Total Insumos</div></a>
+                <a href="?adquirido=no" class="stat-card pendientes" style="text-decoration:none; color:inherit; display:block;"><div class="num"><?php echo $stats['pendientes'] ?? 0; ?></div><div class="lbl">Pendientes</div></a>
+                <a href="?adquirido=si" class="stat-card adquiridos" style="text-decoration:none; color:inherit; display:block;"><div class="num"><?php echo $stats['adquiridos'] ?? 0; ?></div><div class="lbl">Adquiridos</div></a>
                 <div class="stat-card"><div class="num"><?php echo $stats['tickets_afectados'] ?? 0; ?></div><div class="lbl">Tickets Afectados</div></div>
             </div>
             
