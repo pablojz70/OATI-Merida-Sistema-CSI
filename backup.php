@@ -3,13 +3,13 @@
  * backup.php - Script de Backup Automático para Areas Operativas: Infraestructura - OATI
  * 
  * Uso desde línea de comandos:
-  *   php /opt/lampp/htdocs/sistema_tickets/backup.php
+   *   php /opt/lampp/htdocs/sistema_csi/backup.php
  * 
  * Para configurar cron (Linux):
-  *   0 2 * * * php /opt/lampp/htdocs/sistema_tickets/backup.php >> /var/log/csi_backup.log 2>&1
+   *   0 2 * * * php /opt/lampp/htdocs/sistema_csi/backup.php >> /var/log/csi_backup.log 2>&1
  * 
  * Para configurar Tarea Programada (Windows):
-  *   path\to\php.exe path\to\sistema_tickets\backup.php
+   *   path\to\php.exe path\to\sistema_csi\backup.php
  */
 
 error_reporting(E_ALL);
@@ -18,11 +18,10 @@ date_default_timezone_set('America/Caracas');
 
 // Configuración
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'sistema_tickets');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('BACKUP_DIR', '/opt/lampp/htdocs/sistema_tickets/backups');
-define('LOG_FILE', '/opt/lampp/htdocs/sistema_tickets/backups/backup.log');
+define('DB_NAME', 'sistema_csi');
+define('BACKUP_DIR', '/opt/lampp/htdocs/sistema_csi/backups');
+define('LOG_FILE', '/opt/lampp/htdocs/sistema_csi/backups/backup.log');
+
 
 // Incluir database si existe
 $db_file = __DIR__ . '/config/database.php';
@@ -204,7 +203,7 @@ class BackupManager {
     }
     
     private function incluirAdjuntos($fecha) {
-        $adjuntos_dir = '/opt/lampp/htdocs/sistema_tickets/adjuntos';
+        $adjuntos_dir = '/opt/lampp/htdocs/sistema_csi/adjuntos';
         $backup_adjuntos_dir = $this->backup_dir . '/adjuntos_' . $fecha;
         
         if (!file_exists($adjuntos_dir)) {
