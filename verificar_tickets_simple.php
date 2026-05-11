@@ -6,13 +6,13 @@ ini_set('display_errors', 1);
 echo "<h1>Verificar Tickets en Base de Datos</h1>";
 
 try {
-     $pdo = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8", "root", "");
+     $pdo = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8", "root", "");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ATTR_ERRMODE_EXCEPTION);
     
     echo "<p style='color:green'>✅ Conexión exitosa</p>";
     
     // 1. Total tickets nuevos sin asignar
-    $sql = "SELECT COUNT(*) as total FROM Tickets WHERE estado = 'Nuevo' AND tecnico_asignado IS NULL";
+    $sql = "SELECT COUNT(*) as total FROM Tickets WHERE estado = 'Nuevo' AND oati_asignado IS NULL";
     $stmt = $pdo->query($sql);
     $total = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     
@@ -31,7 +31,7 @@ try {
             FROM Tickets t
             LEFT JOIN Usuarios u ON t.usuario_id = u.id
             WHERE t.estado = 'Nuevo' 
-            AND t.tecnico_asignado IS NULL
+            AND t.oati_asignado IS NULL
             ORDER BY t.fecha_creacion DESC";
         
         $stmt = $pdo->query($sql_tickets);
@@ -72,7 +72,7 @@ try {
             numero_ticket, 
             asunto, 
             estado,
-            tecnico_asignado,
+            oati_asignado,
             prioridad,
             DATE_FORMAT(fecha_creacion, '%d/%m/%Y %H:%i') as fecha
             FROM Tickets 
@@ -100,7 +100,7 @@ try {
                         <td>{$row['numero_ticket']}</td>
                         <td>" . htmlspecialchars($row['asunto']) . "</td>
                         <td>{$row['estado']}</td>
-                        <td>" . ($row['tecnico_asignado'] ? 'Asignado' : 'Libre') . "</td>
+                        <td>" . ($row['oati_asignado'] ? 'Asignado' : 'Libre') . "</td>
                         <td>{$row['prioridad']}</td>
                         <td>{$row['fecha']}</td>
                       </tr>";

@@ -1,6 +1,6 @@
 <?php
 // ver_oati.php
-$conn = new mysqli('localhost', 'root', '', 'sistema_tickets');
+$conn = new mysqli('localhost', 'root', '', 'sistema_csi');
 
 echo "<h1>OATI Disponible</h1>";
 

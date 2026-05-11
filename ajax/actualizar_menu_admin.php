@@ -24,7 +24,7 @@ $contadores = [
 $queries = [
     'tickets_total' => "SELECT COUNT(*) as total FROM tickets",
     'tickets_nuevos' => "SELECT COUNT(*) as total FROM tickets WHERE estado = 'nuevo'",
-    'tickets_sin_asignar' => "SELECT COUNT(*) as total FROM tickets WHERE estado = 'nuevo' AND tecnico_asignado IS NULL",
+    'tickets_sin_asignar' => "SELECT COUNT(*) as total FROM tickets WHERE estado = 'nuevo' AND oati_asignado IS NULL",
     'tickets_urgentes' => "SELECT COUNT(*) as total FROM tickets WHERE prioridad = 'urgente' AND estado != 'cerrado'",
     'usuarios_total' => "SELECT COUNT(*) as total FROM usuarios"
 ];
@@ -38,7 +38,7 @@ foreach ($queries as $key => $sql) {
 $query = "SELECT COUNT(*) as total 
           FROM tickets 
           WHERE estado = 'nuevo' 
-          AND tecnico_asignado IS NULL 
+          AND oati_asignado IS NULL 
           AND prioridad IN ('urgente', 'alta')";
 $result = $conn->query($query);
 $contadores['notificaciones_urgentes'] = $result->fetch_assoc()['total'];

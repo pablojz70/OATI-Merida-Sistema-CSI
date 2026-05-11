@@ -29,7 +29,7 @@ $sql_ticket = "SELECT t.*,
                 JOIN Servicios s ON t.servicio_id = s.id
                 JOIN Dependencias d ON t.dependencia_id = d.id
                 JOIN Usuarios u ON t.usuario_id = u.id
-                LEFT JOIN Usuarios u_tecnico ON t.tecnico_asignado = u_tecnico.id
+                LEFT JOIN Usuarios u_tecnico ON t.oati_asignado = u_tecnico.id
                 WHERE t.id = ?";
 
 $stmt_ticket = $conn->prepare($sql_ticket);

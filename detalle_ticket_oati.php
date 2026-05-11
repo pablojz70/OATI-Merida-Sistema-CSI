@@ -31,8 +31,8 @@ $query = "SELECT t.*, a.nombre as area_nombre, s.nombre as servicio_nombre,
           JOIN servicios s ON t.servicio_id = s.id
           JOIN dependencias d ON t.dependencia_id = d.id
           JOIN usuarios u ON t.usuario_id = u.id
-          LEFT JOIN usuarios tech ON t.tecnico_asignado = tech.id
-          WHERE t.id = ? AND (t.tecnico_asignado = ? OR ? = 1)"; // El 1 sería para admin
+          LEFT JOIN usuarios tech ON t.oati_asignado = tech.id
+          WHERE t.id = ? AND (t.oati_asignado = ? OR ? = 1)"; // El 1 sería para admin
 
 $stmt = $conn->prepare($query);
 $stmt->bind_param("iii", $ticket_id, $tecnico_id, $_SESSION['es_admin'] ?? 0);

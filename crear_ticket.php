@@ -266,7 +266,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 error_log("DEBUG: Iniciando procesamiento de archivos adjuntos para ticket ID: $ticket_id");
                 
                 // RUTA BASE ABSOLUTA - MODIFICADA
-                 $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_tickets/adjuntos/tickets/";
+                 $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_csi/adjuntos/tickets/";
                 
                 // Procesar cada archivo
                 foreach($_FILES['archivos']['tmp_name'] as $key => $tmp_name) {
@@ -398,7 +398,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
             
 $_SESSION['mensaje_exito'] = "✅ Ticket <strong>$numero_ticket</strong> creado exitosamente" . 
-                                         ($datos_formulario['tecnico_asignado'] ? " y asignado a OATI" : "") . 
+                                         ($datos_formulario['oati_asignado'] ? " y asignado a OATI" : "") . 
                                          $mensaje_archivos;
             header('Location: mis_tickets.php');
             exit();

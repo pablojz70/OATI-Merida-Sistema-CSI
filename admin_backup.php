@@ -14,7 +14,7 @@ $usuario_nombre = $_SESSION['nombre'] ?? 'Administrador';
 
 // Conexión PDO
 try {
-     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
             case 'eliminar_backup':
                 $archivo = $_POST['archivo'] ?? '';
-                 $ruta = '/opt/lampp/htdocs/sistema_tickets/backups/' . $archivo;
+                 $ruta = '/opt/lampp/htdocs/sistema_csi/backups/' . $archivo;
                 
                 if (file_exists($ruta)) {
                     unlink($ruta);

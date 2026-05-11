@@ -18,7 +18,7 @@ if (!$usuario_id) {
 
 // Conexión a BD
 try {
-     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Error de conexión']);

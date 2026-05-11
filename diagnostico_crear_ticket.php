@@ -14,7 +14,7 @@ try {
     echo "1. CONEXIÓN A BASE DE DATOS\n";
     echo "   Estado: ✅ OK\n";
     echo "   Host: localhost\n";
-     echo "   Base de datos: sistema_tickets\n\n";
+     echo "   Base de datos: sistema_csi\n\n";
     
     // 2. Verificar tablas necesarias
     echo "2. VERIFICANDO TABLAS\n";

@@ -16,10 +16,10 @@ echo "✅ Conexión a MySQL exitosa<br>";
 
 // 2. Crear/verificar base de datos
 echo "<h3>2. Verificando base de datos...</h3>";
-$conn_test->query("CREATE DATABASE IF NOT EXISTS sistema_tickets");
+$conn_test->query("CREATE DATABASE IF NOT EXISTS sistema_csi");
 echo "✅ Base de datos verificada<br>";
 
-$conn_test->select_db("sistema_tickets");
+$conn_test->select_db("sistema_csi");
 
 // 3. Crear tabla Usuarios si no existe
 echo "<h3>3. Verificando tabla Usuarios...</h3>";
@@ -60,7 +60,7 @@ if ($conn_test->query($sql_insert)) {
 $host = "localhost";
 $user = "root";
 $pass = "";
-$db = "sistema_tickets";
+$db = "sistema_csi";
 
 $conn = new mysqli($host, $user, $pass, $db);
 

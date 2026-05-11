@@ -2,7 +2,7 @@
 // config/database.php
 if (!isset($conn)) {
      $host = 'localhost';
-     $dbname = 'sistema_tickets';
+     $dbname = 'sistema_csi';
     $username = 'root';
     $password = '';
     

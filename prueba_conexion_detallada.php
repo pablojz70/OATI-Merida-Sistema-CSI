@@ -27,15 +27,15 @@ $config = [
     'host' => 'localhost',
     'usuario' => 'root',
     'contrasena' => '',  // Si tienes contraseña, ponla aquí
-     'basedatos' => 'sistema_tickets'
+     'basedatos' => 'sistema_csi'
 ];
 
 // Probar conexión con diferentes configuraciones
 $configuraciones = [
-     ['localhost', 'root', '', 'sistema_tickets'],
-     ['127.0.0.1', 'root', '', 'sistema_tickets'],
-     ['localhost', 'root', 'password', 'sistema_tickets'],
-     ['localhost', 'root', 'root', 'sistema_tickets'],
+     ['localhost', 'root', '', 'sistema_csi'],
+     ['127.0.0.1', 'root', '', 'sistema_csi'],
+     ['localhost', 'root', 'password', 'sistema_csi'],
+     ['localhost', 'root', 'root', 'sistema_csi'],
 ];
 
 foreach ($configuraciones as $config) {
@@ -87,7 +87,7 @@ $temp_content = '<?php
 $host = "localhost";
 $user = "root";
 $pass = "";
- $db = "sistema_tickets";
+ $db = "sistema_csi";
 
 $conn_temp = new mysqli($host, $user, $pass, $db);
 
@@ -109,7 +109,7 @@ if (file_put_contents($temp_conn_file, $temp_content)) {
 echo "<h3>5. Solución inmediata - Conexión directa:</h3>";
 
 try {
-     $conn_directa = new mysqli('localhost', 'root', '', 'sistema_tickets');
+     $conn_directa = new mysqli('localhost', 'root', '', 'sistema_csi');
     
     if ($conn_directa->connect_error) {
         echo "❌ Error de conexión directa: " . $conn_directa->connect_error . "<br>";
@@ -125,7 +125,7 @@ try {
             echo "2. Verifica el usuario y contraseña de MySQL<br>";
             echo "3. Verifica que el puerto 3306 esté abierto<br>";
         } else {
-             $conn_temp->query("CREATE DATABASE IF NOT EXISTS sistema_tickets");
+             $conn_temp->query("CREATE DATABASE IF NOT EXISTS sistema_csi");
             echo "✅ Base de datos creada o ya existente<br>";
             $conn_temp->close();
         }

@@ -154,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $conn->beginTransaction();
         
         $nuevo_estado = $_POST['estado'] ?? $ticket['estado'];
-        $oati_asignado = $_POST['tecnico_asignado'] ?? $ticket['oati_asignado'];
+        $oati_asignado = $_POST['oati_asignado'] ?? $ticket['oati_asignado'];
         $prioridad = $_POST['prioridad'] ?? $ticket['prioridad'];
         $solucion = trim($_POST['solucion'] ?? '');
         $numero_bien = trim($_POST['numero_bien'] ?? '');
@@ -654,7 +654,7 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
                         <?php if ($privilegio == 'admin' && !empty($tecnicos)): ?>
                         <div class="form-group">
                             <label class="form-label">Asignar a:</label>
-                            <select name="tecnico_asignado" class="form-control">
+                            <select name="oati_asignado" class="form-control">
                                 <option value="">-- Sin asignar --</option>
                                 <?php foreach ($tecnicos as $tecnico): ?>
                                 <?php $selected = ($tecnico['id'] == $ticket['oati_asignado']) ? 'selected' : ''; ?>

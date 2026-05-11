@@ -19,7 +19,7 @@ if (!$id_usuario) {
 
 // Conexión a base de datos
 try {
-     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -217,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                 
                 if ($puede_eliminar) {
                     // Ruta base de archivos adjuntos
-                     $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_tickets/adjuntos/";
+                     $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_csi/adjuntos/";
                     $ruta_completa_archivo = $ruta_base_adjuntos . $archivo_info['ruta_archivo'];
                     
                     // Eliminar archivo físico

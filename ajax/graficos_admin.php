@@ -58,10 +58,10 @@ switch ($tipo) {
             COUNT(t.id) as total_tickets,
             AVG(t.tiempo_resolucion_minutos) as tiempo_promedio
             FROM tickets t
-            JOIN usuarios u ON t.tecnico_asignado = u.id
+            JOIN usuarios u ON t.oati_asignado = u.id
             WHERE t.estado = 'cerrado'
-            AND t.tecnico_asignado IS NOT NULL
-            GROUP BY t.tecnico_asignado
+            AND t.oati_asignado IS NOT NULL
+            GROUP BY t.oati_asignado
             ORDER BY total_tickets DESC
             LIMIT 5";
         

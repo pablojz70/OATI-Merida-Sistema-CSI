@@ -25,7 +25,7 @@ if (!$ticket_id) {
 
 // CONEXIÓN A BASE DE DATOS
 try {
-     $conn = new PDO("mysql:host=localhost;dbname=sistema_tickets;charset=utf8mb4", "root", "");
+     $conn = new PDO("mysql:host=localhost;dbname=sistema_csi;charset=utf8mb4", "root", "");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -186,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
             
             // Procesar archivos adjuntos
             if (isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
-                $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_tickets/adjuntos/tickets/";
+                $ruta_base_adjuntos = "/opt/lampp/htdocs/sistema_csi/adjuntos/tickets/";
                 if (!is_dir($ruta_base_adjuntos)) mkdir($ruta_base_adjuntos, 0777, true);
                 foreach ($_FILES['archivos']['tmp_name'] as $key => $tmp_name) {
                     if ($_FILES['archivos']['error'][$key] === UPLOAD_ERR_OK) {

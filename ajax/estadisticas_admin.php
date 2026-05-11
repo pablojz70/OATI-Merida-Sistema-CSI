@@ -154,9 +154,9 @@ try {
     }
     
     // 7. MÉTRICAS DE TÉCNICOS
-    $query = "SELECT COUNT(DISTINCT tecnico_asignado) as total 
+    $query = "SELECT COUNT(DISTINCT oati_asignado) as total 
               FROM tickets 
-              WHERE tecnico_asignado IS NOT NULL";
+              WHERE oati_asignado IS NOT NULL";
     $result = $conn->query($query);
     $estadisticas['tecnicos_con_tickets'] = $result->fetch_assoc()['total'];
     
@@ -171,10 +171,10 @@ try {
     $query = "SELECT u.nombre, COUNT(t.id) as tickets_resueltos,
               AVG(t.tiempo_resolucion_minutos) as tiempo_promedio
               FROM tickets t
-              JOIN usuarios u ON t.tecnico_asignado = u.id
+              JOIN usuarios u ON t.oati_asignado = u.id
               WHERE t.estado = 'cerrado'
-              AND t.tecnico_asignado IS NOT NULL
-              GROUP BY t.tecnico_asignado, u.nombre
+              AND t.oati_asignado IS NOT NULL
+              GROUP BY t.oati_asignado, u.nombre
               ORDER BY tickets_resueltos DESC
               LIMIT 5";
     $result = $conn->query($query);
@@ -209,7 +209,7 @@ try {
     
     // 10. ESTADÍSTICAS ADICIONALES PARA DASHBOARD
     // Tickets sin asignar
-    $query = "SELECT COUNT(*) as total FROM tickets WHERE estado = 'nuevo' AND tecnico_asignado IS NULL";
+    $query = "SELECT COUNT(*) as total FROM tickets WHERE estado = 'nuevo' AND oati_asignado IS NULL";
     $result = $conn->query($query);
     $estadisticas['tickets_sin_asignar'] = $result->fetch_assoc()['total'];
     
