@@ -1,4 +1,4 @@
-USE sistema_tickets;
+USE sistema_csi;
 
 -- Insert new areas for Infraestructura
 INSERT INTO AreasSoporte (nombre, tipo, activa, orden) VALUES
