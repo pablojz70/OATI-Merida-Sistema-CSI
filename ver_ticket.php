@@ -67,6 +67,11 @@ du.nombre as usuario_dependencia_nombre,
         exit();
     }
     
+    // Consultar insumos faltantes del ticket
+    $stmt_insumos = $conn->prepare("SELECT * FROM InsumosFaltantes WHERE ticket_id = ? ORDER BY fecha DESC");
+    $stmt_insumos->execute([$ticket_id]);
+    $insumos = $stmt_insumos->fetchAll();
+    
     // Verificar permisos
     $puede_ver = false;
     
@@ -1144,6 +1149,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(243, 156, 18, 0.4);
         }
+        .badge-si { background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 10px; font-size: 10px; }
+        .badge-no { background: #f8d7da; color: #721c24; padding: 2px 8px; border-radius: 10px; font-size: 10px; }
     </style>
 </head>
 <body>
@@ -1620,6 +1627,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                     Solución registrada el <?php echo date('d/m/Y H:i', strtotime($ticket['fecha_cierre'])); ?>
                 </div>
                 <?php endif; ?>
+            </div>
+            <?php endif; ?>
+            
+            <!-- INSUMOS FALTANTES -->
+            <?php if (!empty($insumos)): ?>
+            <div class="content-card">
+                <h3><i class="fas fa-tools"></i> Insumos Faltantes</h3>
+                <div style="background: #fff3cd; padding: 12px; border-radius: 6px;">
+                    <table style="width:100%; border-collapse:collapse; font-size:12px;">
+                        <thead>
+                            <tr style="border-bottom:2px solid #ffc107;">
+                                <th style="padding:6px; text-align:left;">Insumo</th>
+                                <th style="padding:6px; text-align:left;">Tipo</th>
+                                <th style="padding:6px; text-align:left;">Fecha</th>
+                                <th style="padding:6px; text-align:left;">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($insumos as $ins): ?>
+                            <tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:6px;"><?php echo htmlspecialchars($ins['insumo']); ?></td>
+                                <td style="padding:6px;"><?php echo $ins['tipo'] == 'infraestructura' ? 'Infraestructura' : 'OATI'; ?></td>
+                                <td style="padding:6px;"><?php echo date('d/m/Y', strtotime($ins['fecha'])); ?></td>
+                                <td style="padding:6px;">
+                                    <span class="<?php echo $ins['adquirido'] ? 'badge-si' : 'badge-no'; ?>">
+                                        <?php echo $ins['adquirido'] ? 'Adquirido' : 'Pendiente'; ?>
+                                    </span>
+                                    <?php if ($ins['adquirido_por']): ?>
+                                    <small style="color:#666;"> (<?php echo htmlspecialchars($ins['adquirido_por']); ?>)</small>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <?php endif; ?>
             
