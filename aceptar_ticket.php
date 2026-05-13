@@ -77,7 +77,7 @@ $mensaje = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
     $id_ticket = intval($_POST['id_ticket']);
     
-    $check_sql = "SELECT id FROM Tickets WHERE id = ? AND estado = 'Nuevo' AND oati_asignado IS NULL $area_tipo_filter";
+    $check_sql = "SELECT t.id FROM Tickets t WHERE t.id = ? AND t.estado = 'Nuevo' AND t.oati_asignado IS NULL $area_tipo_filter";
     $stmt = $pdo->prepare($check_sql);
     $stmt->execute([$id_ticket]);
     
