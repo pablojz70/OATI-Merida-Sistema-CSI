@@ -162,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
     $solucion = trim($_POST['solucion'] ?? '');
     
     if (empty($solucion)) {
-        $error = "Debe ingresar la solución o motivo del cierre";
+        $solucion = 'Cerrado exitosamente';
     } else {
         $estado_final = ($tipo_cierre == 'exitoso') ? 'Cerrado Exitosamente' : 'Cerrado No Exitoso';
         
@@ -1068,18 +1068,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
             if (!solucion) return true;
             const texto = solucion.value.trim();
             
-            if (!texto) {
-                e.preventDefault();
-                alert('Debe ingresar la solución o motivo del cierre');
-                solucion.focus();
-                return false;
-            }
-            
-            if (texto.length < 10) {
-                e.preventDefault();
-                alert('La descripción de la solución es muy breve (mínimo 10 caracteres)');
-                solucion.focus();
-                return false;
+            if (!texto || texto.length < 10) {
+                if (!confirm('¿Confirmar cierre del ticket? Se usará "Cerrado exitosamente" por defecto.')) {
+                    e.preventDefault();
+                    return false;
+                }
+                solucion.value = 'Cerrado exitosamente';
+                return true;
             }
             
             return confirm('¿Confirmar cierre del ticket? Esta acción no se puede deshacer.');
