@@ -232,6 +232,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $success = true;
                 $mensaje = "Ticket actualizado correctamente";
                 
+                // Notificar por Telegram
+                require_once __DIR__ . '/config/telegram.php';
+                if ($oati_asignado && $oati_asignado != $ticket['oati_asignado']) {
+                    notificarTicket($conn, $oati_asignado,
+                        "📋 <b>Ticket Asignado a ti</b>\n\n" .
+                        "N°: <b>" . $ticket['numero_ticket'] . "</b>\n" .
+                        "Asunto: " . $ticket['asunto']
+                    );
+                }
+                if ($nuevo_estado && $nuevo_estado != $ticket['estado'] && strpos($nuevo_estado, 'Cerrado') === false) {
+                    notificarTicket($conn, $ticket['usuario_id'],
+                        "📌 <b>Ticket Actualizado</b>\n\n" .
+                        "N°: <b>" . $ticket['numero_ticket'] . "</b>\n" .
+                        "Estado: $nuevo_estado\n" .
+                        "Asunto: " . $ticket['asunto']
+                    );
+                }
+                
                 // Redirigir después de 2 segundos
                 header("refresh:2;url=ver_ticket.php?id={$ticket_id}");
                 
