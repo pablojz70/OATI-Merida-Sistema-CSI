@@ -18,7 +18,16 @@ curl_setopt($ch, CURLOPT_URL, $url . $offset);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_TIMEOUT, 15);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+if (defined('TELEGRAM_PROXY') && !empty(TELEGRAM_PROXY)) {
+    curl_setopt($ch, CURLOPT_PROXY, TELEGRAM_PROXY);
+    curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+    if (defined('TELEGRAM_PROXY_USER') && !empty(TELEGRAM_PROXY_USER)) {
+        curl_setopt($ch, CURLOPT_PROXYUSERPWD, TELEGRAM_PROXY_USER . ':' . TELEGRAM_PROXY_PASS);
+    }
+}
 $response = curl_exec($ch);
+$error = curl_error($ch);
+if ($error) error_log("Telegram poll curl error: $error");
 curl_close($ch);
 
 $data = json_decode($response, true);
