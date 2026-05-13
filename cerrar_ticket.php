@@ -1060,27 +1060,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
         adjustContentHeight();
     });
     
-    // Validar formulario antes de enviar
-    const form = document.querySelector('form');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            const solucion = document.getElementById('solucion');
-            if (!solucion) return true;
-            const texto = solucion.value.trim();
-            
-            if (!texto || texto.length < 10) {
-                if (!confirm('¿Confirmar cierre del ticket? Se usará "Cerrado exitosamente" por defecto.')) {
-                    e.preventDefault();
-                    return false;
-                }
-                solucion.value = 'Cerrado exitosamente';
-                return true;
-            }
-            
-            return confirm('¿Confirmar cierre del ticket? Esta acción no se puede deshacer.');
-        });
-    }
-    
     // Contador de caracteres para la solución
     const textareaSolucion = document.getElementById('solucion');
     if (textareaSolucion) {
