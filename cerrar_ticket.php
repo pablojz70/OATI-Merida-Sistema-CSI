@@ -890,7 +890,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
                         </label>
                         <textarea id="solucion" name="solucion" 
                                   placeholder="Describe detalladamente la solución aplicada o el motivo por el cual se cierra el ticket..."
-                                  required><?php echo htmlspecialchars($_POST['solucion'] ?? ''); ?></textarea>
+                                  ><?php echo htmlspecialchars($_POST['solucion'] ?? ''); ?></textarea>
                         <div id="contador-solucion" style="font-size: 10px; color: #666; margin-top: 3px;">
                             Caracteres: 0
                         </div>
@@ -952,7 +952,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
                            class="btn-accion-custom btn-cancelar-custom">
                             <i class="fas fa-times"></i> Cancelar
                         </a>
-                        <button type="submit" name="cerrar_ticket" class="btn-accion-custom btn-cerrar-custom">
+                        <button type="submit" name="cerrar_ticket" class="btn-accion-custom btn-cerrar-custom" onclick="alert('Clic detectado'); return true;">
                             <i class="fas fa-check"></i> Cerrar Ticket
                         </button>
                     </div>
