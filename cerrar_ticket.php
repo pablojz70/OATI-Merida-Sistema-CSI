@@ -952,7 +952,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
                            class="btn-accion-custom btn-cancelar-custom">
                             <i class="fas fa-times"></i> Cancelar
                         </a>
-                        <button type="submit" name="cerrar_ticket" class="btn-accion-custom btn-cerrar-custom" onclick="alert('Clic detectado'); return true;">
+                        <input type="hidden" name="cerrar_ticket" value="1">
+                        <button type="button" class="btn-accion-custom btn-cerrar-custom" onclick="document.getElementById('formCierre').submit();">
                             <i class="fas fa-check"></i> Cerrar Ticket
                         </button>
                     </div>
