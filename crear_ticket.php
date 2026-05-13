@@ -397,6 +397,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 error_log("Info: historialtickets no disponible - " . $e->getMessage());
             }
             
+            // Notificar por Telegram si se asignó a un técnico
+            require_once __DIR__ . '/config/telegram.php';
+            if ($datos_formulario['oati_asignado']) {
+                $stmt_tec = $conn->prepare("SELECT nombre FROM Usuarios WHERE id = ?");
+                $stmt_tec->execute([$datos_formulario['oati_asignado']]);
+                $nomTec = $stmt_tec->fetchColumn();
+                notificarTicket($conn, $datos_formulario['oati_asignado'],
+                    "📋 <b>Ticket Asignado</b>\n\n" .
+                    "N°: <b>$numero_ticket</b>\n" .
+                    "Asunto: $asunto\n" .
+                    "Creado por: $usuario_nombre\n" .
+                    "Técnico: $nomTec"
+                );
+            }
+            
 $_SESSION['mensaje_exito'] = "✅ Ticket <strong>$numero_ticket</strong> creado exitosamente" . 
                                          ($datos_formulario['oati_asignado'] ? " y asignado a OATI" : "") . 
                                          $mensaje_archivos;

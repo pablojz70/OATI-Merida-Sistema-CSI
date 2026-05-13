@@ -58,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($accion === 'actualizar_perfil') {
         $nombre = trim($_POST['nombre'] ?? '');
         $dependencia_id = $_POST['dependencia_id'] ?? null;
+        $telegram_id = trim($_POST['telegram_id'] ?? '');
         
         // Validaciones
         if (empty($nombre)) {
@@ -65,13 +66,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (strlen($nombre) < 3) {
             $error = 'El nombre debe tener al menos 3 caracteres';
         } else {
-            // Actualizar perfil (sin columna correo)
+            // Actualizar perfil
             try {
-                $sql_update = "UPDATE Usuarios SET nombre = :nombre, dependencia_id = :dependencia_id WHERE id = :id";
+                $sql_update = "UPDATE Usuarios SET nombre = :nombre, dependencia_id = :dependencia_id, telegram_id = :telegram_id WHERE id = :id";
                 $stmt_update = $conn->prepare($sql_update);
                 $stmt_update->execute([
                     ':nombre' => $nombre,
                     ':dependencia_id' => $dependencia_id ?: null,
+                    ':telegram_id' => $telegram_id ?: null,
                     ':id' => $usuario_id
                 ]);
                 
@@ -659,6 +661,18 @@ if (!file_exists($menu_archivo)) {
                                     <div id="infoDependencia" class="dependencia-info-panel">
                                         <div class="dependencia-nombre-completo" id="dependenciaNombreCompleto"></div>
                                         <div class="dependencia-id">ID: <span id="dependenciaId"></span></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="telegram_id"><i class="fab fa-telegram"></i> Telegram ID</label>
+                                    <input type="text" id="telegram_id" name="telegram_id" 
+                                           value="<?php echo htmlspecialchars($usuario['telegram_id'] ?? ''); ?>" 
+                                           placeholder="Ej: 123456789" style="font-family: monospace;">
+                                    <div class="small-note">
+                                        <i class="fas fa-info-circle"></i> 
+                                        Para obtener tu ID, envía <strong>/start</strong> al bot 
+                                        <a href="https://t.me/Ticket_DAR_M_bot" target="_blank">@Ticket_DAR_M_bot</a> en Telegram
                                     </div>
                                 </div>
                                 

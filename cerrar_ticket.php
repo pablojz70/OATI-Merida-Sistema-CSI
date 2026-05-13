@@ -231,6 +231,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
             $conn->commit();
             $success = true;
             
+            // Notificar por Telegram
+            require_once __DIR__ . '/config/telegram.php';
+            $icono = $estado_final == 'Cerrado Exitosamente' ? '✅' : '❌';
+            notificarTicket($conn, $ticket['usuario_id'],
+                "$icono <b>Ticket Cerrado</b>\n\n" .
+                "N°: <b>" . $ticket['numero_ticket'] . "</b>\n" .
+                "Asunto: " . $ticket['asunto'] . "\n" .
+                "Estado: $estado_final"
+            );
+            if ($ticket['oati_asignado']) {
+                notificarTicket($conn, $ticket['oati_asignado'],
+                    "$icono <b>Ticket Cerrado</b>\n\n" .
+                    "N°: <b>" . $ticket['numero_ticket'] . "</b>\n" .
+                    "Asunto: " . $ticket['asunto'] . "\n" .
+                    "Estado: $estado_final"
+                );
+            }
+            
             // Registrar en Logs
             try {
                 $ip = $_SERVER['REMOTE_ADDR'] ?? 'CLI';
