@@ -197,9 +197,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
                         $ruta_destino = $ruta_base_adjuntos . $archivo_id;
                         if (move_uploaded_file($tmp_name, $ruta_destino)) {
                             try {
-                                $stmt_adj = $conn->prepare("INSERT INTO TicketAdjuntos (ticket_id, nombre_archivo, archivo_id, tipo_archivo, tamano, usuario_id, fecha_subida) VALUES (?, ?, ?, ?, ?, ?, NOW())");
-                                $stmt_adj->execute([$ticket_id, $nombre, $archivo_id, $tipo, $tamano, $id_usuario]);
-                                $archivos_subidos++;
+                                    $ruta_relativa = $archivo_id;
+                                    $stmt_adj = $conn->prepare("INSERT INTO TicketAdjuntos (ticket_id, nombre_archivo, ruta_archivo, tipo_archivo, tamano_bytes, subido_por, fecha_subida) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+                                    $stmt_adj->execute([$ticket_id, $nombre, $ruta_relativa, $tipo, $tamano, $id_usuario]);
+                                    $archivos_subidos++;
                             } catch (Exception $e) {}
                         }
                     }
@@ -222,7 +223,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
             
             // Registrar en Historial
             try {
-                $sql_hist = "INSERT INTO HistorialTickets (ticket_id, usuario_id, accion, detalle, fecha_accion) VALUES (?, ?, 'cerrado', ?, NOW())";
+                $sql_hist = "INSERT INTO HistorialTickets (ticket_id, usuario_id, accion, descripcion, fecha) VALUES (?, ?, 'cerrado', ?, NOW())";
                 $stmt_hist = $conn->prepare($sql_hist);
                 $stmt_hist->execute([$ticket_id, $id_usuario, "Ticket cerrado como: {$estado_final}"]);
             } catch (Exception $e) {}
@@ -838,7 +839,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
                             <?php if (($ticket['horas_transcurridas'] ?? 0) < 24): ?>
                                 <?php echo ($ticket['horas_transcurridas'] ?? 0); ?> horas
                             <?php else: ?>
-                                <?php echo ($ticket['dias_transcurridos'] ?? 0); ?> días
+                                <?php echo ($ticket['dias_transcurridas'] ?? 0); ?> días
                             <?php endif; ?>
                         </span>
                     </div>
@@ -1063,34 +1064,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
     const form = document.querySelector('form');
     if (form) {
         form.addEventListener('submit', function(e) {
-            const solucion = document.getElementById('solucion').value.trim();
-            const tipoCierre = document.querySelector('input[name="tipo_cierre"]:checked').value;
+            const solucion = document.getElementById('solucion');
+            if (!solucion) return true;
+            const texto = solucion.value.trim();
             
-            if (!solucion) {
+            if (!texto) {
                 e.preventDefault();
-                alert('⚠️ Debe ingresar la solución o motivo del cierre');
-                document.getElementById('solucion').focus();
+                alert('Debe ingresar la solución o motivo del cierre');
+                solucion.focus();
                 return false;
             }
             
-            if (solucion.length < 10) {
+            if (texto.length < 10) {
                 e.preventDefault();
-                alert('⚠️ La descripción de la solución es muy breve. Por favor, proporcione más detalles.');
-                document.getElementById('solucion').focus();
+                alert('La descripción de la solución es muy breve (mínimo 10 caracteres)');
+                solucion.focus();
                 return false;
             }
             
-            // Confirmación final
-            const mensajeConfirmacion = tipoCierre === 'exitoso' 
-                ? '¿Confirmar cierre exitoso del ticket? Esta acción no se puede deshacer.' 
-                : '¿Confirmar cierre no exitoso del ticket? Esta acción no se puede deshacer.';
-            
-            if (!confirm(mensajeConfirmacion)) {
-                e.preventDefault();
-                return false;
-            }
-            
-            return true;
+            return confirm('¿Confirmar cierre del ticket? Esta acción no se puede deshacer.');
         });
     }
     
