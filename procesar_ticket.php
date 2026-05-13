@@ -235,18 +235,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Notificar por Telegram
                 require_once __DIR__ . '/config/telegram.php';
                 if ($oati_asignado && $oati_asignado != $ticket['oati_asignado']) {
+                    $stmt_d = $conn->prepare("SELECT nombre_corto FROM Dependencias WHERE id = ?");
+                    $stmt_d->execute([$ticket['dependencia_id']]);
+                    $dep_c = $stmt_d->fetchColumn();
                     notificarTicket($conn, $oati_asignado,
                         "📋 <b>Ticket Asignado a ti</b>\n\n" .
                         "N°: <b>" . $ticket['numero_ticket'] . "</b>\n" .
-                        "Asunto: " . $ticket['asunto']
+                        "Asunto: " . $ticket['asunto'] . "\n" .
+                        "Dependencia: " . ($dep_c ?: 'N/A') . "\n" .
+                        "Creado por: " . $ticket['usuario_nombre']
                     );
                 }
                 if ($nuevo_estado && $nuevo_estado != $ticket['estado'] && strpos($nuevo_estado, 'Cerrado') === false) {
+                    $stmt_t = $conn->prepare("SELECT nombre FROM Usuarios WHERE id = ?");
+                    $stmt_t->execute([$oati_asignado ?: $ticket['oati_asignado']]);
+                    $nom_t = $stmt_t->fetchColumn();
                     notificarTicket($conn, $ticket['usuario_id'],
                         "📌 <b>Ticket Actualizado</b>\n\n" .
                         "N°: <b>" . $ticket['numero_ticket'] . "</b>\n" .
                         "Estado: $nuevo_estado\n" .
-                        "Asunto: " . $ticket['asunto']
+                        "Asunto: " . $ticket['asunto'] . "\n" .
+                        "Técnico asignado: " . ($nom_t ?: 'Sin asignar')
                     );
                 }
                 

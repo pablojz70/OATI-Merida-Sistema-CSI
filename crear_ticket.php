@@ -403,12 +403,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt_tec = $conn->prepare("SELECT nombre FROM Usuarios WHERE id = ?");
                 $stmt_tec->execute([$datos_formulario['oati_asignado']]);
                 $nomTec = $stmt_tec->fetchColumn();
+                $stmt_dep = $conn->prepare("SELECT nombre_corto FROM Dependencias WHERE id = ?");
+                $stmt_dep->execute([$datos_formulario['dependencia_id']]);
+                $dep_corto = $stmt_dep->fetchColumn();
                 notificarTicket($conn, $datos_formulario['oati_asignado'],
                     "📋 <b>Ticket Asignado</b>\n\n" .
                     "N°: <b>$numero_ticket</b>\n" .
-                    "Asunto: $asunto\n" .
-                    "Creado por: $usuario_nombre\n" .
-                    "Técnico: $nomTec"
+                    "Asunto: " . $datos_formulario['asunto'] . "\n" .
+                    "Dependencia: " . ($dep_corto ?: 'N/A') . "\n" .
+                    "Creado por: $usuario_nombre"
                 );
             }
             
