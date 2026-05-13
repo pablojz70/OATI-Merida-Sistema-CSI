@@ -680,7 +680,7 @@ if (!file_exists($menu_archivo)) {
                                         </a>
                                         <div style="font-size:11px;color:#666;line-height:1.6;">
                                             <strong>1.</strong> Escanea el QR con tu celular<br>
-                                            <strong>2.</strong> Abre Telegram y toca "Iniciar"<br>
+                                            <strong>2.</strong> Abre Telegram y toca "Start"<br>
                                             <strong>3.</strong> Copia el <strong>ID numérico</strong> que te dé el bot<br>
                                             <strong>4.</strong> Pégalo arriba y guarda
                                         </div>
