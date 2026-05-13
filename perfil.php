@@ -671,8 +671,19 @@ if (!file_exists($menu_archivo)) {
                                            placeholder="Ej: 123456789" style="font-family: monospace;">
                                     <div class="small-note">
                                         <i class="fas fa-info-circle"></i> 
-                                        Para obtener tu ID, envía <strong>/start</strong> al bot 
-                                        <a href="https://t.me/Ticket_DAR_M_bot" target="_blank">@Ticket_DAR_M_bot</a> en Telegram
+                                        Escanea el código QR o haz clic para abrir el bot en Telegram:
+                                    </div>
+                                    <div style="margin-top:8px;display:flex;align-items:center;gap:15px;flex-wrap:wrap;">
+                                        <a href="https://t.me/Ticket_DAR_M_bot?start=" target="_blank">
+                                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://t.me/Ticket_DAR_M_bot?start=" 
+                                                 alt="QR Telegram" style="border:2px solid #e8e8e8;border-radius:8px;width:120px;height:120px;">
+                                        </a>
+                                        <div style="font-size:11px;color:#666;line-height:1.6;">
+                                            <strong>1.</strong> Escanea el QR con tu celular<br>
+                                            <strong>2.</strong> Abre Telegram y toca "Iniciar"<br>
+                                            <strong>3.</strong> Copia el <strong>ID numérico</strong> que te dé el bot<br>
+                                            <strong>4.</strong> Pégalo arriba y guarda
+                                        </div>
                                     </div>
                                 </div>
                                 
