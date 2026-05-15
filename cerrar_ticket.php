@@ -208,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
             }
             
             // Guardar insumos faltantes
-            if ($tipo_cierre == 'no_exitoso' && isset($_POST['insumos']) && is_array($_POST['insumos'])) {
+            if (isset($_POST['insumos']) && is_array($_POST['insumos'])) {
                 $area_tipo = $ticket['area_tipo'] ?? 'informatica';
                 $insumo_stmt = $conn->prepare("INSERT INTO InsumosFaltantes (ticket_id, insumo, fecha, tipo, adquirido, adquirido_por) VALUES (?, ?, ?, ?, ?, ?)");
                 foreach ($_POST['insumos'] as $i => $insumo) {
@@ -914,12 +914,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
                         </div>
                     </div>
                     
-                    <!-- INSUMOS FALTANTES (solo para Cerrado No Exitoso) -->
-                    <div id="insumos-section" style="display: none;">
+                    <!-- INSUMOS FALTANTES -->
+                    <div id="insumos-section">
                         <div class="form-group-custom" style="border: 2px dashed #e74c3c; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                             <label style="color: #e74c3c; font-weight: 600;">
-                                <i class="fas fa-tools"></i> Insumos Faltantes para Solucionar
-                                <small style="font-weight: normal; color: #666;"> (Registra los insumos necesarios)</small>
+                                <i class="fas fa-tools"></i> Insumos para Solucionar
+                                <small style="font-weight: normal; color: #666;"> (Registra los insumos necesarios que se necesitan o se usaron en la reparación)</small>
                             </label>
                             <div id="insumos-list">
                                 <div class="insumo-row" style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap;">
@@ -1028,12 +1028,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cerrar_ticket'])) {
         const radio = document.querySelector(`.opcion-cierre input[value="${tipo}"]`);
         if (radio) {
             radio.checked = true;
-        }
-        
-        // Mostrar/ocultar sección de insumos faltantes
-        const insumosSection = document.getElementById('insumos-section');
-        if (insumosSection) {
-            insumosSection.style.display = (tipo === 'no_exitoso') ? 'block' : 'none';
         }
     }
     
