@@ -105,7 +105,8 @@ $stats_query = "SELECT
 $stats = $conn->query($stats_query)->fetch(PDO::FETCH_ASSOC);
 
 // Obtener tickets para el select de agregar
-$tickets = $conn->query("SELECT id, numero_ticket, asunto, area_tipo FROM Tickets WHERE estado = 'Cerrado No Exitoso' ORDER BY id DESC LIMIT 100")->fetchAll(PDO::FETCH_ASSOC);
+$tickets = $conn->query("SELECT id, numero_ticket, asunto, area_tipo, estado FROM Tickets ORDER BY id DESC LIMIT 200")->fetchAll(PDO::FETCH_ASSOC);
+$tickets_json = json_encode($tickets);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -291,11 +292,16 @@ $tickets = $conn->query("SELECT id, numero_ticket, asunto, area_tipo FROM Ticket
             <form method="POST">
                 <input type="hidden" name="accion" value="agregar">
                 <label>Ticket:</label>
-                <select name="ticket_id" required>
+                <div style="margin-bottom:8px;display:flex;gap:5px;">
+                    <input type="text" id="buscarTicket" placeholder="Buscar N° ticket..." style="flex:1;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+                    <select id="filtroEstadoTicket" style="padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+                        <option value="">Todos</option>
+                        <option value="Cerrado Exitosamente">Cerrados Exitosamente</option>
+                        <option value="Cerrado No Exitoso">Cerrados No Exitoso</option>
+                    </select>
+                </div>
+                <select name="ticket_id" id="selectTicket" required size="6" style="width:100%;padding:4px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
                     <option value="">-- Seleccionar ticket --</option>
-                    <?php foreach ($tickets as $t): ?>
-                    <option value="<?php echo $t['id']; ?>"><?php echo htmlspecialchars($t['numero_ticket'] . ' - ' . substr($t['asunto'], 0, 30)); ?></option>
-                    <?php endforeach; ?>
                 </select>
                 <label>Insumo:</label>
                 <input type="text" name="insumo" required maxlength="255">
@@ -337,6 +343,35 @@ $tickets = $conn->query("SELECT id, numero_ticket, asunto, area_tipo FROM Ticket
     window.onclick = function(e) {
         if (e.target.classList.contains('modal')) e.target.style.display = 'none';
     }
+
+    const tickets = <?php echo $tickets_json; ?>;
+    const selectTicket = document.getElementById('selectTicket');
+    const buscarTicket = document.getElementById('buscarTicket');
+    const filtroEstado = document.getElementById('filtroEstadoTicket');
+
+    function filtrarTickets() {
+        const busqueda = (buscarTicket.value || '').toLowerCase();
+        const estado = filtroEstado.value;
+        const fragment = document.createDocumentFragment();
+        const optDefault = document.createElement('option');
+        optDefault.value = '';
+        optDefault.textContent = '-- Seleccionar ticket --';
+        fragment.appendChild(optDefault);
+        tickets.forEach(t => {
+            if (estado && t.estado !== estado) return;
+            if (busqueda && !t.numero_ticket.toLowerCase().includes(busqueda)) return;
+            const opt = document.createElement('option');
+            opt.value = t.id;
+            opt.textContent = t.numero_ticket + ' - ' + (t.asunto ? t.asunto.substring(0, 35) : '');
+            fragment.appendChild(opt);
+        });
+        selectTicket.innerHTML = '';
+        selectTicket.appendChild(fragment);
+    }
+
+    buscarTicket.addEventListener('input', filtrarTickets);
+    filtroEstado.addEventListener('change', filtrarTickets);
+    filtrarTickets();
     </script>
 </body>
 </html>
