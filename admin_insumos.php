@@ -85,7 +85,7 @@ if ($filtro_adquirido === 'no') {
 
 $sql_where = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
 
-$query = "SELECT i.*, t.numero_ticket, t.asunto, t.area_tipo 
+$query = "SELECT i.*, t.numero_ticket, t.asunto, t.area_tipo, t.estado 
            FROM InsumosFaltantes i 
            JOIN Tickets t ON i.ticket_id = t.id 
            $sql_where 
@@ -226,7 +226,16 @@ $tickets = $conn->query("SELECT id, numero_ticket, asunto, area_tipo FROM Ticket
                     <?php else: ?>
                     <?php foreach ($insumos as $i): ?>
                     <tr>
-                        <td><strong><?php echo htmlspecialchars($i['numero_ticket']); ?></strong></td>
+                        <td><strong>
+                            <a href="ver_ticket.php?id=<?php echo $i['ticket_id']; ?>" style="color:#1a2980;text-decoration:none;">
+                                <?php echo htmlspecialchars($i['numero_ticket']); ?>
+                            </a>
+                            <?php if ($i['estado'] == 'Cerrado Exitosamente'): ?>
+                                <img src="imagen/Accept.png" alt="Exitoso" style="width:14px;height:14px;margin-left:4px;vertical-align:middle;">
+                            <?php elseif ($i['estado'] == 'Cerrado No Exitoso'): ?>
+                                <img src="imagen/Salir.png" alt="No exitoso" style="width:14px;height:14px;margin-left:4px;vertical-align:middle;">
+                            <?php endif; ?>
+                        </strong></td>
                         <td><?php echo htmlspecialchars(substr($i['asunto'] ?? '', 0, 30)); ?></td>
                         <td><?php echo htmlspecialchars($i['insumo']); ?></td>
                         <td><span class="<?php echo $i['tipo'] == 'infraestructura' ? 'badge-infra' : 'badge-oati'; ?>"><?php echo $i['tipo'] == 'infraestructura' ? 'Infra.' : 'OATI'; ?></span></td>
