@@ -105,7 +105,7 @@ $stats_query = "SELECT
 $stats = $conn->query($stats_query)->fetch(PDO::FETCH_ASSOC);
 
 // Obtener tickets para el select de agregar
-$tickets = $conn->query("SELECT id, numero_ticket, asunto, area_tipo, estado FROM Tickets ORDER BY id DESC LIMIT 200")->fetchAll(PDO::FETCH_ASSOC);
+$tickets = $conn->query("SELECT id, numero_ticket, asunto, area_tipo, estado FROM Tickets WHERE estado LIKE 'Cerrado%' ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
 $tickets_json = json_encode($tickets);
 ?>
 <!DOCTYPE html>
@@ -291,33 +291,45 @@ $tickets_json = json_encode($tickets);
             <h3><i class="fas fa-plus"></i> Agregar Insumo</h3>
             <form method="POST">
                 <input type="hidden" name="accion" value="agregar">
-                <label>Ticket:</label>
-                <div style="margin-bottom:8px;display:flex;gap:5px;">
-                    <input type="text" id="buscarTicket" placeholder="Buscar N° ticket..." style="flex:1;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
-                    <select id="filtroEstadoTicket" style="padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
-                        <option value="">Todos</option>
-                        <option value="Cerrado Exitosamente">Cerrados Exitosamente</option>
-                        <option value="Cerrado No Exitoso">Cerrados No Exitoso</option>
+                
+                <label for="buscarTicket" style="font-weight:bold;font-size:12px;color:#333;">Ticket:</label>
+                <div style="margin-bottom:4px;display:flex;gap:5px;">
+                    <input type="text" id="buscarTicket" placeholder="🔍 Buscar N° de ticket..." style="flex:1;padding:7px;border:1px solid #ccc;border-radius:4px;font-size:12px;">
+                    <select id="filtroEstadoTicket" style="padding:7px;border:1px solid #ccc;border-radius:4px;font-size:12px;">
+                        <option value="">Todos los cerrados</option>
+                        <option value="Cerrado Exitosamente">Solo Exitosos</option>
+                        <option value="Cerrado No Exitoso">Solo No Exitosos</option>
                     </select>
                 </div>
-                <select name="ticket_id" id="selectTicket" required size="6" style="width:100%;padding:4px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
-                    <option value="">-- Seleccionar ticket --</option>
+                <div style="font-size:10px;color:#999;margin-bottom:4px;">
+                    Escribe el N° de ticket o usa el filtro. <span id="totalTickets" style="color:#1a2980;font-weight:bold;"></span>
+                </div>
+                <select name="ticket_id" id="selectTicket" required size="5" style="width:100%;padding:4px;border:1px solid #ccc;border-radius:4px;font-size:12px;background:white;">
+                    <option value="">Cargando tickets...</option>
                 </select>
-                <label>Insumo:</label>
-                <input type="text" name="insumo" required maxlength="255">
-                <label>Fecha:</label>
-                <input type="date" name="fecha" value="<?php echo date('Y-m-d'); ?>">
-                <label>Tipo:</label>
-                <select name="tipo">
+                
+                <label for="insumo" style="font-weight:bold;font-size:12px;color:#333;margin-top:8px;display:block;">Insumo:</label>
+                <input type="text" id="insumo" name="insumo" required maxlength="255" placeholder="Describa el insumo..." style="width:100%;padding:7px;border:1px solid #ccc;border-radius:4px;font-size:12px;box-sizing:border-box;">
+                
+                <label for="fecha" style="font-weight:bold;font-size:12px;color:#333;margin-top:8px;display:block;">Fecha:</label>
+                <input type="date" id="fecha" name="fecha" value="<?php echo date('Y-m-d'); ?>" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:4px;font-size:12px;box-sizing:border-box;">
+                
+                <label for="tipo" style="font-weight:bold;font-size:12px;color:#333;margin-top:8px;display:block;">Tipo:</label>
+                <select id="tipo" name="tipo" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:4px;font-size:12px;box-sizing:border-box;">
                     <option value="informatica">OATI</option>
                     <option value="infraestructura">Infraestructura</option>
                 </select>
-                <label>
-                    <input type="checkbox" name="adquirido" value="1"> Adquirido
-                </label>
-                <label>Adquirido por:</label>
-                <input type="text" name="adquirido_por" maxlength="20">
-                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+                
+                <div style="margin-top:8px;">
+                    <label style="font-size:12px;">
+                        <input type="checkbox" name="adquirido" value="1"> Adquirido
+                    </label>
+                </div>
+                
+                <label for="adquirido_por" style="font-weight:bold;font-size:12px;color:#333;margin-top:8px;display:block;">Adquirido por:</label>
+                <input type="text" id="adquirido_por" name="adquirido_por" maxlength="20" placeholder="Nombre de quien adquirió" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:4px;font-size:12px;box-sizing:border-box;">
+                
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px;">
                     <button type="button" onclick="cerrarModal('modal-agregar')" class="btn-cancelar">Cancelar</button>
                     <button type="submit" class="btn-guardar"><i class="fas fa-save"></i> Agregar</button>
                 </div>
@@ -357,9 +369,12 @@ $tickets_json = json_encode($tickets);
         optDefault.value = '';
         optDefault.textContent = '-- Seleccionar ticket --';
         fragment.appendChild(optDefault);
+        let count = 0;
         tickets.forEach(t => {
+            if (!t.estado || !t.estado.startsWith('Cerrado')) return;
             if (estado && t.estado !== estado) return;
             if (busqueda && !t.numero_ticket.toLowerCase().includes(busqueda)) return;
+            count++;
             const opt = document.createElement('option');
             opt.value = t.id;
             opt.textContent = t.numero_ticket + ' - ' + (t.asunto ? t.asunto.substring(0, 35) : '');
@@ -367,6 +382,7 @@ $tickets_json = json_encode($tickets);
         });
         selectTicket.innerHTML = '';
         selectTicket.appendChild(fragment);
+        document.getElementById('totalTickets').textContent = count + ' ticket(s)';
     }
 
     buscarTicket.addEventListener('input', filtrarTickets);
