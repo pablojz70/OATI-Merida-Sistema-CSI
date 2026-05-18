@@ -105,14 +105,7 @@ if (!file_exists($menu_archivo)) {
     .stat-link .stat-usuario {
         transition: all 0.2s ease;
     }
-        .row-oati td {
-            background: #e3f2fd !important;
-        }
-        .row-infra td {
-            background: #f5f5f5 !important;
-        }
-        .table-custom tbody tr.row-oati:hover td,
-        .table-custom tbody tr.row-infra:hover td {
+        .table-custom tbody tr:hover td {
             filter: brightness(0.97);
         }
         
@@ -399,9 +392,8 @@ if (!file_exists($menu_archivo)) {
                                     $numero_ticket_completo = $ticket['numero_ticket'] ?? 'TICK-' . $ticket['id'];
                                     $numero_ticket_corto = substr($numero_ticket_completo, -5);
                                     $dependencia_corto = $ticket['dependencia_corto'] ?? $ticket['dependencia_nombre'] ?? 'N/A';
-                                    $fila_clase = (($ticket['area_tipo'] ?? 'informatica') == 'infraestructura') ? 'row-infra' : 'row-oati';
                                 ?>
-                                <tr class="<?php echo $fila_clase; ?>">
+                                <tr>
                                     <td nowrap style="font-weight: 600; font-size: 11px;">
                                         <span title="<?php echo htmlspecialchars($numero_ticket_completo); ?>">
                                             <?php echo htmlspecialchars($numero_ticket_corto); ?>
@@ -424,9 +416,14 @@ if (!file_exists($menu_archivo)) {
                                         <?php echo date('d/m H:i', strtotime($ticket['fecha_creacion'])); ?>
                                     </td>
                                     <td>
+                                        <?php if (($ticket['area_tipo'] ?? 'informatica') == 'infraestructura'): ?>
+                                            <img src="imagen/Ticket.png" alt="Infra" style="width:12px;height:12px;margin-right:2px;vertical-align:middle;" title="Infraestructura">
+                                        <?php else: ?>
+                                            <img src="imagen/oati.png" alt="OATI" style="width:12px;height:12px;margin-right:2px;vertical-align:middle;" title="OATI">
+                                        <?php endif; ?>
                                         <a href="ver_ticket.php?id=<?php echo $ticket['id']; ?>" 
                                            class="action-btn-custom btn-action-small">
-                                            Ver
+                                            <img src="imagen/ojo.png" alt="Ver" style="width:12px;height:12px;vertical-align:middle;"> Ver
                                         </a>
                                     </td>
                                 </tr>
