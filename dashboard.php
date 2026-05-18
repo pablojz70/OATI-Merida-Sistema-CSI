@@ -438,6 +438,12 @@ if (!file_exists($menu_archivo)) {
                         <?php echo count($recent_tickets); ?> registros
                     </div>
                 </div>
+                <?php else: ?>
+                <div style="text-align: center; padding: 20px 10px; color: #666;">
+                    <i class="fas fa-inbox" style="font-size: 28px; opacity: 0.3; margin-bottom: 8px;"></i>
+                    <p style="font-size:12px;">No hay actividad reciente</p>
+                </div>
+                <?php endif; ?>
             </div>
             
             <!-- FOOTER -->
