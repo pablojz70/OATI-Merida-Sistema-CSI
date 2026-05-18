@@ -56,6 +56,7 @@ $filtros = [
     'estado' => $_GET['estado'] ?? '',
     'prioridad' => $_GET['prioridad'] ?? '',
     'area_id' => $_GET['area_id'] ?? '',
+    'servicio_id' => $_GET['servicio_id'] ?? '',
     'tecnico_id' => $_GET['tecnico_id'] ?? '',
     'dependencia_id' => $_GET['dependencia_id'] ?? '',
     'fecha_desde' => $_GET['fecha_desde'] ?? '',
@@ -118,6 +119,12 @@ if (!empty($filtros['prioridad'])) {
 if (!empty($filtros['area_id'])) {
     $query .= " AND t.area_id = ?";
     $params[] = $filtros['area_id'];
+    $param_types[] = PDO::PARAM_INT;
+}
+
+if (!empty($filtros['servicio_id'])) {
+    $query .= " AND t.servicio_id = ?";
+    $params[] = $filtros['servicio_id'];
     $param_types[] = PDO::PARAM_INT;
 }
 
@@ -186,6 +193,10 @@ if ($vista_tipo === 'oati') {
     $area_tipo_cond = " WHERE tipo = 'infraestructura'";
 }
 $areas = $conn->query("SELECT id, nombre FROM AreasSoporte{$area_tipo_cond} ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+
+// Obtener servicios y todos los servicios para filtro dinámico
+$servicios = $conn->query("SELECT s.id, s.nombre, s.area_id FROM Servicios s WHERE s.activo = 1 ORDER BY s.nombre")->fetchAll(PDO::FETCH_ASSOC);
+$servicios_json = json_encode($servicios);
 
 // Obtener admins y técnicos para asignación
 $admins = $conn->query("SELECT id, nombre, privilegio FROM Usuarios WHERE privilegio = 'admin' AND activo = 1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
@@ -1073,6 +1084,18 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                         </div>
                         
                         <div class="form-group-filtro-custom">
+                            <label for="servicio_id">Servicio:</label>
+                            <select id="servicio_id" name="servicio_id">
+                                <option value="">Todos</option>
+                                <?php foreach ($servicios as $serv): ?>
+                                <option value="<?php echo $serv['id']; ?>" <?php echo $filtros['servicio_id'] == $serv['id'] ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($serv['nombre']); ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group-filtro-custom">
                             <label for="tecnico_id"><?php echo empty($vista_tipo) ? 'Tipo / Asignado:' : ($vista_tipo == 'infraestructura' ? 'Infraestructura:' : 'OATI:'); ?></label>
                             <select id="tecnico_id" name="tecnico_id">
                                 <option value="">Todos</option>
@@ -1252,9 +1275,9 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                         <div class="acciones-rapidas-tickets">
                                             <!-- Icono tipo de ticket -->
                                             <?php if (($ticket['area_tipo'] ?? 'informatica') == 'infraestructura'): ?>
-                                                <img src="imagen/oati.png" alt="Infra" style="width:14px;height:14px;margin-right:2px;vertical-align:middle;" title="Infraestructura">
+                                                <img src="imagen/Ticket.png" alt="Infra" style="width:14px;height:14px;margin-right:2px;vertical-align:middle;" title="Infraestructura">
                                             <?php else: ?>
-                                                <img src="imagen/Ticket.png" alt="OATI" style="width:14px;height:14px;margin-right:2px;vertical-align:middle;" title="OATI">
+                                                <img src="imagen/oati.png" alt="OATI" style="width:14px;height:14px;margin-right:2px;vertical-align:middle;" title="OATI">
                                             <?php endif; ?>
                                             <!-- Botón Ver - Siempre visible -->
                                             <a href="ver_ticket.php?id=<?php echo $ticket['id']; ?>" 
@@ -1718,6 +1741,27 @@ $total_activos = $activos_data['total_activos'] ?? 0;
             };
         }
     })();
+    
+    // Filtro dinámico de servicios por área
+    var todosServicios = <?php echo $servicios_json; ?>;
+    function filtrarServicios() {
+        var areaId = document.getElementById('area_id').value;
+        var selectServ = document.getElementById('servicio_id');
+        var valorActual = selectServ.value;
+        selectServ.innerHTML = '<option value="">Todos</option>';
+        for (var i = 0; i < todosServicios.length; i++) {
+            var s = todosServicios[i];
+            if (!areaId || String(s.area_id) === areaId) {
+                var opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.nombre;
+                if (String(s.id) === valorActual) opt.selected = true;
+                selectServ.appendChild(opt);
+            }
+        }
+    }
+    document.getElementById('area_id').addEventListener('change', filtrarServicios);
+    if (document.getElementById('area_id').value) filtrarServicios();
     </script>
 </body>
 </html>
