@@ -141,7 +141,7 @@ $tickets_json = json_encode($tickets);
         .acciones { display: flex; gap: 5px; }
         /* Modal */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal-content { background: white; margin: 10% auto; padding: 20px; border-radius: 8px; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .modal-content { background: white; margin: 5% auto; padding: 20px; border-radius: 8px; max-width: 500px; max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
         .modal h3 { margin-top: 0; color: #1a2980; }
         .modal label { display: block; margin-bottom: 3px; font-size: 12px; color: #333; }
         .modal input, .modal select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; margin-bottom: 10px; box-sizing: border-box; }
