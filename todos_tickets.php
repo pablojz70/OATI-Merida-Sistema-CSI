@@ -1156,7 +1156,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                     <table class="table-tickets">
                         <thead>
                             <tr>
-                                <th>Asunto</th>
+                                <th style="max-width:200px;">Asunto</th>
                                 <th>Usuario</th>
                                 <th>Dependencia</th>
                                 <th><?php echo $vista_tipo == 'infraestructura' ? 'Asignado' : 'OATI'; ?></th>
@@ -1171,7 +1171,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                 <?php foreach ($tickets as $ticket): ?>
                                 <?php $fila_clase = (($ticket['area_tipo'] ?? 'informatica') == 'infraestructura') ? 'row-infra' : 'row-oati'; ?>
                                 <tr class="<?php echo $fila_clase; ?>">
-                                    <td title="<?php echo htmlspecialchars($ticket['asunto'] ?? ''); ?>">
+                                    <td title="<?php echo htmlspecialchars($ticket['asunto'] ?? ''); ?>" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                                         <?php echo htmlspecialchars(substr($ticket['asunto'] ?? '', 0, 40)); ?>
                                         <?php if (strlen($ticket['asunto'] ?? '') > 40): ?>...<?php endif; ?>
                                         <!-- Mostrar número de ticket como tooltip -->
