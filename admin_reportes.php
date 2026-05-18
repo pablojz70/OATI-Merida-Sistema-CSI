@@ -23,8 +23,9 @@ $filtros = [
     'fecha_desde' => $_GET['fecha_desde'] ?? '',
     'fecha_hasta' => $_GET['fecha_hasta'] ?? '',
     'area_id' => $_GET['area_id'] ?? '',
-    'oati_id' => $_GET['tecnico_id'] ?? '',
+    'oati_id' => $_GET['oati_id'] ?? '',
     'dependencia_id' => $_GET['dependencia_id'] ?? '',
+    'servicio_id' => $_GET['servicio_id'] ?? '',
     'area_tipo' => $_GET['area_tipo'] ?? '',
     'tipo_reporte' => $_GET['tipo_reporte'] ?? 'general',
     'vista_tipo' => $_GET['vista_tipo'] ?? ''
@@ -49,6 +50,29 @@ if ($vista_tipo === 'oati') {
 $stmt_areas = $conn->prepare("SELECT id, nombre FROM AreasSoporte WHERE activa = 1{$area_tipo_areas} ORDER BY orden, nombre");
 $stmt_areas->execute();
 $areas_result = $stmt_areas->fetchAll(PDO::FETCH_ASSOC);
+
+// Obtener servicios según el area seleccionada
+$area_filter_servicios = "";
+if (!empty($filtros['area_id'])) {
+    $area_filter_servicios = " AND area_id = " . intval($filtros['area_id']);
+} elseif ($vista_tipo === 'oati') {
+    $stmt_a = $conn->query("SELECT id FROM AreasSoporte WHERE activa = 1 AND tipo = 'informatica' ORDER BY orden, nombre");
+    $ids_a = $stmt_a->fetchAll(PDO::FETCH_COLUMN);
+    if ($ids_a) $area_filter_servicios = " AND area_id IN (" . implode(',', $ids_a) . ")";
+} elseif ($vista_tipo === 'infraestructura') {
+    $stmt_a = $conn->query("SELECT id FROM AreasSoporte WHERE activa = 1 AND tipo = 'infraestructura' ORDER BY orden, nombre");
+    $ids_a = $stmt_a->fetchAll(PDO::FETCH_COLUMN);
+    if ($ids_a) $area_filter_servicios = " AND area_id IN (" . implode(',', $ids_a) . ")";
+}
+$stmt_servicios = $conn->prepare("SELECT id, nombre FROM Servicios WHERE activo = 1{$area_filter_servicios} ORDER BY nombre");
+$stmt_servicios->execute();
+$servicios_result = $stmt_servicios->fetchAll(PDO::FETCH_ASSOC);
+
+// Todos los servicios para filtro dinámico (JS)
+$stmt_todos_serv = $conn->prepare("SELECT s.id, s.nombre, s.area_id FROM Servicios s WHERE s.activo = 1 ORDER BY s.nombre");
+$stmt_todos_serv->execute();
+$todos_servicios = $stmt_todos_serv->fetchAll(PDO::FETCH_ASSOC);
+$todos_servicios_json = json_encode($todos_servicios);
 
 // Obtener OATI / Infraestructura según vista (más admins)
 $admins_list = $conn->prepare("SELECT id, nombre FROM Usuarios WHERE privilegio = 'admin' AND activo = 1 ORDER BY nombre");
@@ -101,6 +125,11 @@ if (!empty($filtros['oati_id'])) {
 if (!empty($filtros['dependencia_id'])) {
     $where_conditions[] = "t.dependencia_id = :dependencia_id";
     $params[':dependencia_id'] = $filtros['dependencia_id'];
+}
+
+if (!empty($filtros['servicio_id'])) {
+    $where_conditions[] = "t.servicio_id = :servicio_id";
+    $params[':servicio_id'] = $filtros['servicio_id'];
 }
 
 if (!empty($filtros['area_tipo'])) {
@@ -206,18 +235,31 @@ try {
     $por_estado = $stmt_estado->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {}
 
-// Datos para gráfico por área
+// Datos para gráfico por área (o por servicio si hay un área seleccionada)
 $por_area = [];
+$titulo_grafico_areas = !empty($filtros['area_id']) ? 'Tickets por Servicio' : 'Tickets por Área';
 try {
-    $area_sql = "SELECT 
-        a.nombre as area_nombre,
-        COUNT(t.id) as total
-    FROM Tickets t
-    LEFT JOIN AreasSoporte a ON t.area_id = a.id
-    $where_sql
-    GROUP BY t.area_id, a.nombre
-    ORDER BY total DESC
-    LIMIT 8";
+    if (!empty($filtros['area_id'])) {
+        $area_sql = "SELECT 
+            s.nombre as area_nombre,
+            COUNT(t.id) as total
+        FROM Tickets t
+        LEFT JOIN Servicios s ON t.servicio_id = s.id
+        $where_sql
+        GROUP BY t.servicio_id, s.nombre
+        ORDER BY total DESC
+        LIMIT 8";
+    } else {
+        $area_sql = "SELECT 
+            a.nombre as area_nombre,
+            COUNT(t.id) as total
+        FROM Tickets t
+        LEFT JOIN AreasSoporte a ON t.area_id = a.id
+        $where_sql
+        GROUP BY t.area_id, a.nombre
+        ORDER BY total DESC
+        LIMIT 8";
+    }
     $stmt_area = $conn->prepare($area_sql);
     $stmt_area->execute($params);
     $por_area = $stmt_area->fetchAll(PDO::FETCH_ASSOC);
@@ -964,6 +1006,16 @@ if ($filtros['oati_id']) {
                     }
                     if ($dependencia_nombre) $texto_filtros[] = "Dependencia: " . $dependencia_nombre;
                 }
+                if ($filtros['servicio_id']) {
+                    $servicio_nombre = '';
+                    foreach ($servicios_result as $serv) {
+                        if ($serv['id'] == $filtros['servicio_id']) {
+                            $servicio_nombre = $serv['nombre'];
+                            break;
+                        }
+                    }
+                    if ($servicio_nombre) $texto_filtros[] = "Servicio: " . $servicio_nombre;
+                }
                 if ($filtros['vista_tipo']) {
                     $texto_filtros[] = "Vista: " . ($filtros['vista_tipo'] == 'infraestructura' ? 'Infraestructura' : 'OATI');
                 }
@@ -1051,7 +1103,7 @@ if ($filtros['oati_id']) {
                 <div class="chart-card">
                     <div class="chart-title">
                         <i class="fas fa-layer-group" style="color:#9b59b6;"></i>
-                        Tickets por Área
+                        <?php echo $titulo_grafico_areas; ?>
                     </div>
                     <div class="chart-container">
                         <canvas id="chartAreas"></canvas>
@@ -1195,12 +1247,11 @@ if ($filtros['oati_id']) {
                                    value="<?php echo htmlspecialchars($filtros['fecha_hasta']); ?>">
                         </div>
                         
-                        <?php if (!empty($vista_tipo)): ?>
                          <div class="form-group-compact">
                              <label for="area_id" class="form-label-compact">
                                  <i class="fas fa-layer-group"></i> Área
                              </label>
-                             <select id="area_id" name="area_id" class="form-select-compact">
+                             <select id="area_id" name="area_id" class="form-select-compact" onchange="filtrarServicios()">
                                  <option value="">Todas las áreas</option>
                                  <?php 
                                  foreach ($areas_result as $area) {
@@ -1210,9 +1261,23 @@ if ($filtros['oati_id']) {
                                  ?>
                              </select>
                          </div>
-                        <?php endif; ?>
-                        
- <div class="form-group-compact">
+                         
+                         <div class="form-group-compact">
+                             <label for="servicio_id" class="form-label-compact">
+                                 <i class="fas fa-cogs"></i> Servicio
+                             </label>
+                             <select id="servicio_id" name="servicio_id" class="form-select-compact">
+                                 <option value="">Todos los servicios</option>
+                                 <?php 
+                                 foreach ($servicios_result as $serv) {
+                                     $selected = ($filtros['servicio_id'] == $serv['id']) ? 'selected' : '';
+                                     echo "<option value='{$serv['id']}' $selected>{$serv['nombre']}</option>";
+                                 }
+                                 ?>
+                             </select>
+                         </div>
+                         
+  <div class="form-group-compact">
   <label for="oati_id" class="form-label-compact">
                                     <i class="fas fa-user-cog"></i> <?php echo empty($vista_tipo) ? 'Tipo / Asignado' : ($vista_tipo == 'infraestructura' ? 'Infraestructura' : 'OATI'); ?>
                                 </label>
@@ -2037,6 +2102,28 @@ if ($filtros['oati_id']) {
         function limpiarFiltros() {
             window.location.href = 'admin_reportes.php';
         }
+        
+        // Filtrar servicios según área seleccionada
+        const todosServicios = <?php echo $todos_servicios_json; ?>;
+        function filtrarServicios() {
+            const areaId = document.getElementById('area_id').value;
+            const selectServ = document.getElementById('servicio_id');
+            const valorActual = selectServ.value;
+            selectServ.innerHTML = '<option value="">Todos los servicios</option>';
+            todosServicios.forEach(s => {
+                if (!areaId || s.area_id == areaId) {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = s.nombre;
+                    if (s.id == valorActual) opt.selected = true;
+                    selectServ.appendChild(opt);
+                }
+            });
+        }
+        // Ejecutar al cargar si hay área seleccionada
+        document.addEventListener('DOMContentLoaded', function() {
+            if (document.getElementById('area_id').value) filtrarServicios();
+        });
         
         // Exportar a Excel
         function exportarReporte() {
