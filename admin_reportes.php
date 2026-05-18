@@ -26,6 +26,7 @@ $filtros = [
     'oati_id' => $_GET['oati_id'] ?? '',
     'dependencia_id' => $_GET['dependencia_id'] ?? '',
     'servicio_id' => $_GET['servicio_id'] ?? '',
+    'busqueda' => $_GET['busqueda'] ?? '',
     'area_tipo' => $_GET['area_tipo'] ?? '',
     'tipo_reporte' => $_GET['tipo_reporte'] ?? 'general',
     'vista_tipo' => $_GET['vista_tipo'] ?? ''
@@ -130,6 +131,11 @@ if (!empty($filtros['dependencia_id'])) {
 if (!empty($filtros['servicio_id'])) {
     $where_conditions[] = "t.servicio_id = :servicio_id";
     $params[':servicio_id'] = $filtros['servicio_id'];
+}
+
+if (!empty($filtros['busqueda'])) {
+    $where_conditions[] = "t.asunto LIKE :busqueda";
+    $params[':busqueda'] = '%' . $filtros['busqueda'] . '%';
 }
 
 if (!empty($filtros['area_tipo'])) {
@@ -1245,6 +1251,15 @@ if ($filtros['oati_id']) {
                             <input type="date" id="fecha_hasta" name="fecha_hasta" 
                                    class="form-input-compact"
                                    value="<?php echo htmlspecialchars($filtros['fecha_hasta']); ?>">
+                        </div>
+                        
+                        <div class="form-group-compact">
+                            <label for="busqueda" class="form-label-compact">
+                                <i class="fas fa-search"></i> Buscar
+                            </label>
+                            <input type="text" id="busqueda" name="busqueda" 
+                                   class="form-input-compact" placeholder="Palabra en asunto..."
+                                   value="<?php echo htmlspecialchars($filtros['busqueda']); ?>">
                         </div>
                         
                          <div class="form-group-compact">
