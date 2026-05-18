@@ -292,10 +292,10 @@ $tickets_json = json_encode($tickets);
             <form method="POST">
                 <input type="hidden" name="accion" value="agregar">
                 
-                <label for="buscarTicket" style="font-weight:bold;font-size:12px;color:#333;">Ticket:</label>
-                <div style="margin-bottom:4px;display:flex;gap:5px;">
-                    <input type="text" id="buscarTicket" placeholder="🔍 Buscar N° de ticket..." style="flex:1;padding:7px;border:1px solid #ccc;border-radius:4px;font-size:12px;">
-                    <select id="filtroEstadoTicket" style="padding:7px;border:1px solid #ccc;border-radius:4px;font-size:12px;">
+                <label for="buscarTicket" style="font-weight:bold;font-size:12px;color:#333;display:block;margin-bottom:3px;">Ticket:</label>
+                <div style="margin-bottom:4px;">
+                    <input type="text" id="buscarTicket" placeholder="🔍 Escriba el N° de ticket a buscar..." style="width:100%;padding:7px;border:1px solid #ccc;border-radius:4px;font-size:12px;box-sizing:border-box;margin-bottom:4px;">
+                    <select id="filtroEstadoTicket" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:4px;font-size:12px;box-sizing:border-box;">
                         <option value="">Todos los cerrados</option>
                         <option value="Cerrado Exitosamente">Solo Exitosos</option>
                         <option value="Cerrado No Exitoso">Solo No Exitosos</option>
