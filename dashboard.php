@@ -110,21 +110,16 @@ if (!file_exists($menu_archivo)) {
         }
         
         /* Tabla más compacta */
-        .table-custom { border-collapse: separate; border-spacing: 0; width: 100%; }
+        .table-custom { border-collapse: collapse; width: 100%; }
         .table-custom thead th { 
             font-size: 10px; padding: 5px 6px; background: #f0f2f5; 
-            border-bottom: 2px solid #dee2e6; white-space: nowrap;
+            white-space: nowrap;
         }
         .table-custom tbody td { 
-            padding: 4px 6px; font-size: 11px; border-bottom: 1px solid #eee;
+            padding: 4px 6px; font-size: 11px;
         }
-        .table-custom thead th,
-        .table-custom tbody td {
-            border-right: 1px solid #e8e8e8;
-        }
-        .table-custom thead th:last-child,
-        .table-custom tbody td:last-child {
-            border-right: none;
+        .table-custom tbody tr {
+            border-bottom: 1px solid #e8e8e8;
         }
         .table-container-custom {
             max-width: 100%;
