@@ -1250,6 +1250,12 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                     
                                     <td>
                                         <div class="acciones-rapidas-tickets">
+                                            <!-- Icono tipo de ticket -->
+                                            <?php if (($ticket['area_tipo'] ?? 'informatica') == 'infraestructura'): ?>
+                                                <img src="imagen/oati.png" alt="Infra" style="width:14px;height:14px;margin-right:2px;vertical-align:middle;" title="Infraestructura">
+                                            <?php else: ?>
+                                                <img src="imagen/Ticket.png" alt="OATI" style="width:14px;height:14px;margin-right:2px;vertical-align:middle;" title="OATI">
+                                            <?php endif; ?>
                                             <!-- Botón Ver - Siempre visible -->
                                             <a href="ver_ticket.php?id=<?php echo $ticket['id']; ?>" 
                                                class="btn-accion-ticket btn-ver-ticket" 
