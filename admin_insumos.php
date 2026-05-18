@@ -172,9 +172,13 @@ $tickets_json = json_encode($tickets);
     <div class="main-wrapper">
         <?php include 'includes/menu_admin.php'; ?>
         <main class="insumos-container">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 8px;">
                 <h2 style="color: #1a2980; margin: 0;"><i class="fas fa-tools"></i> Insumos Faltantes</h2>
-                <button onclick="abrirModalAgregar()" class="btn-agregar"><i class="fas fa-plus"></i> Agregar Insumo</button>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <button onclick="exportarExcel()" style="background:#27ae60;color:white;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:12px;"><i class="fas fa-file-excel"></i> Exportar</button>
+                    <button onclick="window.print()" style="background:#3498db;color:white;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:12px;"><i class="fas fa-print"></i> Imprimir</button>
+                    <button onclick="abrirModalAgregar()" class="btn-agregar"><i class="fas fa-plus"></i> Agregar Insumo</button>
+                </div>
             </div>
             
             <?php if ($mensaje): ?>
@@ -390,6 +394,19 @@ $tickets_json = json_encode($tickets);
     buscarTicket.addEventListener('input', filtrarTickets);
     filtroEstado.addEventListener('change', filtrarTickets);
     filtrarTickets();
+
+    function exportarExcel() {
+        var tabla = document.getElementById('tablaInsumos');
+        if (!tabla) return;
+        var html = '<table>' + tabla.innerHTML + '</table>';
+        var blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'insumos_faltantes.xls';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
     </script>
 </body>
 </html>
