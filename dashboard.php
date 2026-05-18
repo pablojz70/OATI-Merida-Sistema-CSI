@@ -115,6 +115,33 @@ if (!file_exists($menu_archivo)) {
         .table-custom tbody tr.row-infra:hover td {
             filter: brightness(0.97);
         }
+        
+        /* Tabla más compacta */
+        .table-custom { border-collapse: separate; border-spacing: 0; width: 100%; }
+        .table-custom thead th { 
+            font-size: 10px; padding: 5px 6px; background: #f0f2f5; 
+            border-bottom: 2px solid #dee2e6; white-space: nowrap;
+        }
+        .table-custom tbody td { 
+            padding: 4px 6px; font-size: 11px; border-bottom: 1px solid #eee;
+        }
+        .table-custom thead th,
+        .table-custom tbody td {
+            border-right: 1px solid #e8e8e8;
+        }
+        .table-custom thead th:last-child,
+        .table-custom tbody td:last-child {
+            border-right: none;
+        }
+        .table-container-custom {
+            max-width: 100%;
+            margin: 0;
+        }
+        .main-content-custom {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 8px 12px;
+        }
     </style>
 </head>
 <body>
@@ -344,9 +371,68 @@ if (!file_exists($menu_archivo)) {
             
             <!-- TICKETS RECIENTES -->
             <div class="table-container-custom fade-in-custom">
-                <div class="table-header-custom">
-                    <div>
-                        <i class="fas fa-clock"></i> Actividad Reciente
+                    <div class="table-header-custom">
+                        <div>
+                            <i class="fas fa-clock"></i> Actividad Reciente
+                        </div>
+                        <div style="font-weight: normal; color: #666; font-size: 11px;">
+                            <?php echo count($recent_tickets); ?> registros
+                        </div>
+                    </div>
+                    
+                    <?php if (!empty($recent_tickets)): ?>
+                    <div style="overflow-x: auto;">
+                        <table class="table-custom">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Dependencia</th>
+                                    <th>Asunto</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($recent_tickets as $ticket): ?>
+                                <?php 
+                                    $numero_ticket_completo = $ticket['numero_ticket'] ?? 'TICK-' . $ticket['id'];
+                                    $numero_ticket_corto = substr($numero_ticket_completo, -5);
+                                    $dependencia_corto = $ticket['dependencia_corto'] ?? $ticket['dependencia_nombre'] ?? 'N/A';
+                                    $fila_clase = (($ticket['area_tipo'] ?? 'informatica') == 'infraestructura') ? 'row-infra' : 'row-oati';
+                                ?>
+                                <tr class="<?php echo $fila_clase; ?>">
+                                    <td nowrap style="font-weight: 600; font-size: 11px;">
+                                        <span title="<?php echo htmlspecialchars($numero_ticket_completo); ?>">
+                                            <?php echo htmlspecialchars($numero_ticket_corto); ?>
+                                        </span>
+                                    </td>
+                                    <td nowrap>
+                                        <span style="font-size: 11px; color: #1976d2;">
+                                            <?php echo htmlspecialchars($dependencia_corto); ?>
+                                        </span>
+                                    </td>
+                                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        <?php echo htmlspecialchars($ticket['asunto']); ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge-custom estado-<?php echo strtolower(str_replace(' ', '-', $ticket['estado'])); ?>">
+                                            <?php echo htmlspecialchars($ticket['estado']); ?>
+                                        </span>
+                                    </td>
+                                    <td nowrap style="font-size: 11px; color: #666;">
+                                        <?php echo date('d/m H:i', strtotime($ticket['fecha_creacion'])); ?>
+                                    </td>
+                                    <td>
+                                        <a href="ver_ticket.php?id=<?php echo $ticket['id']; ?>" 
+                                           class="action-btn-custom btn-action-small">
+                                            Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                     <div style="font-weight: normal; color: #666; font-size: 11px;">
                         <?php echo count($recent_tickets); ?> registros
