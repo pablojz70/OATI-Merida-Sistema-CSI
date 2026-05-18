@@ -543,17 +543,19 @@ $total_activos = $activos_data['total_activos'] ?? 0;
         
         .table-tickets tbody td {
             padding: 4px 6px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #d0d5dd;
             vertical-align: middle;
-            border-right: 1px solid #f0f0f0;
         }
         
         .table-tickets tbody td:last-child {
             border-right: none;
         }
         
-        .table-tickets tbody tr:hover {
+        .table-tickets tbody tr {
             background: #f8fafc;
+        }
+        .table-tickets tbody tr:hover {
+            filter: brightness(0.97);
         }
         
         /* TOOLTIP PARA DEPENDENCIA */
