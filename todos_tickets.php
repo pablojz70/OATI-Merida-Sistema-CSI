@@ -859,14 +859,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
             }
         }
         
-        .row-oati td {
-            background: #e3f2fd !important;
-        }
-        .row-infra td {
-            background: #f5f5f5 !important;
-        }
-        .table-tickets tbody tr.row-oati:hover td,
-        .table-tickets tbody tr.row-infra:hover td {
+        .table-tickets tbody tr:hover {
             filter: brightness(0.97);
         }
     </style>
@@ -1172,8 +1165,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                         <tbody>
                             <?php if (!empty($tickets)): ?>
                                 <?php foreach ($tickets as $ticket): ?>
-                                <?php $fila_clase = (($ticket['area_tipo'] ?? 'informatica') == 'infraestructura') ? 'row-infra' : 'row-oati'; ?>
-                                <tr class="<?php echo $fila_clase; ?>">
+                                <tr>
                                     <td title="<?php echo htmlspecialchars($ticket['asunto'] ?? ''); ?>" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                                         <?php echo htmlspecialchars(substr($ticket['asunto'] ?? '', 0, 40)); ?>
                                         <?php if (strlen($ticket['asunto'] ?? '') > 40): ?>...<?php endif; ?>
