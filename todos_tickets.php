@@ -264,11 +264,15 @@ $total_activos = $activos_data['total_activos'] ?? 0;
         /* CONTENIDO PRINCIPAL COMPACTO */
         .main-content-custom {
             margin-left: 190px !important;
-            padding: 10px !important;
+            padding: 8px 12px !important;
             width: calc(100% - 190px);
             max-height: calc(100vh - 50px);
             overflow-y: auto;
             background: #f8fafc;
+        }
+        
+        .table-container-tickets {
+            max-width: 1400px;
         }
         
         /* TÍTULOS DE PÁGINA */
@@ -521,22 +525,33 @@ $total_activos = $activos_data['total_activos'] ?? 0;
             font-size: 11px;
         }
         
-        .table-tickets th {
+        .table-tickets thead th {
             background: #f1f5f9;
             color: #475569;
             font-weight: 600;
-            padding: 8px 10px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 5px 6px;
+            border-bottom: 2px solid #dee2e6;
             white-space: nowrap;
+            border-right: 1px solid #e2e8f0;
+            font-size: 10px;
         }
         
-        .table-tickets td {
-            padding: 6px 8px;
-            border-bottom: 1px solid #f1f5f9;
+        .table-tickets thead th:last-child {
+            border-right: none;
+        }
+        
+        .table-tickets tbody td {
+            padding: 4px 6px;
+            border-bottom: 1px solid #eee;
             vertical-align: middle;
+            border-right: 1px solid #f0f0f0;
         }
         
-        .table-tickets tr:hover {
+        .table-tickets tbody td:last-child {
+            border-right: none;
+        }
+        
+        .table-tickets tbody tr:hover {
             background: #f8fafc;
         }
         
@@ -1170,17 +1185,11 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                         <?php if (strlen($ticket['usuario_nombre'] ?? '') > 15): ?>...<?php endif; ?>
                                     </td>
                                     
-                                    <!-- CELDA DEPENDENCIA MODIFICADA para mostrar nombre_corto con tooltip -->
+                                    <!-- CELDA DEPENDENCIA -->
                                     <td>
                                         <span class="dependencia-tooltip" 
                                               title="<?php echo htmlspecialchars($ticket['dependencia_nombre'] ?? ''); ?>">
-                                            <?php if (!empty($ticket['dependencia_nombre_corto'])): ?>
-                                                <?php echo htmlspecialchars(substr($ticket['dependencia_nombre_corto'] ?? '', 0, 12)); ?>
-                                                <?php if (strlen($ticket['dependencia_nombre_corto'] ?? '') > 12): ?>...<?php endif; ?>
-                                            <?php else: ?>
-                                                <?php echo htmlspecialchars(substr($ticket['dependencia_nombre'] ?? '', 0, 12)); ?>
-                                                <?php if (strlen($ticket['dependencia_nombre'] ?? '') > 12): ?>...<?php endif; ?>
-                                            <?php endif; ?>
+                                            <?php echo htmlspecialchars(!empty($ticket['dependencia_nombre_corto']) ? $ticket['dependencia_nombre_corto'] : ($ticket['dependencia_nombre'] ?? '')); ?>
                                         </span>
                                     </td>
                                     
