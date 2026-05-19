@@ -189,6 +189,9 @@ class BackupManager {
             
             $this->log("=== BACKUP COMPLETADO ===\n");
             
+            // Limpiar backups antiguos, mantener solo últimos 10
+            $this->limpiarBackupsPorCantidad(10);
+            
             return [
                 'success' => true,
                 'archivo' => $nombre_archivo,
@@ -270,6 +273,20 @@ class BackupManager {
         $this->log("Backups eliminados: $eliminados");
     }
     
+    public function limpiarBackupsPorCantidad($max = 10) {
+        $backups = $this->listarBackups();
+        if (count($backups) <= $max) return;
+        
+        $eliminados = 0;
+        for ($i = $max; $i < count($backups); $i++) {
+            if (file_exists($backups[$i]['ruta'])) {
+                unlink($backups[$i]['ruta']);
+                $eliminados++;
+            }
+        }
+        $this->log("Backups eliminados por límite de $max: $eliminados");
+    }
+    
     private function eliminarDirectorio($dir) {
         if (!file_exists($dir)) return;
         
@@ -300,7 +317,7 @@ class BackupManager {
             return strtotime($b['fecha']) - strtotime($a['fecha']);
         });
         
-        return $backups;
+        return array_slice($backups, 0, 10);
     }
     
     public function obtenerUltimoBackup() {
