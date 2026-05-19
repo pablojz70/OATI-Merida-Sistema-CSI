@@ -755,17 +755,17 @@ $stats = $stats_stmt->fetch();
         
         <!-- Cambiar a En Proceso (solo si está asignado) -->
         <?php if ($ticket['estado'] == 'Asignado'): ?>
-        <button onclick="cambiarEstado(<?php echo $ticket['id']; ?>, 'En Proceso')" 
-                class="btn-accion-tecnico btn-proceso-ticket">
+        <a href="procesar_ticket.php?id=<?php echo $ticket['id']; ?>" 
+           class="btn-accion-tecnico btn-proceso-ticket">
             <i class="fas fa-play"></i> En Proceso
-        </button>
+        </a>
         <?php endif; ?>
         
         <!-- Cerrar Ticket (siempre visible si no está cerrado) -->
-        <button onclick="abrirModalCerrar(<?php echo $ticket['id']; ?>)" 
-                class="btn-accion-tecnico btn-cerrar-ticket">
+        <a href="cerrar_ticket.php?id=<?php echo $ticket['id']; ?>" 
+           class="btn-accion-tecnico btn-cerrar-ticket">
             <i class="fas fa-check"></i> Cerrar
-        </button>
+        </a>
         
     <?php endif; ?>
 </div>
@@ -802,141 +802,8 @@ $stats = $stats_stmt->fetch();
             </div>
         </main>
     </div>
-    <!-- Modal para cerrar ticket -->
-<div id="modal-cerrar" class="modal-custom" style="display: none;">
-    <div class="modal-content-custom">
-        <div class="modal-header-custom">
-            <h3><i class="fas fa-check-circle"></i> Cerrar Ticket</h3>
-            <span class="close-modal" onclick="cerrarModalCerrar()" style="cursor: pointer;">&times;</span>
-        </div>
-        
-        <form id="form-cerrar-rapido" class="modal-form-custom">
-            <input type="hidden" id="ticket-id-cerrar" name="ticket_id">
-            
-            <div class="form-group-custom">
-                <label>Tipo de cierre:</label>
-                <div style="margin: 10px 0;">
-                    <label style="display: block; margin-bottom: 8px;">
-                        <input type="radio" name="tipo_cierre" value="exitoso" checked>
-                        <span style="margin-left: 6px; color: #28a745;">
-                            <i class="fas fa-check-circle"></i> Cerrado Exitosamente
-                        </span>
-                    </label>
-                    <label style="display: block;">
-                        <input type="radio" name="tipo_cierre" value="no_exitoso">
-                        <span style="margin-left: 6px; color: #dc3545;">
-                            <i class="fas fa-times-circle"></i> Cerrado No Exitoso
-                        </span>
-                    </label>
-                </div>
-            </div>
-            
-            <div class="form-group-custom">
-                <label for="solucion-rapida">Solución aplicada:</label>
-                <textarea id="solucion-rapida" name="solucion" 
-                          placeholder="Describe la solución aplicada al problema..." 
-                          required rows="4"></textarea>
-            </div>
-            
-            <div class="modal-actions-custom">
-                <button type="button" class="btn-cancelar-custom" onclick="cerrarModalCerrar()">Cancelar</button>
-                <button type="submit" class="btn-confirmar-custom">Cerrar Ticket</button>
-            </div>
-        </form>
-    </div>
-</div>
-
+    
 <style>
-.modal-custom {
-    display: none;
-    position: fixed;
-    z-index: 10000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-}
-
-.modal-content-custom {
-    background-color: white;
-    margin: 5% auto;
-    padding: 20px;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-}
-
-.modal-header-custom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
-}
-
-.modal-header-custom h3 {
-    font-size: 14px !important;
-    margin: 0 !important;
-    color: #1a2980;
-}
-
-.close-modal {
-    font-size: 24px;
-    color: #999;
-}
-
-.close-modal:hover {
-    color: #333;
-}
-
-.modal-form-custom .form-group-custom {
-    margin-bottom: 12px;
-}
-
-.modal-form-custom label {
-    display: block;
-    margin-bottom: 4px;
-    font-weight: 600;
-    color: #4a5568;
-    font-size: 11px;
-}
-
-.modal-form-custom textarea {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 11px;
-    min-height: 80px;
-    resize: vertical;
-}
-
-.modal-actions-custom {
-    display: flex;
-    gap: 8px;
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
-}
-
-.modal-actions-custom button {
-    flex: 1;
-    padding: 8px;
-    border: none;
-    border-radius: 4px;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 11px;
-}
-
-.btn-cancelar-custom {
-    background: #6c757d;
-    color: white;
-}
-
 .btn-confirmar-custom {
     background: #27ae60;
     color: white;
@@ -944,56 +811,8 @@ $stats = $stats_stmt->fetch();
 </style>
     <!-- SCRIPTS -->
     <script>
-    // Función para cambiar estado del ticket
-function cambiarEstado(ticketId, nuevoEstado) {
-    if (!confirm(`¿Cambiar estado del ticket a "${nuevoEstado}"?`)) {
-        return;
-    }
-    
-    // Mostrar indicador de carga
-    const button = event.target;
-    const originalText = button.innerHTML;
-    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-    button.disabled = true;
-    
-    const formData = new FormData();
-    formData.append('ticket_id', ticketId);
-    formData.append('nuevo_estado', nuevoEstado);
-    formData.append('accion', 'cambiar_estado');
-    
-    fetch('procesar_ticket_simple.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Error en la respuesta del servidor');
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            // Recargar la página después de 1 segundo
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
-        } else {
-            alert('❌ ' + data.message);
-            // Restaurar botón
-            button.innerHTML = originalText;
-            button.disabled = false;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('❌ Error de conexión: ' + error.message);
-        // Restaurar botón
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
-}
-    
+    <!-- SCRIPTS -->
+    <script>
     // Función para ver detalle del ticket
     function verDetalle(ticketId) {
         window.location.href = `ver_ticket.php?id=${ticketId}`;
@@ -1037,79 +856,6 @@ function cambiarEstado(ticketId, nuevoEstado) {
             });
         });
     });
-// Función para abrir modal de cierre rápido
-function abrirModalCerrar(ticketId) {
-    document.getElementById('ticket-id-cerrar').value = ticketId;
-    document.getElementById('modal-cerrar').style.display = 'block';
-}
-
-// Función para cerrar modal
-function cerrarModalCerrar() {
-    document.getElementById('modal-cerrar').style.display = 'none';
-    document.getElementById('form-cerrar-rapido').reset();
-}
-
-// Cerrar modal al hacer clic fuera
-window.onclick = function(event) {
-    if (event.target == document.getElementById('modal-cerrar')) {
-        cerrarModalCerrar();
-    }
-}
-
-// Enviar formulario de cierre rápido
-document.getElementById('form-cerrar-rapido').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const ticketId = formData.get('ticket_id');
-    const solucion = formData.get('solucion');
-    
-    if (!solucion.trim()) {
-        alert('⚠️ Debe ingresar la solución');
-        return;
-    }
-    
-    // Mostrar indicador de carga
-    const submitBtn = this.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-    submitBtn.disabled = true;
-    
-    fetch('cerrar_ticket_ajax.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            cerrarModalCerrar();
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            alert('❌ ' + data.message);
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        }
-    })
-    .catch(error => {
-        alert('❌ Error de conexión');
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    });
-});
-
-// Modificar el enlace de cerrar para usar el modal
-document.addEventListener('DOMContentLoaded', function() {
-    // Ocultar botones que ya están escondidos por PHP (por si acaso)
-    document.querySelectorAll('.ticket-item-custom').forEach(item => {
-        const estado = item.querySelector('.badge-estado-ticket')?.textContent;
-        if (estado && (estado.includes('Cerrado') || estado.includes('No Exitoso'))) {
-            // Ocultar botones de acción que puedan haber escapado
-            const botones = item.querySelectorAll('.btn-proceso-ticket, .btn-cerrar-ticket');
-            botones.forEach(btn => btn.style.display = 'none');
-        }
-    });
-}); 
     </script>
 </body>
 </html>
