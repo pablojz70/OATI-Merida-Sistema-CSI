@@ -25,12 +25,18 @@ function enviarTelegram($chat_id, $mensaje) {
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     
-    // Proxy
+    // Proxy - solo si el proxy es alcanzable
     if (defined('TELEGRAM_PROXY') && !empty(TELEGRAM_PROXY)) {
-        curl_setopt($ch, CURLOPT_PROXY, TELEGRAM_PROXY);
-        curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
-        if (defined('TELEGRAM_PROXY_USER') && !empty(TELEGRAM_PROXY_USER)) {
-            curl_setopt($ch, CURLOPT_PROXYUSERPWD, TELEGRAM_PROXY_USER . ':' . TELEGRAM_PROXY_PASS);
+        $proxy_host = str_replace(['http://','https://'], '', TELEGRAM_PROXY);
+        $parts = explode(':', $proxy_host);
+        $fp = @fsockopen($parts[0], $parts[1] ?? 8080, $errno, $errstr, 2);
+        if ($fp) {
+            fclose($fp);
+            curl_setopt($ch, CURLOPT_PROXY, TELEGRAM_PROXY);
+            curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+            if (defined('TELEGRAM_PROXY_USER') && !empty(TELEGRAM_PROXY_USER)) {
+                curl_setopt($ch, CURLOPT_PROXYUSERPWD, TELEGRAM_PROXY_USER . ':' . TELEGRAM_PROXY_PASS);
+            }
         }
     }
     
