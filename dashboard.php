@@ -318,7 +318,9 @@ if (!file_exists($menu_archivo)) {
                     <a href="admin_reportes.php" class="action-btn-custom warning">
                         <img src="imagen/Bar Chart.png" alt="Reportes" style="width:18px;height:18px;object-fit:contain;"> Generar Reportes
                     </a>
-                
+                    <div class="action-btn-custom" id="telegramStatus" style="cursor:default;opacity:.8;">
+                        <i class="fab fa-telegram"></i> <span id="telegramStatusText">Verificando...</span>
+                    </div>
                 <?php elseif ($privilegio == 'director'): ?>
                     <a href="todos_tickets.php" class="action-btn-custom">
                         <img src="imagen/Cabinet.png" alt="Tickets" style="width:18px;height:18px;object-fit:contain;"> Ver Todos los Tickets
@@ -501,7 +503,7 @@ if (!file_exists($menu_archivo)) {
     
     // Verificar estado del sistema
     function checkSystemStatus() {
-        fetch('check_session.php')
+        fetch('dashboard.php?ping=1')
             .then(response => {
                 const statusElement = document.getElementById('system-status');
                 if (response.ok) {
@@ -522,6 +524,32 @@ if (!file_exists($menu_archivo)) {
     // Verificar estado cada 30 segundos
     setInterval(checkSystemStatus, 30000);
     checkSystemStatus();
+    
+    // Verificar estado de Telegram (solo admin)
+    <?php if ($privilegio == 'admin'): ?>
+    function checkTelegramStatus() {
+        const el = document.getElementById('telegramStatusText');
+        const parent = document.getElementById('telegramStatus');
+        if (!el) return;
+        fetch('ajax/telegram_status.php')
+            .then(r => r.json())
+            .then(d => {
+                if (d.ok) {
+                    el.textContent = 'Telegram ' + d.username;
+                    parent.style.color = '#27ae60';
+                    parent.style.opacity = '1';
+                } else {
+                    el.textContent = 'Telegram no disponible';
+                    parent.style.color = '#e74c3c';
+                }
+            })
+            .catch(() => {
+                el.textContent = 'Telegram sin conexión';
+            });
+    }
+    checkTelegramStatus();
+    setInterval(checkTelegramStatus, 60000);
+    <?php endif; ?>
     
     // Auto-refresh de datos cada 3 minutos
     setTimeout(() => {
