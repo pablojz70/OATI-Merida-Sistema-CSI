@@ -19,6 +19,8 @@ date_default_timezone_set('America/Caracas');
 // Configuración
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'sistema_csi');
+define('DB_USER', 'root');
+define('DB_PASS', '');
 define('BACKUP_DIR', '/opt/lampp/htdocs/sistema_csi/backups');
 define('LOG_FILE', '/opt/lampp/htdocs/sistema_csi/backups/backup.log');
 
