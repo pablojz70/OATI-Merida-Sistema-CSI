@@ -61,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
     $privilegio_post = trim($_POST['privilegio'] ?? 'usuario');
     $dependencia_id = intval($_POST['dependencia_id'] ?? 0);
     $activo = isset($_POST['activo']) ? 1 : 0;
+    $telegram_id = trim($_POST['telegram_id'] ?? '');
     
     // Validar que nombre y email no estén vacíos
     if (empty($nombre)) {
@@ -89,13 +90,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
             // Construir consulta dinámicamente
             if (!empty($nueva_password) && !empty($confirmar_password) && $nueva_password === $confirmar_password) {
                 $password = password_hash($nueva_password, PASSWORD_DEFAULT);
-                $sql = "UPDATE Usuarios SET nombre = ?, correo = ?, privilegio = ?, dependencia_id = ?, activo = ?, contrasena = ? WHERE id = ?";
+                $sql = "UPDATE Usuarios SET nombre = ?, correo = ?, privilegio = ?, dependencia_id = ?, activo = ?, telegram_id = ?, contrasena = ? WHERE id = ?";
                 $stmt_update = $conn->prepare($sql);
-                $stmt_update->execute([$nombre, $email, $privilegio_post, $dependencia_id, $activo, $password, $id]);
+                $stmt_update->execute([$nombre, $email, $privilegio_post, $dependencia_id, $activo, $telegram_id ?: null, $password, $id]);
             } else {
-                $sql = "UPDATE Usuarios SET nombre = ?, correo = ?, privilegio = ?, dependencia_id = ?, activo = ? WHERE id = ?";
+                $sql = "UPDATE Usuarios SET nombre = ?, correo = ?, privilegio = ?, dependencia_id = ?, activo = ?, telegram_id = ? WHERE id = ?";
                 $stmt_update = $conn->prepare($sql);
-                $stmt_update->execute([$nombre, $email, $privilegio_post, $dependencia_id, $activo, $id]);
+                $stmt_update->execute([$nombre, $email, $privilegio_post, $dependencia_id, $activo, $telegram_id ?: null, $id]);
             }
             
             $mensaje = "Usuario actualizado exitosamente";
@@ -707,6 +708,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
                                            <?php echo ($usuario['activo'] ?? 0) == 1 ? 'checked' : ''; ?>>
                                     <span>Usuario activo (puede iniciar sesión)</span>
                                 </label>
+                            </div>
+                            
+                            <div class="form-group-compact" style="margin-top: 15px;">
+                                <label for="telegram_id" style="font-size:12px;font-weight:bold;color:#1a2980;display:block;margin-bottom:4px;">
+                                    <i class="fab fa-telegram"></i> Telegram ID
+                                </label>
+                                <input type="text" id="telegram_id" name="telegram_id" 
+                                       value="<?php echo htmlspecialchars($usuario['telegram_id'] ?? ''); ?>" 
+                                       placeholder="Ej: 123456789" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px;font-family:monospace;">
+                                <div style="margin-top:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                                    <a href="https://t.me/Ticket_DAR_M_bot?start=" target="_blank">
+                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://t.me/Ticket_DAR_M_bot?start=" 
+                                             alt="QR" style="border:1px solid #ddd;border-radius:5px;width:80px;height:80px;">
+                                    </a>
+                                    <div style="font-size:10px;color:#666;line-height:1.5;">
+                                        Escanea el QR con tu celular, abre Telegram,<br>
+                                        toca "Start" y copia el <strong>ID</strong> que te dé el bot
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
