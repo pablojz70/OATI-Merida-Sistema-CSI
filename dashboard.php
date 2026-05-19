@@ -318,7 +318,7 @@ if (!file_exists($menu_archivo)) {
                     <a href="admin_reportes.php" class="action-btn-custom warning">
                         <img src="imagen/Bar Chart.png" alt="Reportes" style="width:18px;height:18px;object-fit:contain;"> Generar Reportes
                     </a>
-                    <div class="action-btn-custom" id="telegramStatus" style="cursor:default;opacity:.8;">
+                    <div class="action-btn-custom" id="telegramStatus" style="cursor:default;background:#0088cc;color:white;">
                         <i class="fab fa-telegram"></i> <span id="telegramStatusText">Verificando...</span>
                     </div>
                 <?php elseif ($privilegio == 'director'): ?>
@@ -536,11 +536,10 @@ if (!file_exists($menu_archivo)) {
             .then(d => {
                 if (d.ok) {
                     el.textContent = 'Telegram ' + d.username;
-                    parent.style.color = '#27ae60';
                     parent.style.opacity = '1';
                 } else {
                     el.textContent = 'Telegram no disponible';
-                    parent.style.color = '#e74c3c';
+                    parent.style.background = '#e74c3c';
                 }
             })
             .catch(() => {
