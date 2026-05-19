@@ -78,11 +78,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
             case 'eliminar_backup':
                 $archivo = $_POST['archivo'] ?? '';
-                 $ruta = '/opt/lampp/htdocs/sistema_csi/backups/' . $archivo;
+                 $ruta = '/opt/lampp/htdocs/sistema_csi/backups/' . basename($archivo);
                 
                 if (file_exists($ruta)) {
-                    unlink($ruta);
-                    $mensaje = "Backup eliminado: $archivo";
+                    if (unlink($ruta)) {
+                        $mensaje = "Backup eliminado: " . basename($archivo);
+                    } else {
+                        $mensaje = "Error al eliminar el archivo (permisos)";
+                        $tipo_mensaje = 'error';
+                    }
                 } else {
                     $mensaje = "El archivo no existe";
                     $tipo_mensaje = 'error';
