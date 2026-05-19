@@ -566,7 +566,7 @@ try {
                             <small style="color: #666; font-size: 11px;">Nota: Los adjuntos aumentan significativamente el tamaño del backup</small>
                         </div>
                         
-                        <button type="button" class="btn-backup" onclick="crearBackupAjax()">
+                        <button type="submit" class="btn-backup">
                             <i class="fas fa-save"></i> Crear Backup Ahora
                         </button>
                         <div id="backup-console" style="display:none;"></div>
@@ -696,36 +696,6 @@ try {
                 diaGroup.style.display = 'none';
             }
         });
-        
-        function crearBackupAjax() {
-            var consoleDiv = document.getElementById('backup-console');
-            consoleDiv.style.display = 'block';
-            consoleDiv.innerHTML = '<pre style="background:#1e1e1e;color:#d4d4d4;padding:10px;border-radius:5px;max-height:300px;overflow:auto;font-size:12px;margin-top:10px;"></pre>';
-            var pre = consoleDiv.querySelector('pre');
-            
-            pre.textContent = '[...] Iniciando backup...\n';
-            
-            var formData = new FormData();
-            formData.append('accion', 'crear_backup');
-            formData.append('tipo_backup', document.querySelector('select[name="tipo_backup"]').value);
-            formData.append('incluir_adjuntos', document.getElementById('incluir_adjuntos').checked ? '1' : '');
-            
-            fetch(window.location.href, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.text())
-            .then(data => {
-                pre.textContent += '[OK] Backup completado!\n';
-                setTimeout(function() {
-                    consoleDiv.style.display = 'none';
-                    location.reload();
-                }, 1500);
-            })
-            .catch(function(error) {
-                pre.textContent += '[ERROR] ' + error + '\n';
-            });
-        }
-    </script>
+        </script>
 </body>
 </html>

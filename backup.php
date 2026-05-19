@@ -68,6 +68,7 @@ class BackupManager {
     }
     
     public function hacerBackup($opciones = []) {
+        set_time_limit(300);
         $defaults = [
             'tipo' => 'completo',
             'incluir_adjuntos' => false,
