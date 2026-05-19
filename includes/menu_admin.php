@@ -88,7 +88,7 @@
         <li>
             <a href="admin_insumos.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_insumos.php' ? 'active' : ''; ?>">
                 <img src="imagen/Settings.png" alt="Insumos" class="menu-icon">
-                <span>Insumos Faltantes</span>
+                <span>Insumos</span>
             </a>
         </li>
         
