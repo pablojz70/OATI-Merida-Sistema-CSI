@@ -79,7 +79,7 @@ du.nombre as usuario_dependencia_nombre,
         $puede_ver = true;
     } elseif ($privilegio == 'director') {
         $puede_ver = true;
-    } elseif ($privilegio == 'oati') {
+    } elseif ($privilegio == 'oati' || $privilegio == 'infraestructura') {
         $puede_ver = ($ticket['oati_asignado'] == $id_usuario);
     } elseif ($privilegio == 'usuario') {
         $puede_ver = ($ticket['usuario_id'] == $id_usuario);
@@ -90,7 +90,7 @@ du.nombre as usuario_dependencia_nombre,
     if (!$puede_ver) {
         if ($privilegio == 'admin' || $privilegio == 'director') {
             $redirect_url = 'todos_tickets.php';
-        } elseif ($privilegio == 'oati') {
+        } elseif ($privilegio == 'oati' || $privilegio == 'infraestructura') {
             $redirect_url = 'tickets_asignados.php';
         } elseif ($privilegio == 'bienes') {
             $redirect_url = 'bandeja_bienes.php';
@@ -1234,14 +1234,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
 <!-- Botón PROCESAR (admin o técnico asignado, solo si no está cerrado) -->
                      <?php 
                      $ticketCerrado = strpos($ticket['estado'], 'Cerrado') !== false;
-                     if (($privilegio == 'admin' || ($privilegio == 'oati' && $ticket['oati_asignado'] == $id_usuario)) && !$ticketCerrado): ?>
+                     if (($privilegio == 'admin' || (in_array($privilegio, ['oati', 'infraestructura']) && $ticket['oati_asignado'] == $id_usuario)) && !$ticketCerrado): ?>
                         <a href="procesar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action procesar" title="Procesar ticket">
                             <i class="fas fa-tools"></i>
                         </a>
                     <?php endif; ?>
                     
 <!-- Botón CERRAR (solo si no está cerrado) -->
-                     <?php if (($privilegio == 'admin' || ($privilegio == 'oati' && $ticket['oati_asignado'] == $id_usuario)) && !$ticketCerrado): ?>
+                     <?php if (($privilegio == 'admin' || (in_array($privilegio, ['oati', 'infraestructura']) && $ticket['oati_asignado'] == $id_usuario)) && !$ticketCerrado): ?>
                         <a href="cerrar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action close" title="Cerrar ticket">
                             <i class="fas fa-check"></i>
                         </a>
