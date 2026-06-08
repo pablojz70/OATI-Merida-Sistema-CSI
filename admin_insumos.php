@@ -253,7 +253,7 @@ $tickets_json = json_encode($tickets);
                                 <form method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar este insumo?')">
                                     <input type="hidden" name="accion" value="eliminar">
                                     <input type="hidden" name="id" value="<?php echo $i['id']; ?>">
-                                    <button type="submit" class="btn-accion btn-eliminar"><i class="fas fa-trash"></i></button>
+                                    <button type="submit" class="btn-accion btn-eliminar"><img src="imagen/borrar.png" alt="Eliminar" style="width:12px;height:12px;"></button>
                                 </form>
                             </div>
                         </td>

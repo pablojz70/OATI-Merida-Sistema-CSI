@@ -591,7 +591,7 @@ $stats = $stmt_stats->fetch(PDO::FETCH_ASSOC);
                                                 <i class="fas fa-edit"></i> Editar
                                             </button>
                                             <button class="btn-eliminar" onclick="eliminarArea(<?php echo $area['id']; ?>, '<?php echo htmlspecialchars($area['nombre']); ?>')">
-                                                <i class="fas fa-trash"></i> Eliminar
+                                                <img src="imagen/borrar.png" alt="Eliminar" style="width:12px;height:12px;"></button>
                                             </button>
                                         </div>
                                     </td>

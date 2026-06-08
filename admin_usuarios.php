@@ -1082,12 +1082,12 @@ $privilegio = $_SESSION['privilegio'] ?? 'admin';
                                     <td>
                                         <div class="acciones-usuario">
                                             <a href="obtener_usuario.php?id=<?php echo $usuario['id']; ?>" class="btn-editar">
-                                                <img src="imagen/Document.png" alt="Editar" style="width:12px;height:12px;"> Editar
+                                                <img src="imagen/Document.png" alt="Editar" style="width:12px;height:12px;">
                                             </a>
                                             <a href="admin_usuarios.php?eliminar=<?php echo $usuario['id']; ?>" 
                                                class="btn-eliminar" 
                                                onclick="return confirmarEliminacion(<?php echo $usuario['id']; ?>, '<?php echo $usuario['privilegio']; ?>', '<?php echo htmlspecialchars(addslashes($usuario['nombre'])); ?>')">
-                                                <img src="imagen/borrar.png" alt="Eliminar" style="width:12px;height:12px;"> Eliminar
+                                                <img src="imagen/borrar.png" alt="Eliminar" style="width:12px;height:12px;">
                                             </a>
                                         </div>
                                     </td>
