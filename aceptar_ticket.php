@@ -82,10 +82,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
     $stmt->execute([$id_ticket]);
     
     if ($stmt->rowCount() > 0) {
-        $update_sql = "UPDATE Tickets SET oati_asignado = ?, estado = 'Asignado' WHERE id = ?";
+        $update_sql = "UPDATE Tickets SET oati_asignado = ?, estado = 'Asignado' WHERE id = ? AND oati_asignado IS NULL";
         $stmt = $pdo->prepare($update_sql);
+        $stmt->execute([$id_tecnico, $id_ticket]);
         
-        if ($stmt->execute([$id_tecnico, $id_ticket])) {
+        if ($stmt->rowCount() > 0) {
             header("Location: tickets_asignados.php?exito=Ticket+aceptado+correctamente");
             exit();
         } else {
