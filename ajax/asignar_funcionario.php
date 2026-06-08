@@ -1,6 +1,6 @@
 <?php
 session_start();
-if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['admin'])) {
+if (!isset($_SESSION['privilegio']) || !in_array($_SESSION['privilegio'], ['admin', 'oati', 'infraestructura'])) {
     http_response_code(403);
     echo json_encode(['error' => 'No autorizado']);
     exit();
