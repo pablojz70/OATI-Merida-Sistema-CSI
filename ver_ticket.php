@@ -1423,7 +1423,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                                 <span class="empty-data">No asignado</span>
                             <?php endif; ?>
                             <div id="asignadosExtra" style="font-size:11px;margin-top:4px;"></div>
-                            <?php if ($privilegio == 'admin'): ?>
+                            <?php if ($privilegio == 'admin' || in_array($privilegio, ['oati', 'infraestructura'])): ?>
                             <br><a href="#" onclick="abrirModalAsignar();return false;" 
                                    class="email-link" style="font-size:10px;">
                                 <i class="fas fa-user-plus"></i> Asignar funcionario
@@ -2328,7 +2328,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
         if (asignadosExtra.length === 0) return;
         asignadosExtra.forEach(function(a) {
             container.innerHTML += '<div style="font-size:11px;color:#555;">• ' + a.nombre + ' <span style="font-size:9px;color:#999;">(' + a.privilegio + ')</span>' +
-                (<?php echo $privilegio == 'admin' ? 'true' : 'false'; ?> ? 
+                (<?php echo in_array($privilegio, ['admin', 'oati', 'infraestructura']) ? 'true' : 'false'; ?> ? 
                     ' <a href="#" onclick="quitarAsignado(' + a.id + ');return false;" style="color:#e74c3c;font-size:10px;">[x]</a>' : '') +
                 '</div>';
         });
