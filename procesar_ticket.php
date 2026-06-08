@@ -57,9 +57,13 @@ $sql = "SELECT t.*,
     }
     
     // Verificar si el OATI puede editar (solo si está asignado a él)
-    if ($privilegio == 'oati' && $ticket['oati_asignado'] != $id_usuario) {
-        header('Location: tickets_asignados.php?error=no_asignado');
-        exit();
+    if (in_array($privilegio, ['oati', 'infraestructura']) && $ticket['oati_asignado'] != $id_usuario) {
+        $stmt_c = $conn->prepare("SELECT COUNT(*) FROM TicketAsignados WHERE ticket_id = ? AND usuario_id = ?");
+        $stmt_c->execute([$ticket_id, $id_usuario]);
+        if ($stmt_c->fetchColumn() == 0) {
+            header('Location: tickets_asignados.php?error=no_asignado');
+            exit();
+        }
     }
     
 } catch (PDOException $e) {
@@ -204,6 +208,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
             
             if ($stmt->execute($params)) {
+                // Si cambió el asignado, registrar en TicketAsignados
+                if ($oati_asignado && $oati_asignado != $ticket['oati_asignado']) {
+                    $stmt_ta = $conn->prepare("INSERT IGNORE INTO TicketAsignados (ticket_id, usuario_id) VALUES (?, ?)");
+                    $stmt_ta->execute([$ticket_id, $oati_asignado]);
+                }
                 // Registrar en historial (si la tabla existe)
                 try {
                     $sql_historial = "INSERT INTO HistorialTickets 

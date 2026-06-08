@@ -33,7 +33,7 @@ function getAdminStats($conn) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function getOatiStats($conn, $oati_id) {
+ function getOatiStats($conn, $oati_id) {
     if (!tableExists($conn, 'Tickets')) {
         return ['tickets_asignados' => '0', 'tickets_resueltos' => '0'];
     }
@@ -42,12 +42,12 @@ function getOatiStats($conn, $oati_id) {
         COUNT(CASE WHEN estado IN ('Asignado', 'En Proceso') THEN 1 END) as tickets_asignados,
         COUNT(CASE WHEN estado = 'Cerrado Exitosamente' THEN 1 END) as tickets_resueltos
         FROM Tickets 
-        WHERE oati_asignado = :oati_id";
+        WHERE (oati_asignado = :oati_id OR id IN (SELECT ticket_id FROM TicketAsignados WHERE usuario_id = :oati_id2))";
     
     $stmt = $conn->prepare($query);
-    $stmt->execute([':oati_id' => $oati_id]);
+    $stmt->execute([':oati_id' => $oati_id, ':oati_id2' => $oati_id]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
-}
+ }
 
 function getUsuarioStats($conn, $usuario_id) {
     if (!tableExists($conn, 'Tickets')) {
