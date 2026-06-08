@@ -16,12 +16,18 @@ curl_setopt($ch, CURLOPT_TIMEOUT, 5);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
 if (defined('TELEGRAM_PROXY') && !empty(TELEGRAM_PROXY)) {
-    $proxy_host = str_replace(['http://','https://'], '', TELEGRAM_PROXY);
-    $parts = explode(':', $proxy_host);
-    $fp = @fsockopen($parts[0], $parts[1] ?? 8080, $errno, $errstr, 2);
+    $proxy_url = TELEGRAM_PROXY;
+    if (strpos($proxy_url, '://') === false) {
+        $proxy_url = 'http://' . $proxy_url;
+    }
+    $parsed = parse_url($proxy_url);
+    $proxy_host = $parsed['host'] ?? $proxy_url;
+    $proxy_port = $parsed['port'] ?? 8080;
+    
+    $fp = @fsockopen($proxy_host, $proxy_port, $errno, $errstr, 2);
     if ($fp) {
         fclose($fp);
-        curl_setopt($ch, CURLOPT_PROXY, TELEGRAM_PROXY);
+        curl_setopt($ch, CURLOPT_PROXY, $proxy_url);
         curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
         if (defined('TELEGRAM_PROXY_USER') && !empty(TELEGRAM_PROXY_USER)) {
             curl_setopt($ch, CURLOPT_PROXYUSERPWD, TELEGRAM_PROXY_USER . ':' . TELEGRAM_PROXY_PASS);
