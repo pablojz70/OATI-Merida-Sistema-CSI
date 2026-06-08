@@ -30,6 +30,13 @@
         </li>
         
         <li>
+            <a href="tickets_asignados.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'tickets_asignados.php' ? 'active' : ''; ?>">
+                <img src="imagen/MTasignados.png" alt="Asignados" class="menu-icon">
+                <span>Tickets Asignados</span>
+            </a>
+        </li>
+        
+        <li>
             <a href="crear_ticket.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'crear_ticket.php' ? 'active' : ''; ?>">
                 <img src="imagen/Add Ticket.png" alt="Nuevo" class="menu-icon">
                 <span>Nuevo Ticket</span>
