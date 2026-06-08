@@ -82,11 +82,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
     $stmt->execute([$id_ticket]);
     
     if ($stmt->rowCount() > 0) {
+        $stmt_t = $pdo->prepare("SELECT COUNT(*) FROM TicketAsignados WHERE ticket_id = ? AND usuario_id = ?");
+        $stmt_t->execute([$id_ticket, $id_tecnico]);
+        
         $update_sql = "UPDATE Tickets SET oati_asignado = ?, estado = 'Asignado' WHERE id = ? AND oati_asignado IS NULL";
         $stmt = $pdo->prepare($update_sql);
         $stmt->execute([$id_tecnico, $id_ticket]);
         
         if ($stmt->rowCount() > 0) {
+            // También registrar en TicketAsignados
+            if ($stmt_t->fetchColumn() == 0) {
+                $stmt_ta = $pdo->prepare("INSERT IGNORE INTO TicketAsignados (ticket_id, usuario_id) VALUES (?, ?)");
+                $stmt_ta->execute([$id_ticket, $id_tecnico]);
+            }
             header("Location: tickets_asignados.php?exito=Ticket+aceptado+correctamente");
             exit();
         } else {

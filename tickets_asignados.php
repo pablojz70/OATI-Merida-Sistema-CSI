@@ -44,7 +44,7 @@ $query = "SELECT t.*, a.nombre as area_nombre, s.nombre as servicio_nombre,
            JOIN Servicios s ON t.servicio_id = s.id
            JOIN Dependencias d ON t.dependencia_id = d.id
            JOIN Usuarios u ON t.usuario_id = u.id
-            WHERE t.oati_asignado = :tecnico_id";
+             WHERE (t.oati_asignado = :tecnico_id OR t.id IN (SELECT ticket_id FROM TicketAsignados WHERE usuario_id = :tecnico_id2))";
 
 // Filtrar por area_tipo según privilegio
 if ($privilegio == 'oati') {
@@ -72,7 +72,7 @@ $query .= " ORDER BY
             t.fecha_creacion DESC";
 
 $stmt = $conn->prepare($query);
-$params = [':tecnico_id' => $tecnico_id];
+$params = [':tecnico_id' => $tecnico_id, ':tecnico_id2' => $tecnico_id];
 if (!empty($filtro_estado) && $filtro_estado !== 'Cerrado') {
     $params[':filtro_estado'] = $filtro_estado;
 }
@@ -87,8 +87,8 @@ $stats_query = "SELECT
      SUM(CASE WHEN estado = 'En Proceso' THEN 1 ELSE 0 END) as en_proceso,
      SUM(CASE WHEN estado LIKE 'Cerrado%' THEN 1 ELSE 0 END) as cerrados,
      SUM(CASE WHEN DATE(fecha_cierre) = CURDATE() THEN 1 ELSE 0 END) as cerrados_hoy
-     FROM Tickets 
-     WHERE oati_asignado = :tecnico_id";
+      FROM Tickets 
+      WHERE (oati_asignado = :tecnico_id OR id IN (SELECT ticket_id FROM TicketAsignados WHERE usuario_id = :tecnico_id2))";
 
 // Filtrar estadísticas por area_tipo según privilegio
 if ($privilegio == 'oati') {
@@ -98,7 +98,7 @@ if ($privilegio == 'oati') {
 }
 
 $stats_stmt = $conn->prepare($stats_query);
-$stats_stmt->execute([':tecnico_id' => $tecnico_id]);
+$stats_stmt->execute([':tecnico_id' => $tecnico_id, ':tecnico_id2' => $tecnico_id]);
 $stats = $stats_stmt->fetch();
 ?>
 

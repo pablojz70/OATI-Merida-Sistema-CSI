@@ -78,9 +78,15 @@ try {
     die("Error al obtener información del ticket: " . $e->getMessage());
 }
 
-// Verificar permisos para OATI
-if ($privilegio == 'oati') {
-    if ($ticket['oati_asignado'] != $id_usuario) {
+// Verificar permisos para OATI/Infraestructura
+if ($privilegio == 'oati' || $privilegio == 'infraestructura') {
+    $puede_cerrar = ($ticket['oati_asignado'] == $id_usuario);
+    if (!$puede_cerrar) {
+        $stmt_c = $conn->prepare("SELECT COUNT(*) FROM TicketAsignados WHERE ticket_id = ? AND usuario_id = ?");
+        $stmt_c->execute([$ticket_id, $id_usuario]);
+        $puede_cerrar = ($stmt_c->fetchColumn() > 0);
+    }
+    if (!$puede_cerrar) {
         die("
             <!DOCTYPE html>
             <html>

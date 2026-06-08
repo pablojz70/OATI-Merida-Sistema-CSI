@@ -87,6 +87,11 @@ du.nombre as usuario_dependencia_nombre,
         $puede_ver = true;
     } elseif ($privilegio == 'oati' || $privilegio == 'infraestructura') {
         $puede_ver = ($ticket['oati_asignado'] == $id_usuario);
+        if (!$puede_ver) {
+            $stmt_v = $conn->prepare("SELECT COUNT(*) FROM TicketAsignados WHERE ticket_id = ? AND usuario_id = ?");
+            $stmt_v->execute([$ticket_id, $id_usuario]);
+            $puede_ver = ($stmt_v->fetchColumn() > 0);
+        }
     } elseif ($privilegio == 'usuario') {
         $puede_ver = ($ticket['usuario_id'] == $id_usuario);
     } elseif ($privilegio == 'bienes') {
@@ -105,6 +110,19 @@ du.nombre as usuario_dependencia_nombre,
         }
         header('Location: ' . $redirect_url . '?error=permiso_denegado');
         exit();
+    }
+    
+    // Verificar si el usuario puede editar/procesar (asignado principal o extra)
+    $puede_editar = false;
+    if ($privilegio == 'admin') {
+        $puede_editar = true;
+    } elseif (in_array($privilegio, ['oati', 'infraestructura'])) {
+        $puede_editar = ($ticket['oati_asignado'] == $id_usuario);
+        if (!$puede_editar) {
+            $stmt_e = $conn->prepare("SELECT COUNT(*) FROM TicketAsignados WHERE ticket_id = ? AND usuario_id = ?");
+            $stmt_e->execute([$ticket_id, $id_usuario]);
+            $puede_editar = ($stmt_e->fetchColumn() > 0);
+        }
     }
     
 } catch (PDOException $e) {
@@ -1240,14 +1258,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
 <!-- Botón PROCESAR (admin o técnico asignado, solo si no está cerrado) -->
                      <?php 
                      $ticketCerrado = strpos($ticket['estado'], 'Cerrado') !== false;
-                     if (($privilegio == 'admin' || (in_array($privilegio, ['oati', 'infraestructura']) && $ticket['oati_asignado'] == $id_usuario)) && !$ticketCerrado): ?>
+                     if ($puede_editar && !$ticketCerrado): ?>
                         <a href="procesar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action procesar" title="Procesar ticket">
                             <i class="fas fa-tools"></i>
                         </a>
                     <?php endif; ?>
                     
 <!-- Botón CERRAR (solo si no está cerrado) -->
-                     <?php if (($privilegio == 'admin' || (in_array($privilegio, ['oati', 'infraestructura']) && $ticket['oati_asignado'] == $id_usuario)) && !$ticketCerrado): ?>
+                     <?php if ($puede_editar && !$ticketCerrado): ?>
                         <a href="cerrar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action close" title="Cerrar ticket">
                             <i class="fas fa-check"></i>
                         </a>
