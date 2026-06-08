@@ -48,6 +48,22 @@ if (!empty($filtro_dependencia) && is_numeric($filtro_dependencia)) {
 
 $sql_where = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
 
+// Procesar eliminación
+$mensaje = '';
+$tipo_mensaje = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_evaluacion']) && $privilegio == 'admin') {
+    $id_eval = intval($_POST['id'] ?? 0);
+    if ($id_eval > 0) {
+        $stmt = $conn->prepare("DELETE FROM TicketEvaluaciones WHERE id = ?");
+        $stmt->execute([$id_eval]);
+        $mensaje = "Evaluación eliminada correctamente";
+        $tipo_mensaje = 'success';
+    } else {
+        $mensaje = "ID de evaluación no válido";
+        $tipo_mensaje = 'error';
+    }
+}
+
 // Consulta principal
 $query = "SELECT e.*, 
           t.numero_ticket,
@@ -755,6 +771,15 @@ $busqueda = $_GET['buscar'] ?? '';
                                         <a href="ver_ticket.php?id=<?php echo $eval['ticket_id']; ?>" class="btn-ver-ticket">
                                             <img src="imagen/ojo.png" alt="Ver" style="width:12px;height:12px;"> Ver
                                         </a>
+                                        <?php if ($privilegio == 'admin'): ?>
+                                        <form method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar esta evaluación?')">
+                                            <input type="hidden" name="eliminar_evaluacion" value="1">
+                                            <input type="hidden" name="id" value="<?php echo $eval['id']; ?>">
+                                            <button type="submit" class="btn-ver-ticket" style="background:#e74c3c;color:white;border:none;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:4px;">
+                                                <img src="imagen/borrar.png" alt="Eliminar" style="width:10px;height:10px;"> Eliminar
+                                            </button>
+                                        </form>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
