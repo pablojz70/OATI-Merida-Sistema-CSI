@@ -776,7 +776,7 @@ $busqueda = $_GET['buscar'] ?? '';
                                             <input type="hidden" name="eliminar_evaluacion" value="1">
                                             <input type="hidden" name="id" value="<?php echo $eval['id']; ?>">
                                             <button type="submit" class="btn-ver-ticket" style="background:#e74c3c;color:white;border:none;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:4px;">
-                                                <img src="imagen/borrar.png" alt="Eliminar" style="width:10px;height:10px;"> Eliminar
+                                                <img src="imagen/borrar.png" alt="Eliminar" style="width:10px;height:10px;">
                                             </button>
                                         </form>
                                         <?php endif; ?>

@@ -570,7 +570,7 @@ if (!file_exists($menu_archivo)) {
                                             </button>
                                             
                                             <button class="btn-custom btn-danger-custom btn-sm-custom" onclick="confirmarEliminar(<?php echo $dep['id']; ?>, '<?php echo addslashes($dep['nombre']); ?>')">
-                                                <img src="imagen/borrar.png" alt="Eliminar" style="width:12px;height:12px;"> Eliminar
+                                                <img src="imagen/borrar.png" alt="Eliminar" style="width:12px;height:12px;">
                                             </button>
                                         </td>
                                     </tr>

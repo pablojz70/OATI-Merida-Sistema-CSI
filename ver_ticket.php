@@ -1253,9 +1253,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                            class="btn-ticket-action danger btn-eliminar-ticket" 
                            title="Eliminar ticket"
                            data-id="<?php echo $ticket_id; ?>"
-                           data-numero="<?php echo htmlspecialchars($ticket['numero_ticket']); ?>">
-                            <i class="fas fa-trash"></i>
-                        </a>
+                            data-numero="<?php echo htmlspecialchars($ticket['numero_ticket']); ?>">
+                             <img src="imagen/borrar.png" alt="Eliminar" style="width:12px;height:12px;">
+                         </a>
                     <?php endif; ?>
                     <?php endif; ?>
                 </div>
