@@ -72,6 +72,12 @@ du.nombre as usuario_dependencia_nombre,
     $stmt_insumos->execute([$ticket_id]);
     $insumos = $stmt_insumos->fetchAll();
     
+    // Consultar funcionarios adicionales asignados
+    $stmt_extra = $conn->prepare("SELECT u.id, u.nombre, u.privilegio FROM TicketAsignados ta JOIN Usuarios u ON ta.usuario_id = u.id WHERE ta.ticket_id = ?");
+    $stmt_extra->execute([$ticket_id]);
+    $asignados_extra = $stmt_extra->fetchAll();
+    $asignados_extra_json = json_encode($asignados_extra);
+    
     // Verificar permisos
     $puede_ver = false;
     
@@ -1389,27 +1395,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                         </div>
                     </div>
                     
-<?php if (!empty($ticket['oati_nombre'])): ?>
-                     <div class="info-item-ticket">
-                         <span class="info-label-ticket">OATI Asignado</span>
-                         <span class="info-value-ticket">
-                             <strong><?php echo htmlspecialchars($ticket['oati_nombre']); ?></strong>
-                         </span>
-                     </div>
-                    <?php else: ?>
                     <div class="info-item-ticket">
-                        <span class="info-label-ticket">Asignado a</span>
-                        <span class="info-value-ticket empty-data">
-                            No asignado
+                        <span class="info-label-ticket">Funcionario Asignado</span>
+                        <span class="info-value-ticket" id="asignadosContainer">
+                            <?php if (!empty($ticket['oati_nombre'])): ?>
+                                <strong><?php echo htmlspecialchars($ticket['oati_nombre']); ?></strong>
+                                <span style="font-size:9px;color:#999;"> (principal)</span>
+                            <?php else: ?>
+                                <span class="empty-data">No asignado</span>
+                            <?php endif; ?>
+                            <div id="asignadosExtra" style="font-size:11px;margin-top:4px;"></div>
                             <?php if ($privilegio == 'admin'): ?>
-                            <br><a href="procesar_ticket.php?id=<?php echo $ticket_id; ?>&action=assign" 
-                                   class="email-link" style="font-size: 9px;">
-                                <i class="fas fa-user-plus"></i> Asignar técnico
+                            <br><a href="#" onclick="abrirModalAsignar();return false;" 
+                                   class="email-link" style="font-size:10px;">
+                                <i class="fas fa-user-plus"></i> Asignar funcionario
                             </a>
                             <?php endif; ?>
                         </span>
                     </div>
-                    <?php endif; ?>
                 </div>
             </div>
             
@@ -1820,6 +1823,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
         
         <div class="miniaturas-modal" id="miniaturasContainer">
             <!-- Miniaturas se generan dinámicamente -->
+        </div>
+    </div>
+    
+    <!-- MODAL PARA ASIGNAR FUNCIONARIO -->
+    <div id="modalAsignar" class="modal-overlay" style="display:none;">
+        <div class="modal-confirmacion" style="max-width:400px;">
+            <div class="modal-header">
+                <h4><i class="fas fa-user-plus"></i> Asignar Funcionario</h4>
+            </div>
+            <div class="modal-body" style="padding:15px;">
+                <div style="margin-bottom:10px;">
+                    <select id="selectFuncionario" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;font-size:13px;">
+                        <option value="">Seleccione un funcionario...</option>
+                    </select>
+                </div>
+                <div id="asignadosLista" style="margin-bottom:10px;">
+                    <strong style="font-size:12px;">Asignados:</strong>
+                    <div id="asignadosActuales" style="margin-top:5px;font-size:12px;"></div>
+                </div>
+                <div style="display:flex;gap:8px;justify-content:flex-end;">
+                    <button type="button" onclick="document.getElementById('modalAsignar').style.display='none'" style="padding:8px 16px;background:#6c757d;color:white;border:none;border-radius:4px;cursor:pointer;">Cerrar</button>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -2271,6 +2297,98 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
             });
         });
     });
+    
+    // Asignación de funcionarios
+    var asignadosExtra = <?php echo $asignados_extra_json; ?>;
+    var ticketId = <?php echo $ticket_id; ?>;
+    var areaTipo = '<?php echo $ticket['area_tipo'] ?? 'informatica'; ?>';
+    
+    function cargarAsignadosExtra() {
+        var container = document.getElementById('asignadosExtra');
+        if (!container) return;
+        container.innerHTML = '';
+        if (asignadosExtra.length === 0) return;
+        asignadosExtra.forEach(function(a) {
+            container.innerHTML += '<div style="font-size:11px;color:#555;">• ' + a.nombre + ' <span style="font-size:9px;color:#999;">(' + a.privilegio + ')</span>' +
+                (<?php echo $privilegio == 'admin' ? 'true' : 'false'; ?> ? 
+                    ' <a href="#" onclick="quitarAsignado(' + a.id + ');return false;" style="color:#e74c3c;font-size:10px;">[x]</a>' : '') +
+                '</div>';
+        });
+    }
+    
+    function abrirModalAsignar() {
+        var modal = document.getElementById('modalAsignar');
+        var select = document.getElementById('selectFuncionario');
+        var lista = document.getElementById('asignadosActuales');
+        
+        select.innerHTML = '<option value="">Seleccione un funcionario...</option>';
+        lista.innerHTML = '';
+        
+        fetch('ajax/asignar_funcionario.php?accion=listar_disponibles&ticket_id=' + ticketId + '&area_tipo=' + areaTipo)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                data.forEach(function(u) {
+                    var opt = document.createElement('option');
+                    opt.value = u.id;
+                    opt.textContent = u.nombre + ' (' + u.privilegio + ')';
+                    select.appendChild(opt);
+                });
+            });
+        
+        // Mostrar asignados actuales
+        var principal = '<?php echo addslashes($ticket['oati_nombre'] ?? ''); ?>';
+        if (principal) {
+            lista.innerHTML += '<div>• ' + principal + ' <span style="color:#999;font-size:10px;">(principal)</span></div>';
+        }
+        if (asignadosExtra.length > 0) {
+            asignadosExtra.forEach(function(a) {
+                lista.innerHTML += '<div>• ' + a.nombre + ' <span style="color:#999;font-size:10px;">(' + a.privilegio + ')</span></div>';
+            });
+        }
+        
+        select.onchange = function() {
+            if (!this.value) return;
+            var formData = new FormData();
+            formData.append('accion', 'asignar');
+            formData.append('ticket_id', ticketId);
+            formData.append('tecnico_id', this.value);
+            fetch('ajax/asignar_funcionario.php', { method: 'POST', body: formData })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (d.success) {
+                        fetch('ajax/asignar_funcionario.php?accion=listar&ticket_id=' + ticketId)
+                            .then(function(r) { return r.json(); })
+                            .then(function(lista2) {
+                                asignadosExtra = lista2.filter(function(x) { return x.principal === 0; });
+                                cargarAsignadosExtra();
+                                abrirModalAsignar();
+                            });
+                    } else {
+                        alert(d.error || 'Error al asignar');
+                    }
+                });
+        };
+        
+        modal.style.display = 'flex';
+    }
+    
+    function quitarAsignado(tecnicoId) {
+        if (!confirm('¿Remover este funcionario?')) return;
+        var formData = new FormData();
+        formData.append('accion', 'quitar');
+        formData.append('ticket_id', ticketId);
+        formData.append('tecnico_id', tecnicoId);
+        fetch('ajax/asignar_funcionario.php', { method: 'POST', body: formData })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.success) {
+                    asignadosExtra = asignadosExtra.filter(function(a) { return a.id !== tecnicoId; });
+                    cargarAsignadosExtra();
+                }
+            });
+    }
+    
+    cargarAsignadosExtra();
     </script>
 </body>
 </html>
