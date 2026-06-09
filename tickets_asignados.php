@@ -530,7 +530,7 @@ $stats = $stats_stmt->fetch();
         <div class="user-header-info-custom">
             <div class="user-details-custom">
                 <span class="user-name-custom"><?php echo htmlspecialchars($usuario_nombre); ?></span>
-                <span class="user-role-custom">OATI</span>
+                <span class="user-role-custom"><?php echo $privilegio == 'admin' ? 'Administrador' : ($privilegio == 'infraestructura' ? 'Infraestructura' : 'OATI'); ?></span>
             </div>
             <a href="logout.php" class="logout-btn-custom" title="Cerrar sesión">
                 <img src="imagen/Salir.png" alt="Salir" class="logout-img" 
@@ -555,7 +555,7 @@ $stats = $stats_stmt->fetch();
             <!-- ENCABEZADO DE PÁGINA -->
             <div class="page-header-custom">
                 <h1 class="page-title-custom">
-                    <i class="fas fa-tools"></i> Panel del OATI
+                    <i class="fas fa-tools"></i> Panel del <?php echo $privilegio == 'admin' ? 'Administrador' : ($privilegio == 'infraestructura' ? 'Infraestructura' : 'OATI'); ?>
                 </h1>
                 <p class="page-subtitle-custom">Gestión de tickets asignados a <?php echo htmlspecialchars($usuario_nombre); ?></p>
             </div>
@@ -627,7 +627,13 @@ $stats = $stats_stmt->fetch();
                         <div class="form-group-filtro-custom">
                             <label for="area_id">Área:</label>
                             <?php 
-                            $areas = $conn->query("SELECT id, nombre FROM AreasSoporte ORDER BY nombre")->fetchAll();
+                            $area_filter = "";
+                            if ($privilegio == 'oati') {
+                                $area_filter = " WHERE tipo = 'informatica'";
+                            } elseif ($privilegio == 'infraestructura') {
+                                $area_filter = " WHERE tipo = 'infraestructura'";
+                            }
+                            $areas = $conn->query("SELECT id, nombre FROM AreasSoporte{$area_filter} ORDER BY nombre")->fetchAll();
                             ?>
                             <select id="area_id" name="area_id">
                                 <option value="">Todas</option>
@@ -809,8 +815,6 @@ $stats = $stats_stmt->fetch();
     color: white;
 }
 </style>
-    <!-- SCRIPTS -->
-    <script>
     <!-- SCRIPTS -->
     <script>
     // Función para ver detalle del ticket
