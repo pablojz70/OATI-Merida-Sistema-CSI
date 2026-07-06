@@ -443,12 +443,12 @@ if (!file_exists($menu_archivo)) {
             <!-- FOOTER -->
             <div class="footer-custom">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
+                    <div style="font-size:13px;">
                         Centro de Soporte CSI • 
-                        <span id="session-timer-custom">Sesión: 00:00</span>
+                        <span id="session-timer-custom" style="font-weight:bold;">Sesión: 00:00</span>
                     </div>
-                    <div id="system-status" style="font-size: 9px; color: #27ae60;">
-                        <i class="fas fa-circle" style="font-size: 6px;"></i> Sistema en línea
+                    <div id="system-status" style="font-size: 12px; color: #27ae60;">
+                        <i class="fas fa-circle" style="font-size: 8px;"></i> Sistema en línea
                     </div>
                 </div>
             </div>
