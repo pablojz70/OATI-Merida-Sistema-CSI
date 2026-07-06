@@ -441,14 +441,14 @@ if (!file_exists($menu_archivo)) {
             </div>
             
             <!-- FOOTER -->
-            <div class="footer-custom">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size:13px;">
+            <div class="footer-custom" style="font-size:16px !important;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size:16px !important;">
+                    <div style="font-size:16px !important;">
                         Centro de Soporte CSI • 
                         <span id="session-timer-custom" style="font-weight:bold;">Sesión: 00:00</span>
                     </div>
-                    <div id="system-status" style="font-size: 12px; color: #27ae60;">
-                        <i class="fas fa-circle" style="font-size: 8px;"></i> Sistema en línea
+                    <div id="system-status" style="font-size: 14px !important; color: #27ae60;">
+                        <i class="fas fa-circle" style="font-size: 10px;"></i> Sistema en línea
                     </div>
                 </div>
             </div>
