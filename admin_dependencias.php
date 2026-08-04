@@ -527,6 +527,11 @@ if (!file_exists($menu_archivo)) {
                     </button>
                 </div>
                 
+                <div style="margin-bottom:12px;">
+                    <input type="text" id="buscarDependencia" placeholder="🔍 Buscar dependencia (nombre o código)..."
+                           style="width:100%;max-width:400px;padding:8px 12px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
+                </div>
+                
                 <?php if (empty($dependencias)): ?>
                     <div class="empty-state-custom">
                         <i class="far fa-folder-open"></i>
@@ -546,7 +551,7 @@ if (!file_exists($menu_archivo)) {
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="tbodyDependencias">
                                 <?php foreach ($dependencias as $dep): ?>
                                     <tr>
                                         <td><?php echo $dep['id']; ?></td>
@@ -816,6 +821,19 @@ if (!file_exists($menu_archivo)) {
                 });
             });
         });
+        
+        // Buscador de dependencias
+        const buscarDep = document.getElementById('buscarDependencia');
+        if (buscarDep) {
+            buscarDep.addEventListener('input', function() {
+                const filtro = this.value.toLowerCase();
+                const filas = document.querySelectorAll('#tbodyDependencias tr');
+                filas.forEach(fila => {
+                    const texto = fila.textContent.toLowerCase();
+                    fila.style.display = texto.includes(filtro) ? '' : 'none';
+                });
+            });
+        }
     </script>
 </body>
 </html>
