@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS TicketAsignados (
   KEY idx_usuario (usuario_id)
 );
 
--- 3. Sede y Zona en Dependencias
-ALTER TABLE Dependencias ADD COLUMN sede VARCHAR(100) DEFAULT NULL;
-ALTER TABLE Dependencias ADD COLUMN zona VARCHAR(100) DEFAULT NULL;
+-- 3. Nuevos campos en Dependencias
+ALTER TABLE Dependencias ADD COLUMN ubicacion TEXT NULL;
+ALTER TABLE Dependencias ADD COLUMN telefono VARCHAR(50) NULL;
+ALTER TABLE Dependencias ADD COLUMN correo VARCHAR(100) NULL;
+ALTER TABLE Dependencias ADD COLUMN materia VARCHAR(50) NULL;

@@ -37,6 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion'])) {
         $nombre = trim($_POST['nombre'] ?? '');
         $nombre_corto = trim($_POST['nombre_corto'] ?? '');
         $responsable = trim($_POST['responsable'] ?? '');
+        $ubicacion = trim($_POST['ubicacion'] ?? '');
+        $telefono = trim($_POST['telefono'] ?? '');
+        $correo = trim($_POST['correo'] ?? '');
+        $materia = trim($_POST['materia'] ?? '');
         $sede = trim($_POST['sede'] ?? '');
         $zona = trim($_POST['zona'] ?? '');
         $activa = isset($_POST['activa']) ? 1 : 0;
@@ -47,13 +51,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion'])) {
                         SET nombre = ?, 
                             nombre_corto = ?, 
                             responsable = ?, 
+                            ubicacion = ?,
+                            telefono = ?,
+                            correo = ?,
+                            materia = ?,
                             sede = ?,
                             zona = ?,
                             activa = ? 
                         WHERE id = ?";
                 
                 $stmt = $conn->prepare($sql);
-                $stmt->execute([$nombre, $nombre_corto, $responsable, $sede ?: null, $zona ?: null, $activa, $id]);
+                $stmt->execute([$nombre, $nombre_corto, $responsable, $ubicacion, $telefono, $correo, $materia, $sede, $zona, $activa, $id]);
                 
                 $_SESSION['mensaje_exito'] = "✅ Dependencia actualizada correctamente";
                 header('Location: ' . $_SERVER['PHP_SELF']);
@@ -71,6 +79,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion'])) {
         $nombre = trim($_POST['nombre'] ?? '');
         $nombre_corto = trim($_POST['nombre_corto'] ?? '');
         $responsable = trim($_POST['responsable'] ?? '');
+        $ubicacion = trim($_POST['ubicacion'] ?? '');
+        $telefono = trim($_POST['telefono'] ?? '');
+        $correo = trim($_POST['correo'] ?? '');
+        $materia = trim($_POST['materia'] ?? '');
         $sede = trim($_POST['sede'] ?? '');
         $zona = trim($_POST['zona'] ?? '');
         $activa = isset($_POST['activa']) ? 1 : 0;
@@ -78,11 +90,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion'])) {
         if (!empty($nombre) && !empty($nombre_corto)) {
             try {
                 $sql = "INSERT INTO Dependencias 
-                        (nombre, nombre_corto, responsable, sede, zona, activa) 
-                        VALUES (?, ?, ?, ?, ?, ?)";
+                        (nombre, nombre_corto, responsable, ubicacion, telefono, correo, materia, sede, zona, activa) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 
                 $stmt = $conn->prepare($sql);
-                $stmt->execute([$nombre, $nombre_corto, $responsable, $sede ?: null, $zona ?: null, $activa]);
+                $stmt->execute([$nombre, $nombre_corto, $responsable, $ubicacion, $telefono, $correo, $materia, $sede, $zona, $activa]);
                 
                 $_SESSION['mensaje_exito'] = "✅ Dependencia creada correctamente";
                 header('Location: ' . $_SERVER['PHP_SELF']);
@@ -552,9 +564,11 @@ if (!file_exists($menu_archivo)) {
                                     <th>ID</th>
                                     <th>Nombre</th>
                                     <th>Nombre Completo</th>
+                                    <th>Responsable</th>
+                                    <th>Ubicación</th>
+                                    <th>Materia</th>
                                     <th>Sede</th>
                                     <th>Zona</th>
-                                    <th>Responsable</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -565,9 +579,11 @@ if (!file_exists($menu_archivo)) {
                                         <td><?php echo $dep['id']; ?></td>
                                         <td><strong><?php echo htmlspecialchars($dep['nombre_corto'] ?? 'N/A'); ?></strong></td>
                                         <td><?php echo htmlspecialchars($dep['nombre']); ?></td>
+                                        <td><?php echo htmlspecialchars($dep['responsable'] ?? '-'); ?></td>
+                                        <td style="font-size:11px;"><?php echo htmlspecialchars(substr($dep['ubicacion'] ?? '-', 0, 40)); ?></td>
+                                        <td><?php echo htmlspecialchars($dep['materia'] ?? '-'); ?></td>
                                         <td><?php echo htmlspecialchars($dep['sede'] ?? '-'); ?></td>
                                         <td><?php echo htmlspecialchars($dep['zona'] ?? '-'); ?></td>
-                                        <td><?php echo htmlspecialchars($dep['responsable'] ?? '-'); ?></td>
                                         <td>
                                             <span class="badge-custom <?php echo $dep['activa'] ? 'badge-success-custom' : 'badge-danger-custom'; ?>">
                                                 <?php echo $dep['activa'] ? 'Activa' : 'Inactiva'; ?>
@@ -579,6 +595,10 @@ if (!file_exists($menu_archivo)) {
                                                 '<?php echo addslashes($dep['nombre']); ?>',
                                                 '<?php echo addslashes($dep['nombre_corto'] ?? ''); ?>',
                                                 '<?php echo addslashes($dep['responsable'] ?? ''); ?>',
+                                                '<?php echo addslashes($dep['ubicacion'] ?? ''); ?>',
+                                                '<?php echo addslashes($dep['telefono'] ?? ''); ?>',
+                                                '<?php echo addslashes($dep['correo'] ?? ''); ?>',
+                                                '<?php echo addslashes($dep['materia'] ?? ''); ?>',
                                                 '<?php echo addslashes($dep['sede'] ?? ''); ?>',
                                                 '<?php echo addslashes($dep['zona'] ?? ''); ?>',
                                                 <?php echo $dep['activa']; ?>
@@ -636,23 +656,81 @@ if (!file_exists($menu_archivo)) {
                     <small style="font-size: 11px; color: #666;">Máx. 35 caracteres. Ej: "JUV-01", "CAM-02"</small>
                 </div>
                 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                    <div class="form-group-custom">
-                        <label for="crear_sede">Sede</label>
-                        <input type="text" id="crear_sede" name="sede" class="form-control-custom" 
-                               placeholder="Ej: Sede Central">
-                    </div>
-                    <div class="form-group-custom">
-                        <label for="crear_zona">Zona</label>
-                        <input type="text" id="crear_zona" name="zona" class="form-control-custom" 
-                               placeholder="Ej: Zona Norte">
-                    </div>
-                </div>
-                
                 <div class="form-group-custom">
                     <label for="crear_responsable">Responsable</label>
                     <input type="text" id="crear_responsable" name="responsable" class="form-control-custom" 
                            placeholder="Nombre del responsable de la dependencia">
+                </div>
+                
+                <div class="form-group-custom">
+                    <label for="crear_ubicacion">Ubicación</label>
+                    <textarea id="crear_ubicacion" name="ubicacion" class="form-control-custom" rows="2"
+                              placeholder="Ej: LOS LLANITOS DE TABAY, CARRETERA PANAMERICANA, ESQUINA CON CALLE PRINCIPAL"></textarea>
+                </div>
+                
+                <div class="form-group-custom">
+                    <label for="crear_telefono">Teléfono</label>
+                    <input type="text" id="crear_telefono" name="telefono" class="form-control-custom" 
+                           placeholder="Ej: 0274-1234567">
+                </div>
+                
+                <div class="form-group-custom">
+                    <label for="crear_correo">Correo</label>
+                    <input type="email" id="crear_correo" name="correo" class="form-control-custom" 
+                           placeholder="Ej: juzgado@tsj.gob.ve">
+                </div>
+                
+                <div class="form-group-custom">
+                    <label for="crear_materia">Materia</label>
+                    <select id="crear_materia" name="materia" class="form-control-custom">
+                        <option value="">Seleccione...</option>
+                        <option>Administrativo</option>
+                        <option>Agrario</option>
+                        <option>Civil</option>
+                        <option>Contencioso Administrativo</option>
+                        <option>Laboral</option>
+                        <option>LOPNNA</option>
+                        <option>Penal</option>
+                        <option>Penal Adolescentes</option>
+                        <option>Violencia de Género</option>
+                    </select>
+                </div>
+                
+                <div class="form-group-custom">
+                    <label for="crear_sede">Sede</label>
+                    <select id="crear_sede" name="sede" class="form-control-custom">
+                        <option value="">Seleccione...</option>
+                        <option>Santo Domingo</option>
+                        <option>Mucuchies</option>
+                        <option>Av. Miranda (Timotes)</option>
+                        <option>Edif. El Vigilante</option>
+                        <option>Edif. Hermes</option>
+                        <option>Circuito Judicial Penal Mérida</option>
+                        <option>Archivo Judicial</option>
+                        <option>C.C. Centenario</option>
+                        <option>C.C. Ejido</option>
+                        <option>Av. Bolívar (Laguinillas)</option>
+                        <option>Sta Cruz De Mora</option>
+                        <option>C.C El Arado (Tovar)</option>
+                        <option>Edif. Senis (Tovar)</option>
+                        <option>Bailadores</option>
+                        <option>Edif. Don Efigenio (El Vigia)</option>
+                        <option>Edif. Vespucci (El Vigia)</option>
+                        <option>Circuito Judicial Penal Sede El Vigia</option>
+                        <option>Edif. Doña Emilia (El Vigia)</option>
+                        <option>Av. Simon Bolivar (Nueva Bolivia)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group-custom">
+                    <label for="crear_zona">Zona</label>
+                    <select id="crear_zona" name="zona" class="form-control-custom">
+                        <option value="">Seleccione...</option>
+                        <option>Mérida</option>
+                        <option>Mocoties</option>
+                        <option>Panamericana</option>
+                        <option>Páramo</option>
+                    </select>
                 </div>
                 
                 <div class="form-group-custom">
@@ -700,20 +778,77 @@ if (!file_exists($menu_archivo)) {
                     <input type="text" id="edit_nombre_corto" name="nombre_corto" class="form-control-custom" required maxlength="35">
                 </div>
                 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                    <div class="form-group-custom">
-                        <label for="edit_sede">Sede</label>
-                        <input type="text" id="edit_sede" name="sede" class="form-control-custom">
-                    </div>
-                    <div class="form-group-custom">
-                        <label for="edit_zona">Zona</label>
-                        <input type="text" id="edit_zona" name="zona" class="form-control-custom">
-                    </div>
-                </div>
-                
                 <div class="form-group-custom">
                     <label for="edit_responsable">Responsable</label>
                     <input type="text" id="edit_responsable" name="responsable" class="form-control-custom">
+                </div>
+                
+                <div class="form-group-custom">
+                    <label for="edit_ubicacion">Ubicación</label>
+                    <textarea id="edit_ubicacion" name="ubicacion" class="form-control-custom" rows="2"></textarea>
+                </div>
+                
+                <div class="form-group-custom">
+                    <label for="edit_telefono">Teléfono</label>
+                    <input type="text" id="edit_telefono" name="telefono" class="form-control-custom">
+                </div>
+                
+                <div class="form-group-custom">
+                    <label for="edit_correo">Correo</label>
+                    <input type="email" id="edit_correo" name="correo" class="form-control-custom">
+                </div>
+                
+                <div class="form-group-custom">
+                    <label for="edit_materia">Materia</label>
+                    <select id="edit_materia" name="materia" class="form-control-custom">
+                        <option value="">Seleccione...</option>
+                        <option>Administrativo</option>
+                        <option>Agrario</option>
+                        <option>Civil</option>
+                        <option>Contencioso Administrativo</option>
+                        <option>Laboral</option>
+                        <option>LOPNNA</option>
+                        <option>Penal</option>
+                        <option>Penal Adolescentes</option>
+                        <option>Violencia de Género</option>
+                    </select>
+                </div>
+                
+                <div class="form-group-custom">
+                    <label for="edit_sede">Sede</label>
+                    <select id="edit_sede" name="sede" class="form-control-custom">
+                        <option value="">Seleccione...</option>
+                        <option>Santo Domingo</option>
+                        <option>Mucuchies</option>
+                        <option>Av. Miranda (Timotes)</option>
+                        <option>Edif. El Vigilante</option>
+                        <option>Edif. Hermes</option>
+                        <option>Circuito Judicial Penal Mérida</option>
+                        <option>Archivo Judicial</option>
+                        <option>C.C. Centenario</option>
+                        <option>C.C. Ejido</option>
+                        <option>Av. Bolívar (Laguinillas)</option>
+                        <option>Sta Cruz De Mora</option>
+                        <option>C.C El Arado (Tovar)</option>
+                        <option>Edif. Senis (Tovar)</option>
+                        <option>Bailadores</option>
+                        <option>Edif. Don Efigenio (El Vigia)</option>
+                        <option>Edif. Vespucci (El Vigia)</option>
+                        <option>Circuito Judicial Penal Sede El Vigia</option>
+                        <option>Edif. Doña Emilia (El Vigia)</option>
+                        <option>Av. Simon Bolivar (Nueva Bolivia)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group-custom">
+                    <label for="edit_zona">Zona</label>
+                    <select id="edit_zona" name="zona" class="form-control-custom">
+                        <option value="">Seleccione...</option>
+                        <option>Mérida</option>
+                        <option>Mocoties</option>
+                        <option>Panamericana</option>
+                        <option>Páramo</option>
+                    </select>
                 </div>
                 
                 <div class="form-group-custom">
@@ -778,11 +913,15 @@ if (!file_exists($menu_archivo)) {
             document.getElementById('crear_nombre').focus();
         }
         
-        function editarDependencia(id, nombre, nombre_corto, responsable, sede, zona, activa) {
+        function editarDependencia(id, nombre, nombre_corto, responsable, ubicacion, telefono, correo, materia, sede, zona, activa) {
             document.getElementById('edit_id').value = id;
             document.getElementById('edit_nombre').value = nombre;
             document.getElementById('edit_nombre_corto').value = nombre_corto;
             document.getElementById('edit_responsable').value = responsable;
+            document.getElementById('edit_ubicacion').value = ubicacion;
+            document.getElementById('edit_telefono').value = telefono;
+            document.getElementById('edit_correo').value = correo;
+            document.getElementById('edit_materia').value = materia;
             document.getElementById('edit_sede').value = sede;
             document.getElementById('edit_zona').value = zona;
             document.getElementById('edit_activa').checked = activa == 1;
