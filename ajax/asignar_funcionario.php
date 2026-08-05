@@ -59,20 +59,22 @@ if ($accion === 'listar') {
     
     try {
         // Si el ticket no tiene técnico principal, el primero asignado se convierte en principal
+        // (no se agrega a TicketAsignados para no duplicarlo)
         $stmt = $conn->prepare("SELECT oati_asignado FROM Tickets WHERE id = ?");
         $stmt->execute([$ticket_id]);
         $ticket = $stmt->fetch();
         if (!$ticket || empty($ticket['oati_asignado'])) {
             $stmt_pri = $conn->prepare("UPDATE Tickets SET oati_asignado = ?, estado = 'Asignado' WHERE id = ?");
             $stmt_pri->execute([$tecnico_id, $ticket_id]);
-        }
-        
-        $stmt = $conn->prepare("INSERT IGNORE INTO TicketAsignados (ticket_id, usuario_id) VALUES (?, ?)");
-        $stmt->execute([$ticket_id, $tecnico_id]);
-        if ($stmt->rowCount() > 0) {
-            echo json_encode(['success' => true, 'mensaje' => 'Funcionario asignado']);
+            echo json_encode(['success' => true, 'mensaje' => 'Funcionario asignado como principal']);
         } else {
-            echo json_encode(['error' => 'Ya está asignado']);
+            $stmt = $conn->prepare("INSERT IGNORE INTO TicketAsignados (ticket_id, usuario_id) VALUES (?, ?)");
+            $stmt->execute([$ticket_id, $tecnico_id]);
+            if ($stmt->rowCount() > 0) {
+                echo json_encode(['success' => true, 'mensaje' => 'Funcionario asignado']);
+            } else {
+                echo json_encode(['error' => 'Ya está asignado']);
+            }
         }
     } catch (PDOException $e) {
         echo json_encode(['error' => 'Error al asignar']);
