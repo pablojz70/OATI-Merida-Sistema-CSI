@@ -1175,14 +1175,14 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                     <table class="table-tickets">
                         <thead>
                             <tr>
-                                <th style="width:22%;">Asunto</th>
-                                <th style="width:10%;">Usuario</th>
+                                <th style="width:18%;">Asunto</th>
+                                <th style="width:20%;">Descripción de la Actividad o del Problema</th>
                                 <th style="width:12%;">Dependencia</th>
                                 <th style="width:12%;"><?php echo $vista_tipo == 'infraestructura' ? 'Asignado' : 'OATI'; ?></th>
                                 <th style="width:10%;">Estado</th>
                                 <th style="width:7%;">Prioridad</th>
                                 <th style="width:12%;">Fecha</th>
-                                <th style="width:15%;">Acciones</th>
+                                <th style="width:9%;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1198,8 +1198,9 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                     </td>
                                     
                                     <td>
-                                        <?php echo htmlspecialchars(substr($ticket['usuario_nombre'] ?? '', 0, 15)); ?>
-                                        <?php if (strlen($ticket['usuario_nombre'] ?? '') > 15): ?>...<?php endif; ?>
+                                        <div style="font-size:11px;color:#4a5568;max-height:60px;overflow:hidden;line-height:1.4;">
+                                            <?php echo htmlspecialchars($ticket['descripcion'] ?? ''); ?>
+                                        </div>
                                     </td>
                                     
                                     <!-- CELDA DEPENDENCIA -->
