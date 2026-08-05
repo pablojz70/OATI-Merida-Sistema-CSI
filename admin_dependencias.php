@@ -590,19 +590,18 @@ if (!file_exists($menu_archivo)) {
                                             </span>
                                         </td>
                                         <td class="actions-custom">
-                                            <button class="btn-custom btn-warning-custom btn-sm-custom" onclick="editarDependencia(
-                                                <?php echo $dep['id']; ?>,
-                                                '<?php echo addslashes($dep['nombre']); ?>',
-                                                '<?php echo addslashes($dep['nombre_corto'] ?? ''); ?>',
-                                                '<?php echo addslashes($dep['responsable'] ?? ''); ?>',
-                                                '<?php echo addslashes($dep['ubicacion'] ?? ''); ?>',
-                                                '<?php echo addslashes($dep['telefono'] ?? ''); ?>',
-                                                '<?php echo addslashes($dep['correo'] ?? ''); ?>',
-                                                '<?php echo addslashes($dep['materia'] ?? ''); ?>',
-                                                '<?php echo addslashes($dep['sede'] ?? ''); ?>',
-                                                '<?php echo addslashes($dep['zona'] ?? ''); ?>',
-                                                <?php echo $dep['activa']; ?>
-                                            )">
+                                            <button class="btn-custom btn-warning-custom btn-sm-custom btn-editar-dep"
+                                                data-id="<?php echo $dep['id']; ?>"
+                                                data-nombre="<?php echo htmlspecialchars($dep['nombre'], ENT_QUOTES); ?>"
+                                                data-corto="<?php echo htmlspecialchars($dep['nombre_corto'] ?? '', ENT_QUOTES); ?>"
+                                                data-responsable="<?php echo htmlspecialchars($dep['responsable'] ?? '', ENT_QUOTES); ?>"
+                                                data-ubicacion="<?php echo htmlspecialchars($dep['ubicacion'] ?? '', ENT_QUOTES); ?>"
+                                                data-telefono="<?php echo htmlspecialchars($dep['telefono'] ?? '', ENT_QUOTES); ?>"
+                                                data-correo="<?php echo htmlspecialchars($dep['correo'] ?? '', ENT_QUOTES); ?>"
+                                                data-materia="<?php echo htmlspecialchars($dep['materia'] ?? '', ENT_QUOTES); ?>"
+                                                data-sede="<?php echo htmlspecialchars($dep['sede'] ?? '', ENT_QUOTES); ?>"
+                                                data-zona="<?php echo htmlspecialchars($dep['zona'] ?? '', ENT_QUOTES); ?>"
+                                                data-activa="<?php echo $dep['activa']; ?>">
                                                 <img src="imagen/Document.png" alt="Editar" style="width:12px;height:12px;"> Editar
                                             </button>
                                             
@@ -912,6 +911,25 @@ if (!file_exists($menu_archivo)) {
             document.getElementById('modalCrear').style.display = 'flex';
             document.getElementById('crear_nombre').focus();
         }
+        
+        // Evento para los botones de editar (usa data-attributes para evitar problemas con caracteres especiales)
+        document.querySelectorAll('.btn-editar-dep').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                editarDependencia(
+                    this.getAttribute('data-id'),
+                    this.getAttribute('data-nombre'),
+                    this.getAttribute('data-corto'),
+                    this.getAttribute('data-responsable'),
+                    this.getAttribute('data-ubicacion'),
+                    this.getAttribute('data-telefono'),
+                    this.getAttribute('data-correo'),
+                    this.getAttribute('data-materia'),
+                    this.getAttribute('data-sede'),
+                    this.getAttribute('data-zona'),
+                    this.getAttribute('data-activa')
+                );
+            });
+        });
         
         function editarDependencia(id, nombre, nombre_corto, responsable, ubicacion, telefono, correo, materia, sede, zona, activa) {
             document.getElementById('edit_id').value = id;
