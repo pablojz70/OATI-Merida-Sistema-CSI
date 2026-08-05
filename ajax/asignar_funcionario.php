@@ -58,6 +58,15 @@ if ($accion === 'listar') {
     }
     
     try {
+        // Si el ticket no tiene técnico principal, el primero asignado se convierte en principal
+        $stmt = $conn->prepare("SELECT oati_asignado FROM Tickets WHERE id = ?");
+        $stmt->execute([$ticket_id]);
+        $ticket = $stmt->fetch();
+        if (!$ticket || empty($ticket['oati_asignado'])) {
+            $stmt_pri = $conn->prepare("UPDATE Tickets SET oati_asignado = ?, estado = 'Asignado' WHERE id = ?");
+            $stmt_pri->execute([$tecnico_id, $ticket_id]);
+        }
+        
         $stmt = $conn->prepare("INSERT IGNORE INTO TicketAsignados (ticket_id, usuario_id) VALUES (?, ?)");
         $stmt->execute([$ticket_id, $tecnico_id]);
         if ($stmt->rowCount() > 0) {
@@ -79,6 +88,23 @@ if ($accion === 'listar') {
     
     $stmt = $conn->prepare("DELETE FROM TicketAsignados WHERE ticket_id = ? AND usuario_id = ?");
     $stmt->execute([$ticket_id, $tecnico_id]);
+    
+    // Si se quitó al principal, asignar a otro de los asignados
+    $stmt_pri = $conn->prepare("SELECT oati_asignado FROM Tickets WHERE id = ?");
+    $stmt_pri->execute([$ticket_id]);
+    $ticket = $stmt_pri->fetch();
+    if ($ticket && $ticket['oati_asignado'] == $tecnico_id) {
+        $stmt_next = $conn->prepare("SELECT usuario_id FROM TicketAsignados WHERE ticket_id = ? ORDER BY id LIMIT 1");
+        $stmt_next->execute([$ticket_id]);
+        $next_id = $stmt_next->fetchColumn();
+        if ($next_id) {
+            $stmt_upd = $conn->prepare("UPDATE Tickets SET oati_asignado = ? WHERE id = ?");
+            $stmt_upd->execute([$next_id, $ticket_id]);
+        } else {
+            $stmt_upd = $conn->prepare("UPDATE Tickets SET oati_asignado = NULL WHERE id = ?");
+            $stmt_upd->execute([$ticket_id]);
+        }
+    }
     echo json_encode(['success' => true, 'mensaje' => 'Funcionario removido']);
     
 } elseif ($accion === 'listar_disponibles') {

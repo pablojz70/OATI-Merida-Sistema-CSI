@@ -2374,13 +2374,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                 .then(function(r) { return r.json(); })
                 .then(function(d) {
                     if (d.success) {
-                        fetch('ajax/asignar_funcionario.php?accion=listar&ticket_id=' + ticketId)
-                            .then(function(r) { return r.json(); })
-                            .then(function(lista2) {
-                                asignadosExtra = lista2.filter(function(x) { return x.principal === 0; });
-                                cargarAsignadosExtra();
-                                abrirModalAsignar();
-                            });
+                        location.reload();
                     } else {
                         alert(d.error || 'Error al asignar');
                     }
@@ -2400,8 +2394,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
             .then(function(r) { return r.json(); })
             .then(function(d) {
                 if (d.success) {
-                    asignadosExtra = asignadosExtra.filter(function(a) { return a.id !== tecnicoId; });
-                    cargarAsignadosExtra();
+                    location.reload();
                 }
             });
     }
