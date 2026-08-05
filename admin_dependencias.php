@@ -37,6 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion'])) {
         $nombre = trim($_POST['nombre'] ?? '');
         $nombre_corto = trim($_POST['nombre_corto'] ?? '');
         $responsable = trim($_POST['responsable'] ?? '');
+        $sede = trim($_POST['sede'] ?? '');
+        $zona = trim($_POST['zona'] ?? '');
         $activa = isset($_POST['activa']) ? 1 : 0;
         
         if ($id > 0 && !empty($nombre) && !empty($nombre_corto)) {
@@ -45,11 +47,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion'])) {
                         SET nombre = ?, 
                             nombre_corto = ?, 
                             responsable = ?, 
+                            sede = ?,
+                            zona = ?,
                             activa = ? 
                         WHERE id = ?";
                 
                 $stmt = $conn->prepare($sql);
-                $stmt->execute([$nombre, $nombre_corto, $responsable, $activa, $id]);
+                $stmt->execute([$nombre, $nombre_corto, $responsable, $sede ?: null, $zona ?: null, $activa, $id]);
                 
                 $_SESSION['mensaje_exito'] = "✅ Dependencia actualizada correctamente";
                 header('Location: ' . $_SERVER['PHP_SELF']);
@@ -67,16 +71,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion'])) {
         $nombre = trim($_POST['nombre'] ?? '');
         $nombre_corto = trim($_POST['nombre_corto'] ?? '');
         $responsable = trim($_POST['responsable'] ?? '');
+        $sede = trim($_POST['sede'] ?? '');
+        $zona = trim($_POST['zona'] ?? '');
         $activa = isset($_POST['activa']) ? 1 : 0;
         
         if (!empty($nombre) && !empty($nombre_corto)) {
             try {
                 $sql = "INSERT INTO Dependencias 
-                        (nombre, nombre_corto, responsable, activa) 
-                        VALUES (?, ?, ?, ?)";
+                        (nombre, nombre_corto, responsable, sede, zona, activa) 
+                        VALUES (?, ?, ?, ?, ?, ?)";
                 
                 $stmt = $conn->prepare($sql);
-                $stmt->execute([$nombre, $nombre_corto, $responsable, $activa]);
+                $stmt->execute([$nombre, $nombre_corto, $responsable, $sede ?: null, $zona ?: null, $activa]);
                 
                 $_SESSION['mensaje_exito'] = "✅ Dependencia creada correctamente";
                 header('Location: ' . $_SERVER['PHP_SELF']);
@@ -546,6 +552,8 @@ if (!file_exists($menu_archivo)) {
                                     <th>ID</th>
                                     <th>Nombre</th>
                                     <th>Nombre Completo</th>
+                                    <th>Sede</th>
+                                    <th>Zona</th>
                                     <th>Responsable</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
@@ -557,6 +565,8 @@ if (!file_exists($menu_archivo)) {
                                         <td><?php echo $dep['id']; ?></td>
                                         <td><strong><?php echo htmlspecialchars($dep['nombre_corto'] ?? 'N/A'); ?></strong></td>
                                         <td><?php echo htmlspecialchars($dep['nombre']); ?></td>
+                                        <td><?php echo htmlspecialchars($dep['sede'] ?? '-'); ?></td>
+                                        <td><?php echo htmlspecialchars($dep['zona'] ?? '-'); ?></td>
                                         <td><?php echo htmlspecialchars($dep['responsable'] ?? '-'); ?></td>
                                         <td>
                                             <span class="badge-custom <?php echo $dep['activa'] ? 'badge-success-custom' : 'badge-danger-custom'; ?>">
@@ -569,6 +579,8 @@ if (!file_exists($menu_archivo)) {
                                                 '<?php echo addslashes($dep['nombre']); ?>',
                                                 '<?php echo addslashes($dep['nombre_corto'] ?? ''); ?>',
                                                 '<?php echo addslashes($dep['responsable'] ?? ''); ?>',
+                                                '<?php echo addslashes($dep['sede'] ?? ''); ?>',
+                                                '<?php echo addslashes($dep['zona'] ?? ''); ?>',
                                                 <?php echo $dep['activa']; ?>
                                             )">
                                                 <img src="imagen/Document.png" alt="Editar" style="width:12px;height:12px;"> Editar
@@ -624,6 +636,19 @@ if (!file_exists($menu_archivo)) {
                     <small style="font-size: 11px; color: #666;">Máx. 35 caracteres. Ej: "JUV-01", "CAM-02"</small>
                 </div>
                 
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div class="form-group-custom">
+                        <label for="crear_sede">Sede</label>
+                        <input type="text" id="crear_sede" name="sede" class="form-control-custom" 
+                               placeholder="Ej: Sede Central">
+                    </div>
+                    <div class="form-group-custom">
+                        <label for="crear_zona">Zona</label>
+                        <input type="text" id="crear_zona" name="zona" class="form-control-custom" 
+                               placeholder="Ej: Zona Norte">
+                    </div>
+                </div>
+                
                 <div class="form-group-custom">
                     <label for="crear_responsable">Responsable</label>
                     <input type="text" id="crear_responsable" name="responsable" class="form-control-custom" 
@@ -673,6 +698,17 @@ if (!file_exists($menu_archivo)) {
                 <div class="form-group-custom">
                     <label for="edit_nombre_corto">Nombre Corto (Código) *</label>
                     <input type="text" id="edit_nombre_corto" name="nombre_corto" class="form-control-custom" required maxlength="35">
+                </div>
+                
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div class="form-group-custom">
+                        <label for="edit_sede">Sede</label>
+                        <input type="text" id="edit_sede" name="sede" class="form-control-custom">
+                    </div>
+                    <div class="form-group-custom">
+                        <label for="edit_zona">Zona</label>
+                        <input type="text" id="edit_zona" name="zona" class="form-control-custom">
+                    </div>
                 </div>
                 
                 <div class="form-group-custom">
@@ -742,11 +778,13 @@ if (!file_exists($menu_archivo)) {
             document.getElementById('crear_nombre').focus();
         }
         
-        function editarDependencia(id, nombre, nombre_corto, responsable, activa) {
+        function editarDependencia(id, nombre, nombre_corto, responsable, sede, zona, activa) {
             document.getElementById('edit_id').value = id;
             document.getElementById('edit_nombre').value = nombre;
             document.getElementById('edit_nombre_corto').value = nombre_corto;
             document.getElementById('edit_responsable').value = responsable;
+            document.getElementById('edit_sede').value = sede;
+            document.getElementById('edit_zona').value = zona;
             document.getElementById('edit_activa').checked = activa == 1;
             
             document.getElementById('modalEditar').style.display = 'flex';
