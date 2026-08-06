@@ -34,6 +34,22 @@ try {
          <p><strong>Error:</strong> " . $e->getMessage() . "</p>");
 }
 
+// Filtro por departamento del técnico (si tiene departamentos asignados)
+$dep_filter = "";
+$mostrar_todos = isset($_GET['mostrar_todos']) && $_GET['mostrar_todos'] == 1;
+if (in_array($privilegio, ['oati', 'infraestructura']) && !$mostrar_todos) {
+    $stmt_dep = $pdo->prepare("SELECT COUNT(*) FROM DepartamentoTecnicos WHERE usuario_id = ?");
+    $stmt_dep->execute([$id_tecnico]);
+    if ($stmt_dep->fetchColumn() > 0) {
+        $dep_filter = " AND (
+            (t.area_tipo = 'informatica' AND d.departamento_informatica_id IN (SELECT departamento_id FROM DepartamentoTecnicos WHERE usuario_id = $id_tecnico))
+            OR
+            (t.area_tipo = 'infraestructura' AND d.departamento_infraestructura_id IN (SELECT departamento_id FROM DepartamentoTecnicos WHERE usuario_id = $id_tecnico))
+        )";
+    }
+    // Si el técnico no tiene departamento → ve todos los tickets
+}
+
 // CONSULTA DE TICKETS DISPONIBLES
 $sql = "SELECT 
     t.id,
@@ -55,6 +71,7 @@ $sql = "SELECT
     WHERE t.estado = 'Nuevo' 
      AND t.oati_asignado IS NULL
      $area_tipo_filter
+     $dep_filter
     ORDER BY 
         CASE t.prioridad 
             WHEN 'urgente' THEN 1
@@ -485,6 +502,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
             <div class="counter-card-aceptar">
                 <div class="counter-number-aceptar"><?php echo count($tickets); ?></div>
                 <div class="counter-label-aceptar">TICKETS DISPONIBLES</div>
+            </div>
+            <?php endif; ?>
+            
+            <?php if (in_array($privilegio, ['oati', 'infraestructura'])): ?>
+            <div style="text-align:right;margin-bottom:10px;">
+                <?php if ($mostrar_todos): ?>
+                    <a href="aceptar_ticket.php" style="display:inline-block;padding:7px 14px;background:#3498db;color:white;border-radius:5px;text-decoration:none;font-size:12px;">Ver solo mi departamento</a>
+                <?php else: ?>
+                    <a href="aceptar_ticket.php?mostrar_todos=1" style="display:inline-block;padding:7px 14px;background:#6c757d;color:white;border-radius:5px;text-decoration:none;font-size:12px;">Mostrar todos los tickets</a>
+                <?php endif; ?>
             </div>
             <?php endif; ?>
             

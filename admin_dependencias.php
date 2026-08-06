@@ -43,6 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion'])) {
         $materia = trim($_POST['materia'] ?? '');
         $sede = trim($_POST['sede'] ?? '');
         $zona = trim($_POST['zona'] ?? '');
+        $dep_inf = !empty($_POST['departamento_informatica']) ? intval($_POST['departamento_informatica']) : null;
+        $dep_infra = !empty($_POST['departamento_infraestructura']) ? intval($_POST['departamento_infraestructura']) : null;
         $activa = isset($_POST['activa']) ? 1 : 0;
         
         if ($id > 0 && !empty($nombre) && !empty($nombre_corto)) {
@@ -57,11 +59,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion'])) {
                             materia = ?,
                             sede = ?,
                             zona = ?,
+                            departamento_informatica_id = ?,
+                            departamento_infraestructura_id = ?,
                             activa = ? 
                         WHERE id = ?";
                 
                 $stmt = $conn->prepare($sql);
-                $stmt->execute([$nombre, $nombre_corto, $responsable, $ubicacion, $telefono, $correo, $materia, $sede, $zona, $activa, $id]);
+                $stmt->execute([$nombre, $nombre_corto, $responsable, $ubicacion, $telefono, $correo, $materia, $sede, $zona, $dep_inf, $dep_infra, $activa, $id]);
                 
                 $_SESSION['mensaje_exito'] = "✅ Dependencia actualizada correctamente";
                 header('Location: ' . $_SERVER['PHP_SELF']);
@@ -85,16 +89,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion'])) {
         $materia = trim($_POST['materia'] ?? '');
         $sede = trim($_POST['sede'] ?? '');
         $zona = trim($_POST['zona'] ?? '');
+        $dep_inf = !empty($_POST['departamento_informatica']) ? intval($_POST['departamento_informatica']) : null;
+        $dep_infra = !empty($_POST['departamento_infraestructura']) ? intval($_POST['departamento_infraestructura']) : null;
         $activa = isset($_POST['activa']) ? 1 : 0;
         
         if (!empty($nombre) && !empty($nombre_corto)) {
             try {
                 $sql = "INSERT INTO Dependencias 
-                        (nombre, nombre_corto, responsable, ubicacion, telefono, correo, materia, sede, zona, activa) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        (nombre, nombre_corto, responsable, ubicacion, telefono, correo, materia, sede, zona, departamento_informatica_id, departamento_infraestructura_id, activa) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 
                 $stmt = $conn->prepare($sql);
-                $stmt->execute([$nombre, $nombre_corto, $responsable, $ubicacion, $telefono, $correo, $materia, $sede, $zona, $activa]);
+                $stmt->execute([$nombre, $nombre_corto, $responsable, $ubicacion, $telefono, $correo, $materia, $sede, $zona, $dep_inf, $dep_infra, $activa]);
                 
                 $_SESSION['mensaje_exito'] = "✅ Dependencia creada correctamente";
                 header('Location: ' . $_SERVER['PHP_SELF']);
@@ -147,6 +153,10 @@ try {
     $error = "Error al cargar: " . $e->getMessage();
     $dependencias = [];
 }
+
+// Obtener departamentos para los selects
+$departamentos_inf = $conn->query("SELECT id, nombre FROM Departamentos WHERE area_tipo = 'informatica' AND activa = 1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+$departamentos_infra = $conn->query("SELECT id, nombre FROM Departamentos WHERE area_tipo = 'infraestructura' AND activa = 1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 
 // 7. ESTABLECER TÍTULO PARA LA CABECERA
 $titulo_pagina = "Gestión de Dependencias - Areas Operativas: Infraestructura - OATI";
@@ -569,6 +579,8 @@ if (!file_exists($menu_archivo)) {
                                     <th>Materia</th>
                                     <th>Sede</th>
                                     <th>Zona</th>
+                                    <th>Depto OATI</th>
+                                    <th>Depto Infra</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -584,6 +596,14 @@ if (!file_exists($menu_archivo)) {
                                         <td><?php echo htmlspecialchars($dep['materia'] ?? '-'); ?></td>
                                         <td><?php echo htmlspecialchars($dep['sede'] ?? '-'); ?></td>
                                         <td><?php echo htmlspecialchars($dep['zona'] ?? '-'); ?></td>
+                                        <?php 
+                                        $depInfNombre = '-';
+                                        $depInfraNombre = '-';
+                                        foreach ($departamentos_inf as $di) { if ($di['id'] == ($dep['departamento_informatica_id'] ?? null)) { $depInfNombre = $di['nombre']; break; } }
+                                        foreach ($departamentos_infra as $di) { if ($di['id'] == ($dep['departamento_infraestructura_id'] ?? null)) { $depInfraNombre = $di['nombre']; break; } }
+                                        ?>
+                                        <td><?php echo htmlspecialchars($depInfNombre); ?></td>
+                                        <td><?php echo htmlspecialchars($depInfraNombre); ?></td>
                                         <td>
                                             <span class="badge-custom <?php echo $dep['activa'] ? 'badge-success-custom' : 'badge-danger-custom'; ?>">
                                                 <?php echo $dep['activa'] ? 'Activa' : 'Inactiva'; ?>
@@ -601,6 +621,8 @@ if (!file_exists($menu_archivo)) {
                                                 data-materia="<?php echo htmlspecialchars($dep['materia'] ?? '', ENT_QUOTES); ?>"
                                                 data-sede="<?php echo htmlspecialchars($dep['sede'] ?? '', ENT_QUOTES); ?>"
                                                 data-zona="<?php echo htmlspecialchars($dep['zona'] ?? '', ENT_QUOTES); ?>"
+                                                data-dep-inf="<?php echo $dep['departamento_informatica_id'] ?? ''; ?>"
+                                                data-dep-infra="<?php echo $dep['departamento_infraestructura_id'] ?? ''; ?>"
                                                 data-activa="<?php echo $dep['activa']; ?>">
                                                 <img src="imagen/Document.png" alt="Editar" style="width:12px;height:12px;"> Editar
                                             </button>
@@ -733,6 +755,26 @@ if (!file_exists($menu_archivo)) {
                 </div>
                 
                 <div class="form-group-custom">
+                    <label for="crear_dep_inf">Departamento (Informática/OATI)</label>
+                    <select id="crear_dep_inf" name="departamento_informatica" class="form-control-custom">
+                        <option value="">Sin departamento</option>
+                        <?php foreach ($departamentos_inf as $di): ?>
+                        <option value="<?php echo $di['id']; ?>"><?php echo htmlspecialchars($di['nombre']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="form-group-custom">
+                    <label for="crear_dep_infra">Departamento (Infraestructura)</label>
+                    <select id="crear_dep_infra" name="departamento_infraestructura" class="form-control-custom">
+                        <option value="">Sin departamento</option>
+                        <?php foreach ($departamentos_infra as $di): ?>
+                        <option value="<?php echo $di['id']; ?>"><?php echo htmlspecialchars($di['nombre']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="form-group-custom">
                     <label style="display: flex; align-items: center;">
                         <div class="switch-custom">
                             <input type="checkbox" name="activa" id="crear_activa" checked>
@@ -851,6 +893,26 @@ if (!file_exists($menu_archivo)) {
                 </div>
                 
                 <div class="form-group-custom">
+                    <label for="edit_dep_inf">Departamento (Informática/OATI)</label>
+                    <select id="edit_dep_inf" name="departamento_informatica" class="form-control-custom">
+                        <option value="">Sin departamento</option>
+                        <?php foreach ($departamentos_inf as $di): ?>
+                        <option value="<?php echo $di['id']; ?>"><?php echo htmlspecialchars($di['nombre']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="form-group-custom">
+                    <label for="edit_dep_infra">Departamento (Infraestructura)</label>
+                    <select id="edit_dep_infra" name="departamento_infraestructura" class="form-control-custom">
+                        <option value="">Sin departamento</option>
+                        <?php foreach ($departamentos_infra as $di): ?>
+                        <option value="<?php echo $di['id']; ?>"><?php echo htmlspecialchars($di['nombre']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="form-group-custom">
                     <label style="display: flex; align-items: center;">
                         <div class="switch-custom">
                             <input type="checkbox" name="activa" id="edit_activa">
@@ -926,12 +988,14 @@ if (!file_exists($menu_archivo)) {
                     this.getAttribute('data-materia'),
                     this.getAttribute('data-sede'),
                     this.getAttribute('data-zona'),
+                    this.getAttribute('data-dep-inf'),
+                    this.getAttribute('data-dep-infra'),
                     this.getAttribute('data-activa')
                 );
             });
         });
         
-        function editarDependencia(id, nombre, nombre_corto, responsable, ubicacion, telefono, correo, materia, sede, zona, activa) {
+        function editarDependencia(id, nombre, nombre_corto, responsable, ubicacion, telefono, correo, materia, sede, zona, depInf, depInfra, activa) {
             document.getElementById('edit_id').value = id;
             document.getElementById('edit_nombre').value = nombre;
             document.getElementById('edit_nombre_corto').value = nombre_corto;
@@ -942,6 +1006,8 @@ if (!file_exists($menu_archivo)) {
             document.getElementById('edit_materia').value = materia;
             document.getElementById('edit_sede').value = sede;
             document.getElementById('edit_zona').value = zona;
+            document.getElementById('edit_dep_inf').value = depInf || '';
+            document.getElementById('edit_dep_infra').value = depInfra || '';
             document.getElementById('edit_activa').checked = activa == 1;
             
             document.getElementById('modalEditar').style.display = 'flex';

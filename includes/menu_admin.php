@@ -65,6 +65,13 @@
         </li>
         
         <li>
+            <a href="admin_departamentos.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_departamentos.php' ? 'active' : ''; ?>">
+                <img src="imagen/Components.png" alt="Departamentos" class="menu-icon">
+                <span>Departamentos</span>
+            </a>
+        </li>
+        
+        <li>
             <a href="admin_areas_servicios.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_areas_servicios.php' ? 'active' : ''; ?>">
                 <img src="imagen/Settings.png" alt="Áreas" class="menu-icon">
                 <span>Áreas y Servicios</span>

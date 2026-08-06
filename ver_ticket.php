@@ -62,6 +62,13 @@ du.nombre as usuario_dependencia_nombre,
     $ticket['dependencia_corto'] = $ticket['dependencia_corto'] ?? $ticket['dependencia_nombre'];
     $ticket['usuario_dependencia_corto'] = $ticket['usuario_dependencia_corto'] ?? $ticket['usuario_dependencia_nombre'];
     
+    // Consultar departamento responsable según tipo de atención
+    $departamento_nombre = null;
+    $col_dep = ($ticket['area_tipo'] ?? 'informatica') == 'infraestructura' ? 'departamento_infraestructura_id' : 'departamento_informatica_id';
+    $stmt_dep = $conn->prepare("SELECT d.nombre FROM Departamentos d JOIN Dependencias de ON de.$col_dep = d.id WHERE de.id = ?");
+    $stmt_dep->execute([$ticket['dependencia_id']]);
+    $departamento_nombre = $stmt_dep->fetchColumn();
+    
     if (!$ticket) {
         header('Location: ' . (in_array($privilegio, ['admin', 'director']) ? 'todos_tickets.php' : 'mis_tickets.php') . '?error=ticket_no_encontrado');
         exit();
@@ -1344,6 +1351,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                             <?php else: ?>
                                 Informática (OATI)
                             <?php endif; ?>
+                        </span>
+                    </div>
+                    <div class="info-item-ticket">
+                        <span class="info-label-ticket">Departamento</span>
+                        <span class="info-value-ticket">
+                            <?php echo $departamento_nombre ? htmlspecialchars($departamento_nombre) : 'Sin departamento'; ?>
                         </span>
                     </div>
                 </div>

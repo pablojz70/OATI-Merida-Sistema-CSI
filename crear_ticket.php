@@ -95,6 +95,21 @@ if ($privilegio == 'admin' || $privilegio == 'oati') {
     }
 }
 
+// Datos de departamentos para filtrar asignación por dependencia
+$dep_dep_map = [];
+$dep_tec_map = [];
+try {
+    $stmt_deps = $conn->query("SELECT id, departamento_informatica_id, departamento_infraestructura_id FROM Dependencias");
+    foreach ($stmt_deps->fetchAll() as $d) {
+        $dep_dep_map[$d['id']] = ['inf' => $d['departamento_informatica_id'], 'infra' => $d['departamento_infraestructura_id']];
+    }
+    $stmt_dt = $conn->query("SELECT departamento_id, usuario_id FROM DepartamentoTecnicos");
+    foreach ($stmt_dt->fetchAll() as $dt) {
+        if (!isset($dep_tec_map[$dt['departamento_id']])) $dep_tec_map[$dt['departamento_id']] = [];
+        $dep_tec_map[$dt['departamento_id']][] = intval($dt['usuario_id']);
+    }
+} catch (Exception $e) {}
+
 // 6. PROCESAR FORMULARIO
 $errores = [];
 $datos_formulario = [
@@ -966,6 +981,11 @@ if (!file_exists($menu_archivo)) {
                             </div>
                             
                             <div id="oati-selector" style="<?php echo isset($_POST['asignar_oati']) ? 'display: block;' : 'display: none;' ?>">
+                                <div class="form-group" style="margin-bottom:5px;">
+                                    <label style="font-size:11px;color:#666;">
+                                        <input type="checkbox" id="mostrar_todos_tecnicos"> Mostrar todos los técnicos (asignación manual)
+                                    </label>
+                                </div>
                                 <div class="form-group">
                                      <label for="oati_asignado"><span id="asignar-a-label">Asignar a:</span></label>
                                      <select class="form-control" id="oati_asignado" name="oati_asignado">
@@ -1204,8 +1224,48 @@ if (!file_exists($menu_archivo)) {
         
         // Escuchar cambios en el dropdown de dependencias
         $('#dependencia_id').change(function() {
-            const dependenciaId = $(this).val();
+            const dependenciaId = $(this).value || $(this).val();
             actualizarInfoDependencia(dependenciaId);
+            filtrarAsignacionPorDepartamento();
+        });
+        
+        // Filtrar lista de asignación según el departamento de la dependencia
+        const depDepMap = <?php echo json_encode($dep_dep_map); ?>;
+        const depTecMap = <?php echo json_encode($dep_tec_map); ?>;
+        function filtrarAsignacionPorDepartamento() {
+            const depId = document.getElementById('dependencia_id').value;
+            if (!depId) return;
+            const tipo = document.querySelector('input[name="area_tipo"]:checked').value;
+            const depDep = depDepMap[depId];
+            if (!depDep) return;
+            const deptId = tipo === 'infraestructura' ? depDep.infra : depDep.inf;
+            const mostrarTodos = document.getElementById('mostrar_todos_tecnicos') && document.getElementById('mostrar_todos_tecnicos').checked;
+            const select = document.getElementById('oati_asignado');
+            if (!select) return;
+            if (!deptId || mostrarTodos) {
+                // Mostrar todos los técnicos del tipo
+                Array.from(select.options).forEach(function(o) { o.style.display = ''; });
+                return;
+            }
+            const tecIds = depTecMap[deptId] || [];
+            Array.from(select.options).forEach(function(o) {
+                if (o.value === '') { o.style.display = ''; return; }
+                o.style.display = tecIds.includes(parseInt(o.value)) ? '' : 'none';
+            });
+        }
+        // Hookear en cambiarTipo
+        var origCambiarTipo2 = window.cambiarTipo;
+        window.cambiarTipo = function(tipo) {
+            if (origCambiarTipo2) origCambiarTipo2(tipo);
+            filtrarAsignacionPorDepartamento();
+        };
+        // Mostrar todos checkbox
+        $(document).on('change', '#mostrar_todos_tecnicos', function() {
+            filtrarAsignacionPorDepartamento();
+        });
+        // Inicializar al cargar si hay dependencia
+        document.addEventListener('DOMContentLoaded', function() {
+            filtrarAsignacionPorDepartamento();
         });
         
         // Método simple: copiar opciones del select oculto al select visible
