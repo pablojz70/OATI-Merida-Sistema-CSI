@@ -160,6 +160,10 @@ $tecnicos_infra = [];
 foreach ($tecnicos_all as $t) {
     if ($t['privilegio'] == 'infraestructura') {
         $tecnicos_infra[$t['id']] = $t['nombre'];
+    } elseif ($t['privilegio'] == 'admin') {
+        // Los administradores pueden estar en ambos tipos
+        $tecnicos_inf[$t['id']] = $t['nombre'];
+        $tecnicos_infra[$t['id']] = $t['nombre'];
     } else {
         $tecnicos_inf[$t['id']] = $t['nombre'];
     }
