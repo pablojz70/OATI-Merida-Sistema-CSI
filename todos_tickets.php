@@ -1175,14 +1175,14 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                     <table class="table-tickets">
                         <thead>
                             <tr>
-                                <th style="width:18%;">Asunto</th>
-                                <th style="width:20%;">Descripción de la Actividad o del Problema</th>
-                                <th style="width:12%;">Dependencia</th>
-                                <th style="width:12%;"><?php echo $vista_tipo == 'infraestructura' ? 'Asignado' : 'OATI'; ?></th>
+                                <th style="width:14%;">Asunto</th>
+                                <th style="width:30%;">Descripción de la Actividad o del Problema</th>
+                                <th style="width:11%;">Dependencia</th>
+                                <th style="width:11%;"><?php echo $vista_tipo == 'infraestructura' ? 'Asignado' : 'OATI'; ?></th>
                                 <th style="width:10%;">Estado</th>
                                 <th style="width:7%;">Prioridad</th>
-                                <th style="width:12%;">Fecha</th>
-                                <th style="width:9%;">Acciones</th>
+                                <th style="width:10%;">Fecha</th>
+                                <th style="width:7%;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1190,7 +1190,9 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                 <?php foreach ($tickets as $ticket): ?>
                                 <tr>
                                     <td title="<?php echo htmlspecialchars($ticket['asunto'] ?? ''); ?>">
-                                        <?php echo htmlspecialchars($ticket['asunto'] ?? ''); ?>
+                                        <div style="font-size:12px;font-weight:600;color:#2c3e50;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.3;">
+                                            <?php echo htmlspecialchars($ticket['asunto'] ?? ''); ?>
+                                        </div>
                                         <!-- Mostrar número de ticket como tooltip -->
                                         <div style="font-size: 9px; color: #666; margin-top: 2px;">
                                             <i class="fas fa-hashtag"></i> <?php echo htmlspecialchars($ticket['numero_ticket'] ?? ''); ?>
