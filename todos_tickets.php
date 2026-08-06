@@ -1198,7 +1198,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                     </td>
                                     
                                     <td>
-                                        <div style="font-size:11px;color:#4a5568;max-height:60px;overflow:hidden;line-height:1.4;">
+                                        <div title="<?php echo htmlspecialchars($ticket['descripcion'] ?? ''); ?>" style="font-size:11px;color:#4a5568;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4;cursor:default;">
                                             <?php echo htmlspecialchars($ticket['descripcion'] ?? ''); ?>
                                         </div>
                                     </td>
