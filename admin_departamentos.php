@@ -151,6 +151,34 @@ foreach ($departamentos as $dep) {
     $tecs = $conn->query("SELECT usuario_id FROM DepartamentoTecnicos WHERE departamento_id = " . $dep['id'])->fetchAll(PDO::FETCH_COLUMN);
     $dep_detalles[$dep['id']] = ['dependencias' => $deps, 'tecnicos' => $tecs];
 }
+
+// Datos para listas duales (técnicos y dependencias con su departamento actual)
+$tecnicos_inf = [];
+$tecnicos_infra = [];
+foreach ($tecnicos_all as $t) {
+    if ($t['privilegio'] == 'infraestructura') {
+        $tecnicos_infra[$t['id']] = $t['nombre'];
+    } else {
+        $tecnicos_inf[$t['id']] = $t['nombre'];
+    }
+}
+$dependencias_data = [];
+foreach ($dependencias_all as $d) {
+    $dependencias_data[$d['id']] = [
+        'nombre' => $d['nombre_corto'] . ' - ' . $d['nombre'],
+        'dep_inf' => null,
+        'dep_infra' => null
+    ];
+}
+foreach ($conn->query("SELECT id, departamento_informatica_id, departamento_infraestructura_id FROM Dependencias")->fetchAll() as $dd) {
+    if (isset($dependencias_data[$dd['id']])) {
+        $dependencias_data[$dd['id']]['dep_inf'] = $dd['departamento_informatica_id'];
+        $dependencias_data[$dd['id']]['dep_infra'] = $dd['departamento_infraestructura_id'];
+    }
+}
+$tecnicos_inf_json = json_encode($tecnicos_inf);
+$tecnicos_infra_json = json_encode($tecnicos_infra);
+$dependencias_json = json_encode($dependencias_data);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -198,6 +226,15 @@ foreach ($departamentos as $dep) {
         .mensaje { padding:10px 15px; border-radius:4px; margin-bottom:15px; font-size:13px; }
         .mensaje.success { background:#d4edda; color:#155724; }
         .mensaje.error { background:#f8d7da; color:#721c24; }
+        /* LISTAS DUALES */
+        .dual-list { display:flex; gap:8px; align-items:flex-start; }
+        .dual-col { flex:1; }
+        .dual-col label { display:block; font-size:11px; font-weight:600; color:#333; margin-bottom:4px; }
+        .dual-col select { width:100%; min-height:150px; padding:5px; border:1px solid #ccc; border-radius:4px; font-size:12px; box-sizing:border-box; }
+        .dual-buttons { display:flex; flex-direction:column; gap:6px; padding-top:25px; }
+        .dual-buttons button { padding:8px 10px; background:#3498db; color:white; border:none; border-radius:4px; cursor:pointer; font-size:16px; }
+        .dual-buttons button.back { background:#e74c3c; }
+        .dual-count { font-size:10px; color:#999; margin-top:3px; }
     </style>
 </head>
 <body>
@@ -320,19 +357,45 @@ foreach ($departamentos as $dep) {
                 </div>
                 <div class="form-group">
                     <label>Dependencias</label>
-                    <select name="dependencias[]" id="crear_dependencias" multiple>
-                        <?php foreach ($dependencias_all as $d): ?>
-                        <option value="<?php echo $d['id']; ?>"><?php echo htmlspecialchars($d['nombre_corto'] . ' - ' . $d['nombre']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="dual-list">
+                        <div class="dual-col">
+                            <label>Disponibles</label>
+                            <select multiple id="crear_dep_disp"></select>
+                            <div class="dual-count" id="crear_dep_disp_count"></div>
+                        </div>
+                        <div class="dual-buttons">
+                            <button type="button" onclick="moverTodos('crear_dep_disp','crear_dep_asig')">»</button>
+                            <button type="button" onclick="moverSeleccion('crear_dep_disp','crear_dep_asig')">→</button>
+                            <button type="button" class="back" onclick="moverSeleccion('crear_dep_asig','crear_dep_disp')">←</button>
+                            <button type="button" class="back" onclick="moverTodos('crear_dep_asig','crear_dep_disp')">«</button>
+                        </div>
+                        <div class="dual-col">
+                            <label>Asignadas</label>
+                            <select multiple id="crear_dep_asig" name="dependencias[]"></select>
+                            <div class="dual-count" id="crear_dep_asig_count"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Técnicos</label>
-                    <select name="tecnicos[]" id="crear_tecnicos" multiple>
-                        <?php foreach ($tecnicos_all as $t): ?>
-                        <option value="<?php echo $t['id']; ?>"><?php echo htmlspecialchars($t['nombre'] . ' (' . $t['privilegio'] . ')'); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="dual-list">
+                        <div class="dual-col">
+                            <label>Disponibles</label>
+                            <select multiple id="crear_tec_disp"></select>
+                            <div class="dual-count" id="crear_tec_disp_count"></div>
+                        </div>
+                        <div class="dual-buttons">
+                            <button type="button" onclick="moverTodos('crear_tec_disp','crear_tec_asig')">»</button>
+                            <button type="button" onclick="moverSeleccion('crear_tec_disp','crear_tec_asig')">→</button>
+                            <button type="button" class="back" onclick="moverSeleccion('crear_tec_asig','crear_tec_disp')">←</button>
+                            <button type="button" class="back" onclick="moverTodos('crear_tec_asig','crear_tec_disp')">«</button>
+                        </div>
+                        <div class="dual-col">
+                            <label>Asignados</label>
+                            <select multiple id="crear_tec_asig" name="tecnicos[]"></select>
+                            <div class="dual-count" id="crear_tec_asig_count"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" onclick="cerrarModal('modalCrear')">Cancelar</button>
@@ -362,19 +425,45 @@ foreach ($departamentos as $dep) {
                 </div>
                 <div class="form-group">
                     <label>Dependencias</label>
-                    <select name="dependencias[]" id="edit_dependencias" multiple>
-                        <?php foreach ($dependencias_all as $d): ?>
-                        <option value="<?php echo $d['id']; ?>"><?php echo htmlspecialchars($d['nombre_corto'] . ' - ' . $d['nombre']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="dual-list">
+                        <div class="dual-col">
+                            <label>Disponibles</label>
+                            <select multiple id="edit_dep_disp"></select>
+                            <div class="dual-count" id="edit_dep_disp_count"></div>
+                        </div>
+                        <div class="dual-buttons">
+                            <button type="button" onclick="moverTodos('edit_dep_disp','edit_dep_asig')">»</button>
+                            <button type="button" onclick="moverSeleccion('edit_dep_disp','edit_dep_asig')">→</button>
+                            <button type="button" class="back" onclick="moverSeleccion('edit_dep_asig','edit_dep_disp')">←</button>
+                            <button type="button" class="back" onclick="moverTodos('edit_dep_asig','edit_dep_disp')">«</button>
+                        </div>
+                        <div class="dual-col">
+                            <label>Asignadas</label>
+                            <select multiple id="edit_dep_asig" name="dependencias[]"></select>
+                            <div class="dual-count" id="edit_dep_asig_count"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Técnicos</label>
-                    <select name="tecnicos[]" id="edit_tecnicos" multiple>
-                        <?php foreach ($tecnicos_all as $t): ?>
-                        <option value="<?php echo $t['id']; ?>"><?php echo htmlspecialchars($t['nombre'] . ' (' . $t['privilegio'] . ')'); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="dual-list">
+                        <div class="dual-col">
+                            <label>Disponibles</label>
+                            <select multiple id="edit_tec_disp"></select>
+                            <div class="dual-count" id="edit_tec_disp_count"></div>
+                        </div>
+                        <div class="dual-buttons">
+                            <button type="button" onclick="moverTodos('edit_tec_disp','edit_tec_asig')">»</button>
+                            <button type="button" onclick="moverSeleccion('edit_tec_disp','edit_tec_asig')">→</button>
+                            <button type="button" class="back" onclick="moverSeleccion('edit_tec_asig','edit_tec_disp')">←</button>
+                            <button type="button" class="back" onclick="moverTodos('edit_tec_asig','edit_tec_disp')">«</button>
+                        </div>
+                        <div class="dual-col">
+                            <label>Asignados</label>
+                            <select multiple id="edit_tec_asig" name="tecnicos[]"></select>
+                            <div class="dual-count" id="edit_tec_asig_count"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group switch">
                     <label style="display:flex;align-items:center;gap:8px;margin:0;">
@@ -390,9 +479,116 @@ foreach ($departamentos as $dep) {
     </div>
 
     <script>
+    // Datos de las listas
+    var TECNICOS_INF = <?php echo $tecnicos_inf_json; ?>;
+    var TECNICOS_INFRA = <?php echo $tecnicos_infra_json; ?>;
+    var DEPENDENCIAS = <?php echo $dependencias_json; ?>;
+    var editModeDeptId = null;
+    var editTecs = [];
+
+    function getTecnicos(tipo) {
+        return tipo === 'infraestructura' ? TECNICOS_INFRA : TECNICOS_INF;
+    }
+
+    // Rellenar un select con un objeto {id: nombre}
+    function llenarSelect(selectId, items, seleccionados) {
+        var select = document.getElementById(selectId);
+        select.innerHTML = '';
+        Object.keys(items).forEach(function(id) {
+            var opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = items[id];
+            if (seleccionados && seleccionados.indexOf(parseInt(id)) !== -1) {
+                opt.selected = true;
+            }
+            select.appendChild(opt);
+        });
+    }
+
+    // Dependencias disponibles según tipo: solo las que NO tienen departamento asignado de este tipo
+    function dependenciasDisponibles(tipo, deptId) {
+        var resultado = {};
+        Object.keys(DEPENDENCIAS).forEach(function(id) {
+            var dep = DEPENDENCIAS[id];
+            var deptActual = tipo === 'infraestructura' ? dep.dep_infra : dep.dep_inf;
+            if (!deptActual) {
+                resultado[id] = dep.nombre;
+            }
+        });
+        return resultado;
+    }
+
+    // Dependencias asignadas a este departamento
+    function dependenciasAsignadas(tipo, deptId) {
+        var resultado = {};
+        Object.keys(DEPENDENCIAS).forEach(function(id) {
+            var dep = DEPENDENCIAS[id];
+            var deptActual = tipo === 'infraestructura' ? dep.dep_infra : dep.dep_inf;
+            if (String(deptActual) === String(deptId)) {
+                resultado[id] = dep.nombre;
+            }
+        });
+        return resultado;
+    }
+
+    // Cargar las 4 listas (disponibles/asignados de dependencias y técnicos)
+    function cargarListas(prefijo, tipo, deptId, tecAsig) {
+        // Técnicos
+        var tecnicos = getTecnicos(tipo);
+        var tecDisponibles = {};
+        Object.keys(tecnicos).forEach(function(id) {
+            if (!tecAsig || tecAsig.indexOf(parseInt(id)) === -1) {
+                tecDisponibles[id] = tecnicos[id];
+            }
+        });
+        var tecAsignados = {};
+        (tecAsig || []).forEach(function(id) {
+            if (tecnicos[id]) tecAsignados[id] = tecnicos[id];
+        });
+        llenarSelect(prefijo + '_tec_disp', tecDisponibles, []);
+        llenarSelect(prefijo + '_tec_asig', tecAsignados, []);
+        // Dependencias
+        llenarSelect(prefijo + '_dep_disp', dependenciasDisponibles(tipo, deptId), []);
+        llenarSelect(prefijo + '_dep_asig', dependenciasAsignadas(tipo, deptId), []);
+        actualizarContadores(prefijo);
+    }
+
+    function moverSeleccion(origen, destino) {
+        var selOrigen = document.getElementById(origen);
+        var selDestino = document.getElementById(destino);
+        Array.from(selOrigen.selectedOptions).forEach(function(opt) {
+            selDestino.appendChild(opt);
+            opt.selected = false;
+        });
+        actualizarContadores(origen.split('_').slice(0, -1).join('_'));
+    }
+
+    function moverTodos(origen, destino) {
+        var selOrigen = document.getElementById(origen);
+        var selDestino = document.getElementById(destino);
+        Array.from(selOrigen.options).forEach(function(opt) {
+            selDestino.appendChild(opt);
+        });
+        actualizarContadores(origen.split('_').slice(0, -1).join('_'));
+    }
+
+    function actualizarContadores(prefijo) {
+        var depDisp = document.getElementById(prefijo + '_dep_disp');
+        var depAsig = document.getElementById(prefijo + '_dep_asig');
+        var tecDisp = document.getElementById(prefijo + '_tec_disp');
+        var tecAsig = document.getElementById(prefijo + '_tec_asig');
+        if (depDisp) document.getElementById(prefijo + '_dep_disp_count').textContent = depDisp.options.length + ' disponible(s)';
+        if (depAsig) document.getElementById(prefijo + '_dep_asig_count').textContent = depAsig.options.length + ' asignada(s)';
+        if (tecDisp) document.getElementById(prefijo + '_tec_disp_count').textContent = tecDisp.options.length + ' disponible(s)';
+        if (tecAsig) document.getElementById(prefijo + '_tec_asig_count').textContent = tecAsig.options.length + ' asignado(s)';
+    }
+
     function abrirModalCrear() {
         document.getElementById('modalCrear').style.display = 'block';
         document.getElementById('crear_nombre').focus();
+        editModeDeptId = null;
+        var tipo = document.getElementById('crear_area_tipo').value;
+        cargarListas('crear', tipo, null, []);
     }
 
     function editarDepartamento(id, nombre, tipo, activa, deps, tecs) {
@@ -400,12 +596,31 @@ foreach ($departamentos as $dep) {
         document.getElementById('edit_nombre').value = nombre;
         document.getElementById('edit_area_tipo').value = tipo;
         document.getElementById('edit_activa').checked = activa == 1;
-        var selDeps = document.getElementById('edit_dependencias');
-        Array.from(selDeps.options).forEach(function(o) { o.selected = deps.includes(parseInt(o.value)); });
-        var selTecs = document.getElementById('edit_tecnicos');
-        Array.from(selTecs.options).forEach(function(o) { o.selected = tecs.includes(parseInt(o.value)); });
+        editModeDeptId = id;
+        editTecs = tecs || [];
+        cargarListas('edit', tipo, id, editTecs);
         document.getElementById('modalEditar').style.display = 'block';
     }
+
+    // Cambio de tipo: recargar listas
+    document.getElementById('crear_area_tipo').addEventListener('change', function() {
+        cargarListas('crear', this.value, null, []);
+    });
+    document.getElementById('edit_area_tipo').addEventListener('change', function() {
+        cargarListas('edit', this.value, editModeDeptId, editTecs);
+    });
+
+    // Antes de enviar, marcar todos los asignados como seleccionados
+    document.querySelector('#modalCrear form').addEventListener('submit', function() {
+        ['crear_dep_asig', 'crear_tec_asig'].forEach(function(id) {
+            Array.from(document.getElementById(id).options).forEach(function(o) { o.selected = true; });
+        });
+    });
+    document.querySelector('#modalEditar form').addEventListener('submit', function() {
+        ['edit_dep_asig', 'edit_tec_asig'].forEach(function(id) {
+            Array.from(document.getElementById(id).options).forEach(function(o) { o.selected = true; });
+        });
+    });
 
     function cerrarModal(id) {
         document.getElementById(id).style.display = 'none';
