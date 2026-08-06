@@ -1,0 +1,63 @@
+=====================================================================
+ REGISTRO DE ACTUALIZACIONES DE BASE DE DATOS - SISTEMA CSI
+=====================================================================
+
+FECHA DE ÚLTIMA ACTUALIZACIÓN: Mayo 2026
+ESTADO: APLICADO EN EL SERVIDOR PRINCIPAL (FUNCIONAL)
+
+---------------------------------------------------------------------
+ IMPORTANTE
+---------------------------------------------------------------------
+Este archivo indica que TODAS las modificaciones listadas a
+continuación YA FUERON APLICADAS a la base de datos `sistema_csi`
+del servidor principal.
+
+Cualquier SQL nuevo que se genere a partir de esta fecha SOLO debe
+contener las modificaciones NUEVAS. NO repetir las que ya están
+listadas aquí, o darán error.
+
+---------------------------------------------------------------------
+ CAMBIOS YA APLICADOS (NO VOLVER A EJECUTAR)
+---------------------------------------------------------------------
+
+1. Columna telegram_id en Usuarios
+   ALTER TABLE Usuarios ADD COLUMN telegram_id VARCHAR(50) DEFAULT NULL;
+
+2. Tabla TicketAsignados (asignación múltiple de técnicos)
+   CREATE TABLE TicketAsignados (
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     ticket_id INT NOT NULL,
+     usuario_id INT NOT NULL,
+     fecha_asignacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+     UNIQUE KEY uniq_asignacion (ticket_id, usuario_id)
+   );
+
+3. Nuevos campos en Dependencias
+   - ubicacion TEXT
+   - telefono VARCHAR(50)
+   - correo VARCHAR(100)
+   - materia VARCHAR(50)
+   - sede VARCHAR(100)
+   - zona VARCHAR(100)
+
+4. Módulo Departamentos
+   - Tabla Departamentos (7 registros: 3 Informática + 4 Infraestructura)
+   - Tabla DepartamentoTecnicos
+   - Dependencias.departamento_informatica_id
+   - Dependencias.departamento_infraestructura_id
+
+   Departamentos creados:
+   - Informática: Oficina Principal, Oficina CJP, Oficina El Vigia
+   - Infraestructura: Oficina Principal, Oficina CJP, Oficina El Vigia, Oficina Tovar
+
+---------------------------------------------------------------------
+ PENDIENTES / PRÓXIMOS CAMBIOS
+---------------------------------------------------------------------
+(Ninguno registrado hasta esta fecha)
+
+Si se agregan cambios nuevos, agregarlos aquí debajo con su fecha,
+para mantener un historial completo.
+
+---------------------------------------------------------------------
+ FECHA: ______________________
+ OBSERVACIONES: ____________________________________________________
