@@ -153,6 +153,8 @@ foreach ($departamentos as $dep) {
 }
 
 // Datos para listas duales (técnicos y dependencias con su departamento actual)
+// IDs de técnicos ya asignados a algún departamento (para no mostrarlos como disponibles)
+$asignados_ids = $conn->query("SELECT DISTINCT usuario_id FROM DepartamentoTecnicos")->fetchAll(PDO::FETCH_COLUMN);
 $tecnicos_inf = [];
 $tecnicos_infra = [];
 foreach ($tecnicos_all as $t) {
@@ -179,6 +181,7 @@ foreach ($conn->query("SELECT id, departamento_informatica_id, departamento_infr
 $tecnicos_inf_json = json_encode($tecnicos_inf);
 $tecnicos_infra_json = json_encode($tecnicos_infra);
 $dependencias_json = json_encode($dependencias_data);
+$asignados_json = json_encode($asignados_ids);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -483,6 +486,7 @@ $dependencias_json = json_encode($dependencias_data);
     var TECNICOS_INF = <?php echo $tecnicos_inf_json; ?>;
     var TECNICOS_INFRA = <?php echo $tecnicos_infra_json; ?>;
     var DEPENDENCIAS = <?php echo $dependencias_json; ?>;
+    var ASIGNADOS = <?php echo $asignados_json; ?>;
     var editModeDeptId = null;
     var editTecs = [];
 
@@ -533,14 +537,15 @@ $dependencias_json = json_encode($dependencias_data);
 
     // Cargar las 4 listas (disponibles/asignados de dependencias y técnicos)
     function cargarListas(prefijo, tipo, deptId, tecAsig) {
-        // Técnicos
+        // Técnicos: disponibles = los que NO están asignados a ningún departamento
         var tecnicos = getTecnicos(tipo);
         var tecDisponibles = {};
         Object.keys(tecnicos).forEach(function(id) {
-            if (!tecAsig || tecAsig.indexOf(parseInt(id)) === -1) {
+            if (ASIGNADOS.indexOf(parseInt(id)) === -1) {
                 tecDisponibles[id] = tecnicos[id];
             }
         });
+        // Asignados = los de este departamento
         var tecAsignados = {};
         (tecAsig || []).forEach(function(id) {
             if (tecnicos[id]) tecAsignados[id] = tecnicos[id];
