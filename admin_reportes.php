@@ -27,6 +27,10 @@ $filtros = [
     'dependencia_id' => $_GET['dependencia_id'] ?? '',
     'servicio_id' => $_GET['servicio_id'] ?? '',
     'busqueda' => $_GET['busqueda'] ?? '',
+    'materia' => $_GET['materia'] ?? '',
+    'sede' => $_GET['sede'] ?? '',
+    'zona' => $_GET['zona'] ?? '',
+    'departamento' => $_GET['departamento'] ?? '',
     'area_tipo' => $_GET['area_tipo'] ?? '',
     'tipo_reporte' => $_GET['tipo_reporte'] ?? 'general',
     'vista_tipo' => $_GET['vista_tipo'] ?? ''
@@ -97,6 +101,12 @@ $stmt_dependencias = $conn->prepare("SELECT id, nombre, nombre_corto FROM Depend
 $stmt_dependencias->execute();
 $dependencias_result = $stmt_dependencias->fetchAll(PDO::FETCH_ASSOC);
 
+// Datos para filtros de materia, sede, zona y departamentos
+$materias_result = $conn->query("SELECT DISTINCT materia FROM Dependencias WHERE materia IS NOT NULL AND materia != '' ORDER BY materia")->fetchAll(PDO::FETCH_COLUMN);
+$sedes_result = $conn->query("SELECT DISTINCT sede FROM Dependencias WHERE sede IS NOT NULL AND sede != '' ORDER BY sede")->fetchAll(PDO::FETCH_COLUMN);
+$zonas_result = $conn->query("SELECT DISTINCT zona FROM Dependencias WHERE zona IS NOT NULL AND zona != '' ORDER BY zona")->fetchAll(PDO::FETCH_COLUMN);
+$departamentos_result = $conn->query("SELECT id, nombre, area_tipo FROM Departamentos WHERE activa = 1 ORDER BY area_tipo, nombre")->fetchAll(PDO::FETCH_ASSOC);
+
 // Construir consulta base para estadísticas
 $where_conditions = [];
 $params = [];
@@ -136,6 +146,28 @@ if (!empty($filtros['servicio_id'])) {
 if (!empty($filtros['busqueda'])) {
     $where_conditions[] = "t.asunto LIKE :busqueda";
     $params[':busqueda'] = '%' . $filtros['busqueda'] . '%';
+}
+
+if (!empty($filtros['materia'])) {
+    $where_conditions[] = "t.dependencia_id IN (SELECT id FROM Dependencias WHERE materia = :materia)";
+    $params[':materia'] = $filtros['materia'];
+}
+
+if (!empty($filtros['sede'])) {
+    $where_conditions[] = "t.dependencia_id IN (SELECT id FROM Dependencias WHERE sede = :sede)";
+    $params[':sede'] = $filtros['sede'];
+}
+
+if (!empty($filtros['zona'])) {
+    $where_conditions[] = "t.dependencia_id IN (SELECT id FROM Dependencias WHERE zona = :zona)";
+    $params[':zona'] = $filtros['zona'];
+}
+
+if (!empty($filtros['departamento'])) {
+    $dept_row = $conn->query("SELECT area_tipo FROM Departamentos WHERE id = " . intval($filtros['departamento']))->fetch();
+    $dept_col = ($dept_row && $dept_row['area_tipo'] == 'infraestructura') ? 'departamento_infraestructura_id' : 'departamento_informatica_id';
+    $where_conditions[] = "t.dependencia_id IN (SELECT id FROM Dependencias WHERE $dept_col = :dept)";
+    $params[':dept'] = $filtros['departamento'];
 }
 
 if (!empty($filtros['area_tipo'])) {
@@ -1025,6 +1057,14 @@ if ($filtros['oati_id']) {
                 if ($filtros['vista_tipo']) {
                     $texto_filtros[] = "Vista: " . ($filtros['vista_tipo'] == 'infraestructura' ? 'Infraestructura' : 'OATI');
                 }
+                if ($filtros['departamento']) {
+                    foreach ($departamentos_result as $dept) {
+                        if ($dept['id'] == $filtros['departamento']) { $texto_filtros[] = "Departamento: " . $dept['nombre']; break; }
+                    }
+                }
+                if ($filtros['materia']) $texto_filtros[] = "Materia: " . $filtros['materia'];
+                if ($filtros['sede']) $texto_filtros[] = "Sede: " . $filtros['sede'];
+                if ($filtros['zona']) $texto_filtros[] = "Zona: " . $filtros['zona'];
                 
                 if (!empty($texto_filtros)) {
                     echo " | " . implode(' | ', $texto_filtros);
@@ -1320,6 +1360,58 @@ if ($filtros['oati_id']) {
                                     echo "<option value='{$dep['id']}' $selected>{$nombre}</option>";
                                 }
                                 ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group-compact">
+                            <label for="departamento" class="form-label-compact">
+                                <i class="fas fa-building"></i> Departamento
+                            </label>
+                            <select id="departamento" name="departamento" class="form-select-compact">
+                                <option value="">Todos los departamentos</option>
+                                <?php 
+                                foreach ($departamentos_result as $dept) {
+                                    $selected = ($filtros['departamento'] == $dept['id']) ? 'selected' : '';
+                                    $tipo_lbl = $dept['area_tipo'] == 'infraestructura' ? 'Infra' : 'OATI';
+                                    echo "<option value='{$dept['id']}' $selected>{$dept['nombre']} ({$tipo_lbl})</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group-compact">
+                            <label for="materia" class="form-label-compact">
+                                <i class="fas fa-gavel"></i> Materia
+                            </label>
+                            <select id="materia" name="materia" class="form-select-compact">
+                                <option value="">Todas</option>
+                                <?php foreach ($materias_result as $m): ?>
+                                <option value="<?php echo htmlspecialchars($m); ?>" <?php echo $filtros['materia'] == $m ? 'selected' : ''; ?>><?php echo htmlspecialchars($m); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group-compact">
+                            <label for="sede" class="form-label-compact">
+                                <i class="fas fa-map-marker-alt"></i> Sede
+                            </label>
+                            <select id="sede" name="sede" class="form-select-compact">
+                                <option value="">Todas</option>
+                                <?php foreach ($sedes_result as $s): ?>
+                                <option value="<?php echo htmlspecialchars($s); ?>" <?php echo $filtros['sede'] == $s ? 'selected' : ''; ?>><?php echo htmlspecialchars($s); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group-compact">
+                            <label for="zona" class="form-label-compact">
+                                <i class="fas fa-map"></i> Zona
+                            </label>
+                            <select id="zona" name="zona" class="form-select-compact">
+                                <option value="">Todas</option>
+                                <?php foreach ($zonas_result as $z): ?>
+                                <option value="<?php echo htmlspecialchars($z); ?>" <?php echo $filtros['zona'] == $z ? 'selected' : ''; ?>><?php echo htmlspecialchars($z); ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         
