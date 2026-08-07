@@ -101,10 +101,10 @@ $stmt_dependencias = $conn->prepare("SELECT id, nombre, nombre_corto FROM Depend
 $stmt_dependencias->execute();
 $dependencias_result = $stmt_dependencias->fetchAll(PDO::FETCH_ASSOC);
 
-// Datos para filtros de materia, sede, zona y departamentos
-$materias_result = $conn->query("SELECT DISTINCT materia FROM Dependencias WHERE materia IS NOT NULL AND materia != '' ORDER BY materia")->fetchAll(PDO::FETCH_COLUMN);
-$sedes_result = $conn->query("SELECT DISTINCT sede FROM Dependencias WHERE sede IS NOT NULL AND sede != '' ORDER BY sede")->fetchAll(PDO::FETCH_COLUMN);
-$zonas_result = $conn->query("SELECT DISTINCT zona FROM Dependencias WHERE zona IS NOT NULL AND zona != '' ORDER BY zona")->fetchAll(PDO::FETCH_COLUMN);
+// Listas predefinidas para filtros de materia, sede y zona
+$materias_result = ['Administrativo', 'Agrario', 'Civil', 'Contencioso Administrativo', 'Laboral', 'LOPNNA', 'Penal', 'Penal Adolescentes', 'Violencia de Género'];
+$sedes_result = ['Santo Domingo', 'Mucuchies', 'Av. Miranda (Timotes)', 'Edif. El Vigilante', 'Edif. Hermes', 'Circuito Judicial Penal Mérida', 'Archivo Judicial', 'C.C. Centenario', 'C.C. Ejido', 'Av. Bolívar (Laguinillas)', 'Sta Cruz De Mora', 'C.C El Arado (Tovar)', 'Edif. Senis (Tovar)', 'Bailadores', 'Edif. Don Efigenio (El Vigia)', 'Edif. Vespucci (El Vigia)', 'Circuito Judicial Penal Sede El Vigia', 'Edif. Doña Emilia (El Vigia)', 'Av. Simon Bolivar (Nueva Bolivia)'];
+$zonas_result = ['Mérida', 'Mocoties', 'Panamericana', 'Páramo'];
 $departamentos_result = $conn->query("SELECT id, nombre, area_tipo FROM Departamentos WHERE activa = 1 ORDER BY area_tipo, nombre")->fetchAll(PDO::FETCH_ASSOC);
 
 // Construir consulta base para estadísticas
