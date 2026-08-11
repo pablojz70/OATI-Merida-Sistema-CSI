@@ -317,6 +317,7 @@ body {
                 
                 <div class="login-footer">
                     <p>¿Problemas para ingresar? Dirígete a la Oficina de Apoyo Técnico Informático de la Dirección Administrativa Regional de Mérida. <span style="font-size: 14px; font-weight: bold;">OATI - DAR - Mérida</span></p>
+                    <p><a href="CentroSoporte.mp4" download style="color:#0d6e6e;font-size:13px;">▶ Descargar video tutorial</a></p>
                     <p>Versión 2</p>
                 </div>
             </div>
