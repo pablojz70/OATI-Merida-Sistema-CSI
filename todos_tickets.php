@@ -162,7 +162,8 @@ if (!empty($filtros['departamento'])) {
     // Filtrar por departamento según el tipo del departamento seleccionado
     $dept_row = $conn->query("SELECT area_tipo FROM Departamentos WHERE id = " . intval($filtros['departamento']))->fetch();
     $dept_col = ($dept_row && $dept_row['area_tipo'] == 'infraestructura') ? 'departamento_infraestructura_id' : 'departamento_informatica_id';
-    $query .= " AND t.dependencia_id IN (SELECT id FROM Dependencias WHERE $dept_col = ?)";
+    $dept_tipo = ($dept_row && $dept_row['area_tipo'] == 'infraestructura') ? 'infraestructura' : 'informatica';
+    $query .= " AND t.area_tipo = '$dept_tipo' AND t.dependencia_id IN (SELECT id FROM Dependencias WHERE $dept_col = ?)";
     $params[] = $filtros['departamento'];
     $param_types[] = PDO::PARAM_INT;
 }

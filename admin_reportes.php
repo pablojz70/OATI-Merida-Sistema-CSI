@@ -166,7 +166,9 @@ if (!empty($filtros['zona'])) {
 if (!empty($filtros['departamento'])) {
     $dept_row = $conn->query("SELECT area_tipo FROM Departamentos WHERE id = " . intval($filtros['departamento']))->fetch();
     $dept_col = ($dept_row && $dept_row['area_tipo'] == 'infraestructura') ? 'departamento_infraestructura_id' : 'departamento_informatica_id';
-    $where_conditions[] = "t.dependencia_id IN (SELECT id FROM Dependencias WHERE $dept_col = :dept)";
+    $dept_tipo = ($dept_row && $dept_row['area_tipo'] == 'infraestructura') ? 'infraestructura' : 'informatica';
+    $where_conditions[] = "t.area_tipo = :dept_tipo AND t.dependencia_id IN (SELECT id FROM Dependencias WHERE $dept_col = :dept)";
+    $params[':dept_tipo'] = $dept_tipo;
     $params[':dept'] = $filtros['departamento'];
 }
 
