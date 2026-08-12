@@ -1238,14 +1238,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                 </h1>
                 
                 <div class="ticket-header-actions">
-                    <!-- Botón VOLVER según privilegio -->
+                    <!-- Botón VOLVER según privilegio (con history.back para mantener filtros) -->
                     <a href="<?php 
                         echo match($privilegio) {
                             'admin', 'director' => 'todos_tickets.php',
                             'tecnico' => 'tickets_asignados.php',
                             default => 'mis_tickets.php'
                         };
-                    ?>" class="btn-ticket-action back" title="Volver">
+                    ?>" class="btn-ticket-action back" title="Volver"
+                       onclick="if(document.referrer && document.referrer.indexOf(location.host) !== -1){history.back(); return false;}">
                         <i class="fas fa-arrow-left"></i>
                     </a>
                     
