@@ -509,7 +509,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
                 <a href="aceptar_ticket.php" style="text-decoration:none; color:inherit; display:block;">
                     <div class="counter-card-aceptar" style="margin-bottom:0;">
                         <div class="counter-number-aceptar"><?php echo count($tickets); ?></div>
-                        <div class="counter-label-aceptar">TICKETS DISPONIBLES</div>
+                        <div class="counter-label-aceptar">TICKETS DE TU OFICINA</div>
+                        <div style="font-size:0.8em; opacity:0.85; margin-top:4px;">Tickets de tu oficina / departamento</div>
                     </div>
                 </a>
                 <a href="aceptar_ticket.php?mostrar_todos=1" style="text-decoration:none; color:inherit; display:block;">
