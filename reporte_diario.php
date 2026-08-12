@@ -79,7 +79,7 @@ $usuario_nombre = up($usuario_nombre);
         .info-box { border:1px solid #ccc; border-radius:6px; padding:10px 14px; margin-bottom:15px; font-size:13px; }
         .info-box span { margin-right:25px; }
         .info-box b { color:#1a2980; }
-        .sede { margin-bottom:20px; page-break-inside:avoid; }
+        .sede { margin-bottom:35px; page-break-inside:avoid; }
         .sede-titulo { background:#1a2980; color:#fff; padding:7px 12px; border-radius:4px; font-size:14px; font-weight:bold; margin-bottom:8px; }
         table { width:100%; border-collapse:collapse; }
         th { background:#f0f2f5; color:#333; text-align:left; padding:6px 8px; border:1px solid #ddd; font-size:11px; text-transform:uppercase; }
