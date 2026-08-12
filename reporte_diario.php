@@ -55,6 +55,14 @@ foreach ($actividades as $act) {
 }
 
 $total = count($actividades);
+
+// Convertir texto a mayúsculas (respeta acentos)
+function up($texto) {
+    return mb_strtoupper($texto, 'UTF-8');
+}
+$fecha_mostrar = up($fecha_mostrar);
+$asunto_reporte = up($asunto_reporte);
+$usuario_nombre = up($usuario_nombre);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -91,44 +99,44 @@ $total = count($actividades);
 
     <div class="header">
         <h1>REPORTE DE ACTIVIDADES DIARIAS</h1>
-        <p><strong>Estado:</strong> Mérida</p>
-        <p><strong>Fecha:</strong> <?php echo $fecha_mostrar; ?></p>
-        <div class="asunto">Asunto: <?php echo htmlspecialchars($asunto_reporte); ?></div>
+        <p><strong>ESTADO:</strong> MÉRIDA</p>
+        <p><strong>FECHA:</strong> <?php echo $fecha_mostrar; ?></p>
+        <div class="asunto">ASUNTO: <?php echo htmlspecialchars($asunto_reporte); ?></div>
     </div>
 
     <div class="info-box">
-        <span><b>Total de actividades:</b> <?php echo $total; ?></span>
-        <span><b>Generado por:</b> <?php echo htmlspecialchars($usuario_nombre); ?></span>
-        <span><b>Hora:</b> <?php echo date('H:i'); ?></span>
+        <span><b>TOTAL DE ACTIVIDADES:</b> <?php echo $total; ?></span>
+        <span><b>GENERADO POR:</b> <?php echo htmlspecialchars($usuario_nombre); ?></span>
+        <span><b>HORA:</b> <?php echo date('H:i'); ?></span>
     </div>
 
     <?php if (empty($por_sede)): ?>
         <div style="text-align:center; padding:40px; color:#999;">
-            <p>No se registraron actividades para la fecha (<?php echo $fecha_mostrar; ?>)</p>
+            <p>NO SE REGISTRARON ACTIVIDADES PARA LA FECHA (<?php echo $fecha_mostrar; ?>)</p>
         </div>
     <?php else: ?>
         <?php foreach ($por_sede as $sede => $actividades_sede): ?>
         <div class="sede">
-            <div class="sede-titulo"><?php echo htmlspecialchars($sede); ?></div>
+            <div class="sede-titulo"><?php echo htmlspecialchars(up($sede)); ?></div>
             <table>
                 <thead>
                     <tr>
-                        <th>Dependencia</th>
-                        <th>Actividad del Día</th>
-                        <th>Descripción</th>
+                        <th>DEPENDENCIA</th>
+                        <th>ACTIVIDAD DEL DÍA</th>
+                        <th>DESCRIPCIÓN</th>
                         <?php if ($tipo_reporte == 'todos'): ?>
-                        <th style="width:70px;">Tipo</th>
+                        <th style="width:70px;">TIPO</th>
                         <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($actividades_sede as $act): ?>
                     <tr>
-                        <td><?php echo htmlspecialchars($act['dependencia_corto'] ?: $act['dependencia_nombre']); ?></td>
-                        <td><?php echo htmlspecialchars($act['asunto']); ?></td>
-                        <td style="text-align:justify;"><?php echo htmlspecialchars(preg_replace('/\s+/', ' ', trim($act['descripcion'] ?? ''))); ?></td>
+                        <td><?php echo htmlspecialchars(up($act['dependencia_corto'] ?: $act['dependencia_nombre'])); ?></td>
+                        <td><?php echo htmlspecialchars(up($act['asunto'])); ?></td>
+                        <td style="text-align:justify;"><?php echo htmlspecialchars(up(preg_replace('/\s+/', ' ', trim($act['descripcion'] ?? '')))); ?></td>
                         <?php if ($tipo_reporte == 'todos'): ?>
-                        <td><?php echo $act['area_tipo'] == 'infraestructura' ? 'Infra' : 'OATI'; ?></td>
+                        <td><?php echo $act['area_tipo'] == 'infraestructura' ? 'INFRA' : 'OATI'; ?></td>
                         <?php endif; ?>
                     </tr>
                     <?php endforeach; ?>
@@ -136,11 +144,11 @@ $total = count($actividades);
             </table>
         </div>
         <?php endforeach; ?>
-        <div class="total">Total de actividades del día: <?php echo $total; ?></div>
+        <div class="total">TOTAL DE ACTIVIDADES DEL DÍA: <?php echo $total; ?></div>
     <?php endif; ?>
 
     <div class="footer">
-        Sistema CSI - Centro de Soporte Informático - DAR Mérida | Generado el <?php echo date('d/m/Y H:i:s'); ?>
+        SISTEMA CSI - CENTRO DE SOPORTE INFORMÁTICO - DAR MÉRIDA | GENERADO EL <?php echo date('d/m/Y H:i:s'); ?>
     </div>
 </body>
 </html>
