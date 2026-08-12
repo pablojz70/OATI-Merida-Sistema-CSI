@@ -506,24 +506,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
             <!-- CONTADORES DE TICKETS -->
             <?php if (!empty($tickets)): ?>
             <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:15px; margin-bottom:20px;">
-                <div class="counter-card-aceptar" style="margin-bottom:0;">
-                    <div class="counter-number-aceptar"><?php echo count($tickets); ?></div>
-                    <div class="counter-label-aceptar">TICKETS DISPONIBLES</div>
-                </div>
-                <div class="counter-card-aceptar" style="margin-bottom:0; background: linear-gradient(135deg, #3498db 0%, #2c3e6b 100%);">
-                    <div class="counter-number-aceptar"><?php echo $total_todos; ?></div>
-                    <div class="counter-label-aceptar">TODOS LOS TICKETS</div>
-                </div>
-            </div>
-            <?php endif; ?>
-            
-            <?php if (in_array($privilegio, ['oati', 'infraestructura'])): ?>
-            <div style="text-align:right;margin-bottom:10px;">
-                <?php if ($mostrar_todos): ?>
-                    <a href="aceptar_ticket.php" style="display:inline-block;padding:7px 14px;background:#3498db;color:white;border-radius:5px;text-decoration:none;font-size:12px;">Ver solo mi departamento</a>
-                <?php else: ?>
-                    <a href="aceptar_ticket.php?mostrar_todos=1" style="display:inline-block;padding:7px 14px;background:#6c757d;color:white;border-radius:5px;text-decoration:none;font-size:12px;">Mostrar todos los tickets</a>
-                <?php endif; ?>
+                <a href="aceptar_ticket.php" style="text-decoration:none; color:inherit; display:block;">
+                    <div class="counter-card-aceptar" style="margin-bottom:0;">
+                        <div class="counter-number-aceptar"><?php echo count($tickets); ?></div>
+                        <div class="counter-label-aceptar">TICKETS DISPONIBLES</div>
+                    </div>
+                </a>
+                <a href="aceptar_ticket.php?mostrar_todos=1" style="text-decoration:none; color:inherit; display:block;">
+                    <div class="counter-card-aceptar" style="margin-bottom:0; background: linear-gradient(135deg, #3498db 0%, #2c3e6b 100%);">
+                        <div class="counter-number-aceptar"><?php echo $total_todos; ?></div>
+                        <div class="counter-label-aceptar">TODOS LOS TICKETS</div>
+                    </div>
+                </a>
             </div>
             <?php endif; ?>
             
