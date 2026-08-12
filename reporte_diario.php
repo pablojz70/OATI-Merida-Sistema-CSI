@@ -113,19 +113,23 @@ $total = count($actividades);
             <table>
                 <thead>
                     <tr>
+                        <th>Dependencia</th>
                         <th>Actividad del Día</th>
                         <th>Descripción</th>
-                        <th>Dependencia</th>
+                        <?php if ($tipo_reporte == 'todos'): ?>
                         <th style="width:70px;">Tipo</th>
+                        <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($actividades_sede as $act): ?>
                     <tr>
+                        <td><?php echo htmlspecialchars($act['dependencia_corto'] ?: $act['dependencia_nombre']); ?></td>
                         <td><?php echo htmlspecialchars($act['asunto']); ?></td>
                         <td><?php echo nl2br(htmlspecialchars($act['descripcion'] ?? '')); ?></td>
-                        <td><?php echo htmlspecialchars($act['dependencia_corto'] ?: $act['dependencia_nombre']); ?></td>
+                        <?php if ($tipo_reporte == 'todos'): ?>
                         <td><?php echo $act['area_tipo'] == 'infraestructura' ? 'Infra' : 'OATI'; ?></td>
+                        <?php endif; ?>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
