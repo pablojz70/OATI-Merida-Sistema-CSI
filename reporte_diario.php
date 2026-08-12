@@ -32,11 +32,11 @@ if ($tipo_reporte == 'oati') {
     $tipo_filter = " AND t.area_tipo = 'infraestructura'";
     $asunto_reporte = 'Actividades Diarias Infraestructura Merida';
 } else {
-    $asunto_reporte = 'Actividades Diarias OATI Merida';
+    $asunto_reporte = 'Actividades Diarias Merida';
 }
 
 // Consultar actividades del día por dependencia
-$stmt = $conn->query("SELECT t.id, t.numero_ticket, t.asunto, t.estado, t.area_tipo,
+$stmt = $conn->query("SELECT t.id, t.numero_ticket, t.asunto, t.descripcion, t.estado, t.area_tipo,
         d.nombre_corto as dependencia_corto, d.nombre as dependencia_nombre, d.sede,
         DATE_FORMAT(t.fecha_creacion, '%H:%i') as hora
         FROM Tickets t
@@ -85,6 +85,10 @@ $total = count($actividades);
 <body>
     <button class="btn-print" onclick="window.print()"><i class="fas fa-print"></i> Imprimir</button>
 
+    <div style="text-align:center; margin-bottom:15px;">
+        <img src="imagen/head_reportes_blanco.jpg" alt="Encabezado" style="width:100%; max-width:700px; height:auto;">
+    </div>
+
     <div class="header">
         <h1>REPORTE DE ACTIVIDADES DIARIAS</h1>
         <p><strong>Estado:</strong> Mérida</p>
@@ -109,9 +113,8 @@ $total = count($actividades);
             <table>
                 <thead>
                     <tr>
-                        <th style="width:90px;">Ticket</th>
-                        <th style="width:60px;">Hora</th>
                         <th>Actividad del Día</th>
+                        <th>Descripción</th>
                         <th>Dependencia</th>
                         <th style="width:70px;">Tipo</th>
                     </tr>
@@ -119,9 +122,8 @@ $total = count($actividades);
                 <tbody>
                     <?php foreach ($actividades_sede as $act): ?>
                     <tr>
-                        <td><?php echo htmlspecialchars($act['numero_ticket']); ?></td>
-                        <td><?php echo $act['hora']; ?></td>
                         <td><?php echo htmlspecialchars($act['asunto']); ?></td>
+                        <td><?php echo nl2br(htmlspecialchars($act['descripcion'] ?? '')); ?></td>
                         <td><?php echo htmlspecialchars($act['dependencia_corto'] ?: $act['dependencia_nombre']); ?></td>
                         <td><?php echo $act['area_tipo'] == 'infraestructura' ? 'Infra' : 'OATI'; ?></td>
                     </tr>
