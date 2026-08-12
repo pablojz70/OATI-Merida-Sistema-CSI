@@ -928,8 +928,8 @@ $total_activos = $activos_data['total_activos'] ?? 0;
         <!-- CONTENIDO PRINCIPAL -->
         <main class="main-content-custom">
             <!-- ENCABEZADO DE PÁGINA -->
-            <div class="page-header-custom">
-                <h1 class="page-title-custom">
+            <div class="page-header-custom" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <h1 class="page-title-custom" style="margin:0;">
                     <img src="imagen/Cabinet.png" alt="Tickets" class="title-icon"> 
                     <?php if ($vista_tipo == 'oati'): ?>
                         Tickets OATI
@@ -939,7 +939,11 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                         Todos los Tickets
                     <?php endif; ?>
                 </h1>
-                <p class="page-subtitle-custom">
+                <a href="reporte_diario.php" target="_blank" class="btn-filtro-custom btn-aplicar-custom" 
+                   style="text-decoration:none; padding:8px 14px; background:#27ae60; color:#fff; border-radius:5px; font-size:12px; font-weight:bold;">
+                    <i class="fas fa-file-alt"></i> Generar Reporte Diario
+                </a>
+                <p class="page-subtitle-custom" style="width:100%;">
                     <?php if ($vista_tipo == 'oati'): ?>
                         Vista filtrada: solo tickets de Informática (OATI)
                     <?php elseif ($vista_tipo == 'infraestructura'): ?>
