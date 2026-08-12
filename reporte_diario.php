@@ -74,8 +74,8 @@ $total = count($actividades);
         .sede { margin-bottom:20px; page-break-inside:avoid; }
         .sede-titulo { background:#1a2980; color:#fff; padding:7px 12px; border-radius:4px; font-size:14px; font-weight:bold; margin-bottom:8px; }
         table { width:100%; border-collapse:collapse; }
-        th { background:#f0f2f5; color:#333; text-align:left; padding:6px 8px; border:1px solid #ddd; font-size:11px; }
-        td { padding:6px 8px; border:1px solid #ddd; font-size:11px; }
+        th { background:#f0f2f5; color:#333; text-align:left; padding:6px 8px; border:1px solid #ddd; font-size:11px; text-transform:uppercase; }
+        td { padding:6px 8px; border:1px solid #ddd; font-size:11px; text-transform:uppercase; }
         tr:nth-child(even) td { background:#f9fafc; }
         .total { text-align:right; font-size:13px; margin-top:10px; font-weight:bold; color:#1a2980; }
         .btn-print { position:fixed; top:15px; right:15px; background:#3498db; color:#fff; border:none; padding:8px 16px; border-radius:5px; cursor:pointer; font-size:12px; }
