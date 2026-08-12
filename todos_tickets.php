@@ -928,8 +928,8 @@ $total_activos = $activos_data['total_activos'] ?? 0;
         <!-- CONTENIDO PRINCIPAL -->
         <main class="main-content-custom">
             <!-- ENCABEZADO DE PÁGINA -->
-            <div class="page-header-custom" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                <h1 class="page-title-custom" style="margin:0;">
+            <div class="page-header-custom">
+                <h1 class="page-title-custom">
                     <img src="imagen/Cabinet.png" alt="Tickets" class="title-icon"> 
                     <?php if ($vista_tipo == 'oati'): ?>
                         Tickets OATI
@@ -939,11 +939,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                         Todos los Tickets
                     <?php endif; ?>
                 </h1>
-                <a href="reporte_diario.php" target="_blank" class="btn-filtro-custom btn-aplicar-custom" 
-                   style="text-decoration:none; padding:8px 14px; background:#27ae60; color:#fff; border-radius:5px; font-size:12px; font-weight:bold;">
-                    <i class="fas fa-file-alt"></i> Generar Reporte Diario
-                </a>
-                <p class="page-subtitle-custom" style="width:100%;">
+                <p class="page-subtitle-custom">
                     <?php if ($vista_tipo == 'oati'): ?>
                         Vista filtrada: solo tickets de Informática (OATI)
                     <?php elseif ($vista_tipo == 'infraestructura'): ?>
@@ -966,12 +962,28 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                    style="background: <?php echo $vista_tipo == 'oati' ? '#3498db' : '#6c757d'; ?>; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
                     <i class="fas fa-laptop-code"></i> OATI
                 </a>
-                <a href="todos_tickets.php?tipo=infraestructura" 
-                   class="btn-filter" 
-                   style="background: <?php echo $vista_tipo == 'infraestructura' ? '#17a2b8' : '#6c757d'; ?>; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
-                    <i class="fas fa-tools"></i> Infraestructura
-                </a>
-            </div>
+                 <a href="todos_tickets.php?tipo=infraestructura" 
+                    class="btn-filter" 
+                    style="background: <?php echo $vista_tipo == 'infraestructura' ? '#17a2b8' : '#6c757d'; ?>; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                     <i class="fas fa-tools"></i> Infraestructura
+                 </a>
+             </div>
+             
+             <!-- BOTONES DE REPORTES DIARIOS -->
+             <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; border-top: 1px solid #eee; padding-top: 10px;">
+                 <a href="reporte_diario.php" target="_blank" class="btn-filter" 
+                    style="background:#27ae60; color:white; padding:8px 14px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:600;">
+                     <i class="fas fa-file-alt"></i> Generar Reporte Diario
+                 </a>
+                 <a href="reporte_diario.php?tipo=oati" target="_blank" class="btn-filter" 
+                    style="background:#3498db; color:white; padding:8px 14px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:600;">
+                     <i class="fas fa-laptop-code"></i> Actividades Diarias OATI
+                 </a>
+                 <a href="reporte_diario.php?tipo=infraestructura" target="_blank" class="btn-filter" 
+                    style="background:#17a2b8; color:white; padding:8px 14px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:600;">
+                     <i class="fas fa-tools"></i> Actividades Diarias Infraestructura
+                 </a>
+             </div>
             
             <!-- MENSAJES DE ÉXITO/ERROR -->
             <?php if (isset($_GET['mensaje']) && $_GET['mensaje'] == 'ticket_eliminado'): ?>

@@ -18,13 +18,28 @@ try {
 
 $fecha_hoy = date('Y-m-d');
 
+// Filtro por tipo de actividad (oati / infraestructura / todos)
+$tipo_reporte = $_GET['tipo'] ?? 'todos';
+$tipo_filter = '';
+$asunto_reporte = 'Actividades Diarias OATI Merida';
+
+if ($tipo_reporte == 'oati') {
+    $tipo_filter = " AND t.area_tipo = 'informatica'";
+    $asunto_reporte = 'Actividades Diarias OATI Merida';
+} elseif ($tipo_reporte == 'infraestructura') {
+    $tipo_filter = " AND t.area_tipo = 'infraestructura'";
+    $asunto_reporte = 'Actividades Diarias Infraestructura Merida';
+} else {
+    $asunto_reporte = 'Actividades Diarias OATI Merida';
+}
+
 // Consultar actividades del día por dependencia
 $stmt = $conn->query("SELECT t.id, t.numero_ticket, t.asunto, t.estado, t.area_tipo,
         d.nombre_corto as dependencia_corto, d.nombre as dependencia_nombre, d.sede,
         DATE_FORMAT(t.fecha_creacion, '%H:%i') as hora
         FROM Tickets t
         JOIN Dependencias d ON t.dependencia_id = d.id
-        WHERE DATE(t.fecha_creacion) = '$fecha_hoy'
+        WHERE DATE(t.fecha_creacion) = '$fecha_hoy' $tipo_filter
         ORDER BY d.sede, d.nombre_corto, t.fecha_creacion");
 
 $actividades = $stmt->fetchAll();
@@ -72,7 +87,7 @@ $total = count($actividades);
         <h1>REPORTE DE ACTIVIDADES DIARIAS</h1>
         <p><strong>Estado:</strong> Mérida</p>
         <p><strong>Fecha:</strong> <?php echo date('d/m/Y'); ?></p>
-        <div class="asunto">Asunto: Actividades Diarias OATI Merida</div>
+        <div class="asunto">Asunto: <?php echo htmlspecialchars($asunto_reporte); ?></div>
     </div>
 
     <div class="info-box">
