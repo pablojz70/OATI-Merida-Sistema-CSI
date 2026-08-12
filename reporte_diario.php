@@ -126,7 +126,7 @@ $total = count($actividades);
                     <tr>
                         <td><?php echo htmlspecialchars($act['dependencia_corto'] ?: $act['dependencia_nombre']); ?></td>
                         <td><?php echo htmlspecialchars($act['asunto']); ?></td>
-                        <td style="text-align:justify;"><?php echo nl2br(htmlspecialchars($act['descripcion'] ?? '')); ?></td>
+                        <td style="text-align:justify;"><?php echo htmlspecialchars(preg_replace('/\s+/', ' ', trim($act['descripcion'] ?? ''))); ?></td>
                         <?php if ($tipo_reporte == 'todos'): ?>
                         <td><?php echo $act['area_tipo'] == 'infraestructura' ? 'Infra' : 'OATI'; ?></td>
                         <?php endif; ?>
