@@ -59,6 +59,7 @@ $filtros = [
     'servicio_id' => $_GET['servicio_id'] ?? '',
     'tecnico_id' => $_GET['tecnico_id'] ?? '',
     'dependencia_id' => $_GET['dependencia_id'] ?? '',
+    'departamento' => $_GET['departamento'] ?? '',
     'fecha_desde' => $_GET['fecha_desde'] ?? '',
     'fecha_hasta' => $_GET['fecha_hasta'] ?? '',
     'busqueda' => $_GET['busqueda'] ?? '',
@@ -144,6 +145,15 @@ if (!empty($filtros['dependencia_id'])) {
     $param_types[] = PDO::PARAM_INT;
 }
 
+if (!empty($filtros['departamento'])) {
+    // Filtrar por departamento según el tipo del departamento seleccionado
+    $dept_row = $conn->query("SELECT area_tipo FROM Departamentos WHERE id = " . intval($filtros['departamento']))->fetch();
+    $dept_col = ($dept_row && $dept_row['area_tipo'] == 'infraestructura') ? 'departamento_infraestructura_id' : 'departamento_informatica_id';
+    $query .= " AND t.dependencia_id IN (SELECT id FROM Dependencias WHERE $dept_col = ?)";
+    $params[] = $filtros['departamento'];
+    $param_types[] = PDO::PARAM_INT;
+}
+
 if (!empty($filtros['fecha_desde'])) {
     $query .= " AND DATE(t.fecha_creacion) >= ?";
     $params[] = $filtros['fecha_desde'];
@@ -197,6 +207,9 @@ $areas = $conn->query("SELECT id, nombre FROM AreasSoporte{$area_tipo_cond} ORDE
 // Obtener servicios y todos los servicios para filtro dinámico
 $servicios = $conn->query("SELECT s.id, s.nombre, s.area_id FROM Servicios s WHERE s.activo = 1 ORDER BY s.nombre")->fetchAll(PDO::FETCH_ASSOC);
 $servicios_json = json_encode($servicios);
+
+// Departamentos para el filtro por oficina
+$departamentos = $conn->query("SELECT id, nombre, area_tipo FROM Departamentos WHERE activa = 1 ORDER BY area_tipo, nombre")->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtener admins y técnicos para asignación
 $admins = $conn->query("SELECT id, nombre, privilegio FROM Usuarios WHERE privilegio = 'admin' AND activo = 1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
@@ -1090,6 +1103,18 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                 <?php foreach ($servicios as $serv): ?>
                                 <option value="<?php echo $serv['id']; ?>" <?php echo $filtros['servicio_id'] == $serv['id'] ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($serv['nombre']); ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group-filtro-custom">
+                            <label for="departamento">Oficina (Departamento):</label>
+                            <select id="departamento" name="departamento">
+                                <option value="">Todas</option>
+                                <?php foreach ($departamentos as $dept): ?>
+                                <option value="<?php echo $dept['id']; ?>" <?php echo $filtros['departamento'] == $dept['id'] ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($dept['nombre'] . ' (' . ($dept['area_tipo'] == 'infraestructura' ? 'Infra' : 'OATI') . ')'); ?>
                                 </option>
                                 <?php endforeach; ?>
                             </select>
