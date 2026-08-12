@@ -35,13 +35,17 @@ try {
 }
 
 // Filtro por departamento del técnico (si tiene departamentos asignados)
-$dep_filter = "";
 $mostrar_todos = isset($_GET['mostrar_todos']) && $_GET['mostrar_todos'] == 1;
-if (in_array($privilegio, ['oati', 'infraestructura']) && !$mostrar_todos) {
+
+// Filtro de oficina SIEMPRE calculado (para el conteo de la tarjeta de oficina)
+$dep_filter_oficina = "";
+$tiene_departamento = false;
+if (in_array($privilegio, ['oati', 'infraestructura'])) {
     $stmt_dep = $pdo->prepare("SELECT COUNT(*) FROM DepartamentoTecnicos WHERE usuario_id = ?");
     $stmt_dep->execute([$id_tecnico]);
-    if ($stmt_dep->fetchColumn() > 0) {
-        $dep_filter = " AND (
+    $tiene_departamento = $stmt_dep->fetchColumn() > 0;
+    if ($tiene_departamento) {
+        $dep_filter_oficina = " AND (
             (t.area_tipo = 'informatica' AND d.departamento_informatica_id IN (SELECT departamento_id FROM DepartamentoTecnicos WHERE usuario_id = $id_tecnico))
             OR
             (t.area_tipo = 'infraestructura' AND d.departamento_infraestructura_id IN (SELECT departamento_id FROM DepartamentoTecnicos WHERE usuario_id = $id_tecnico))
@@ -50,7 +54,10 @@ if (in_array($privilegio, ['oati', 'infraestructura']) && !$mostrar_todos) {
     // Si el técnico no tiene departamento → ve todos los tickets
 }
 
-// CONSULTA DE TICKETS DISPONIBLES
+// Filtro de la lista mostrada: depende de mostrar_todos
+$dep_filter = $mostrar_todos ? "" : $dep_filter_oficina;
+
+// CONSULTA DE TICKETS DISPONIBLES (lista mostrada)
 $sql = "SELECT 
     t.id,
     t.numero_ticket,
@@ -89,10 +96,15 @@ if ($stmt === false) {
 
 $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Total de tickets de la oficina del técnico (SIEMPRE con filtro de oficina)
+$sql_oficina = "SELECT COUNT(*) as total FROM Tickets t
+    INNER JOIN Dependencias d ON t.dependencia_id = d.id
+    WHERE t.estado = 'Nuevo' AND t.oati_asignado IS NULL $area_tipo_filter $dep_filter_oficina";
+$total_oficina = $pdo->query($sql_oficina)->fetchColumn();
+
 // Total de tickets disponibles de TODA su área (sin filtro de departamento)
 $sql_todos = "SELECT COUNT(*) as total FROM Tickets t WHERE t.estado = 'Nuevo' AND t.oati_asignado IS NULL $area_tipo_filter";
-$stmt_todos = $pdo->query($sql_todos);
-$total_todos = $stmt_todos->fetchColumn();
+$total_todos = $pdo->query($sql_todos)->fetchColumn();
 
 // PROCESAR ACEPTACIÓN
 $mensaje = '';
@@ -508,7 +520,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
             <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:15px; margin-bottom:20px;">
                 <a href="aceptar_ticket.php" style="text-decoration:none; color:inherit; display:block;">
                     <div class="counter-card-aceptar" style="margin-bottom:0;">
-                        <div class="counter-number-aceptar"><?php echo count($tickets); ?></div>
+                        <div class="counter-number-aceptar"><?php echo $total_oficina; ?></div>
                         <div class="counter-label-aceptar">TICKETS DE TU OFICINA</div>
                         <div style="font-size:0.8em; opacity:0.85; margin-top:4px;">Tickets de tu oficina / departamento</div>
                     </div>
