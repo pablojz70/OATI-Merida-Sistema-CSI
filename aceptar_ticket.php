@@ -89,6 +89,11 @@ if ($stmt === false) {
 
 $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Total de tickets disponibles de TODA su área (sin filtro de departamento)
+$sql_todos = "SELECT COUNT(*) as total FROM Tickets t WHERE t.estado = 'Nuevo' AND t.oati_asignado IS NULL $area_tipo_filter";
+$stmt_todos = $pdo->query($sql_todos);
+$total_todos = $stmt_todos->fetchColumn();
+
 // PROCESAR ACEPTACIÓN
 $mensaje = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
@@ -136,9 +141,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
         /* ESTILOS ESPECÍFICOS PARA ACEPTAR TICKETS */
         .main-content-custom {
             margin-left: 190px !important;
-            padding: 10px !important;
+            padding: 60px 10px 10px 10px !important;
             width: calc(100% - 190px);
-            max-height: calc(100vh - 50px);
+            max-height: calc(100vh - 0px);
             overflow-y: auto;
             background: #f8fafc;
         }
@@ -425,6 +430,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
             .main-content-custom {
                 margin-left: 0 !important;
                 width: 100%;
+                padding-top: 60px !important;
             }
             
             .ticket-header-aceptar {
@@ -497,11 +503,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aceptar_ticket'])) {
                 </div>
             <?php endif; ?>
             
-            <!-- CONTADOR DE TICKETS -->
+            <!-- CONTADORES DE TICKETS -->
             <?php if (!empty($tickets)): ?>
-            <div class="counter-card-aceptar">
-                <div class="counter-number-aceptar"><?php echo count($tickets); ?></div>
-                <div class="counter-label-aceptar">TICKETS DISPONIBLES</div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:15px; margin-bottom:20px;">
+                <div class="counter-card-aceptar" style="margin-bottom:0;">
+                    <div class="counter-number-aceptar"><?php echo count($tickets); ?></div>
+                    <div class="counter-label-aceptar">TICKETS DISPONIBLES</div>
+                </div>
+                <div class="counter-card-aceptar" style="margin-bottom:0; background: linear-gradient(135deg, #3498db 0%, #2c3e6b 100%);">
+                    <div class="counter-number-aceptar"><?php echo $total_todos; ?></div>
+                    <div class="counter-label-aceptar">TODOS LOS TICKETS</div>
+                </div>
             </div>
             <?php endif; ?>
             
