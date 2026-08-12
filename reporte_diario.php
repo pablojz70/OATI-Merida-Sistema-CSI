@@ -16,7 +16,9 @@ try {
     die("Error de conexión");
 }
 
-$fecha_hoy = date('Y-m-d');
+// Fecha del reporte: si se envía fecha, usarla; si no, la de hoy
+$fecha_hoy = isset($_GET['fecha']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['fecha']) ? $_GET['fecha'] : date('Y-m-d');
+$fecha_mostrar = date('d/m/Y', strtotime($fecha_hoy));
 
 // Filtro por tipo de actividad (oati / infraestructura / todos)
 $tipo_reporte = $_GET['tipo'] ?? 'todos';
@@ -86,7 +88,7 @@ $total = count($actividades);
     <div class="header">
         <h1>REPORTE DE ACTIVIDADES DIARIAS</h1>
         <p><strong>Estado:</strong> Mérida</p>
-        <p><strong>Fecha:</strong> <?php echo date('d/m/Y'); ?></p>
+        <p><strong>Fecha:</strong> <?php echo $fecha_mostrar; ?></p>
         <div class="asunto">Asunto: <?php echo htmlspecialchars($asunto_reporte); ?></div>
     </div>
 
@@ -98,7 +100,7 @@ $total = count($actividades);
 
     <?php if (empty($por_sede)): ?>
         <div style="text-align:center; padding:40px; color:#999;">
-            <p>No se registraron actividades en el día de hoy (<?php echo date('d/m/Y'); ?>)</p>
+            <p>No se registraron actividades para la fecha (<?php echo $fecha_mostrar; ?>)</p>
         </div>
     <?php else: ?>
         <?php foreach ($por_sede as $sede => $actividades_sede): ?>

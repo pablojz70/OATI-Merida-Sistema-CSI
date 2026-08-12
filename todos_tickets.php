@@ -970,20 +970,34 @@ $total_activos = $activos_data['total_activos'] ?? 0;
              </div>
              
              <!-- BOTONES DE REPORTES DIARIOS -->
-             <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; border-top: 1px solid #eee; padding-top: 10px;">
-                 <a href="reporte_diario.php" target="_blank" class="btn-filter" 
+             <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; align-items:center; border-top: 1px solid #eee; padding-top: 10px;">
+                 <label for="fecha_reporte" style="font-size:12px; font-weight:600; color:#333;">Fecha del reporte:</label>
+                 <input type="date" id="fecha_reporte" value="<?php echo date('Y-m-d'); ?>"
+                        style="padding:6px 10px; border:1px solid #ccc; border-radius:5px; font-size:12px;"
+                        onchange="actualizarLinksReporte()">
+                 <a href="reporte_diario.php" target="_blank" id="link_reporte_general" class="btn-filter" 
                     style="background:#27ae60; color:white; padding:8px 14px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:600;">
                      <i class="fas fa-file-alt"></i> Generar Reporte Diario
                  </a>
-                 <a href="reporte_diario.php?tipo=oati" target="_blank" class="btn-filter" 
+                 <a href="reporte_diario.php?tipo=oati" target="_blank" id="link_reporte_oati" class="btn-filter" 
                     style="background:#3498db; color:white; padding:8px 14px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:600;">
                      <i class="fas fa-laptop-code"></i> Actividades Diarias OATI
                  </a>
-                 <a href="reporte_diario.php?tipo=infraestructura" target="_blank" class="btn-filter" 
+                 <a href="reporte_diario.php?tipo=infraestructura" target="_blank" id="link_reporte_infra" class="btn-filter" 
                     style="background:#17a2b8; color:white; padding:8px 14px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:600;">
                      <i class="fas fa-tools"></i> Actividades Diarias Infraestructura
                  </a>
              </div>
+             <script>
+             function actualizarLinksReporte() {
+                 var fecha = document.getElementById('fecha_reporte').value;
+                 var base = 'reporte_diario.php';
+                 var params = fecha ? '&fecha=' + fecha : '';
+                 document.getElementById('link_reporte_general').href = base + '?' + (fecha ? 'fecha=' + fecha : '');
+                 document.getElementById('link_reporte_oati').href = base + '?tipo=oati' + params;
+                 document.getElementById('link_reporte_infra').href = base + '?tipo=infraestructura' + params;
+             }
+             </script>
             
             <!-- MENSAJES DE ÉXITO/ERROR -->
             <?php if (isset($_GET['mensaje']) && $_GET['mensaje'] == 'ticket_eliminado'): ?>
