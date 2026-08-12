@@ -3,11 +3,26 @@
 // Incluir conexión a la base de datos
 require_once __DIR__ . '/../config/database.php';
 
-// Obtener cantidad de tickets disponibles (Nuevo sin OATI asignado, solo Informática)
+// Obtener cantidad de tickets disponibles de la OFICINA del técnico
 $disponibles_count = 0;
+$id_tecnico = $_SESSION['id_usuario'] ?? $_SESSION['usuario_id'] ?? null;
 try {
-    $stmt_disponibles = $conn->prepare("SELECT COUNT(*) as total FROM Tickets WHERE estado = 'Nuevo' AND oati_asignado IS NULL AND area_tipo = 'informatica'");
-    $stmt_disponibles->execute();
+    // ¿El técnico tiene departamentos asignados?
+    $stmt_dep = $conn->prepare("SELECT COUNT(*) FROM DepartamentoTecnicos WHERE usuario_id = ?");
+    $stmt_dep->execute([$id_tecnico]);
+    $tiene_dep = $stmt_dep->fetchColumn() > 0;
+
+    if ($tiene_dep && $id_tecnico) {
+        $stmt_disponibles = $conn->prepare("SELECT COUNT(*) as total FROM Tickets t
+            INNER JOIN Dependencias d ON t.dependencia_id = d.id
+            WHERE t.estado = 'Nuevo' AND t.oati_asignado IS NULL AND t.area_tipo = 'informatica'
+            AND d.departamento_informatica_id IN (SELECT departamento_id FROM DepartamentoTecnicos WHERE usuario_id = ?)");
+        $stmt_disponibles->execute([$id_tecnico]);
+    } else {
+        // Si no tiene departamento, mostrar todos los de informática
+        $stmt_disponibles = $conn->prepare("SELECT COUNT(*) as total FROM Tickets WHERE estado = 'Nuevo' AND oati_asignado IS NULL AND area_tipo = 'informatica'");
+        $stmt_disponibles->execute();
+    }
     $disponibles_count = $stmt_disponibles->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
 } catch (Exception $e) {}
 ?>
