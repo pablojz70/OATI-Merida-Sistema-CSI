@@ -74,6 +74,19 @@ if (!empty($filtros['area_tipo']) && empty($vista_tipo)) {
     $vista_tipo = ($filtros['area_tipo'] == 'infraestructura') ? 'infraestructura' : 'oati';
 }
 
+// Si el usuario es admin y está asignado a una(s) oficina(s), y no se especificó filtro de departamento,
+// mostrar por defecto los tickets activos de su oficina
+if (in_array($_SESSION['privilegio'] ?? '', ['admin']) && empty($filtros['departamento'])) {
+    $id_tecnico_actual = $_SESSION['id_usuario'] ?? $_SESSION['usuario_id'] ?? null;
+    if ($id_tecnico_actual) {
+        $stmt_off = $conn->query("SELECT departamento_id FROM DepartamentoTecnicos WHERE usuario_id = " . intval($id_tecnico_actual) . " ORDER BY id LIMIT 1");
+        $oficina_admin = $stmt_off->fetchColumn();
+        if ($oficina_admin) {
+            $filtros['departamento'] = $oficina_admin;
+        }
+    }
+}
+
 // MODIFICACIÓN: Determinar el comportamiento según el filtro de estado
 // Si hay filtro de prioridad, mostrar todos los estados (no solo activos)
 $mostrar_solo_activos = empty($filtros['estado']) && empty($filtros['prioridad']);
