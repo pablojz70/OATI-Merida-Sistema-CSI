@@ -216,6 +216,12 @@ if (!file_exists($menu_archivo)) {
                             <span class="stat-label">Tickets Cerrados</span>
                         </div>
                     </a>
+                    <a href="calendario.php" class="stat-link">
+                        <div class="stat-usuario" style="border-color:#3498db;">
+                            <span class="stat-numero"><?php echo $stats['tickets_programados'] ?? '0'; ?></span>
+                            <span class="stat-label">Programados</span>
+                        </div>
+                    </a>
                 
                 <?php elseif ($privilegio == 'director'): ?>
                     <a href="todos_tickets.php" class="stat-link">

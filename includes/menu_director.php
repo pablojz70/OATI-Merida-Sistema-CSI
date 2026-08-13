@@ -9,6 +9,13 @@
         </li>
         
         <li>
+            <a href="calendario.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'calendario.php' ? 'active' : ''; ?>">
+                <img src="imagen/Settings.png" alt="Calendario" class="menu-icon">
+                <span>Calendario</span>
+            </a>
+        </li>
+        
+        <li>
             <a href="crear_ticket.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'crear_ticket.php' ? 'active' : ''; ?>">
                 <img src="imagen/Add Ticket.png" alt="Nuevo Ticket" class="menu-icon">
                 <span>Nuevo Ticket</span>

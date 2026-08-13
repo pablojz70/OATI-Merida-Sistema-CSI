@@ -50,6 +50,12 @@ listadas aquí, o darán error.
    - Informática: Oficina Principal, Oficina CJP, Oficina El Vigia
    - Infraestructura: Oficina Principal, Oficina CJP, Oficina El Vigia, Oficina Tovar
 
+5. Módulo Calendario - Tickets Programados
+   - Tickets.fecha_evento DATETIME (fecha programada del evento)
+   - Tickets.tipo_evento ENUM('audiencia','evento','mantenimiento')
+   - Estado nuevo en Tickets.estado: 'Programado'
+   - Cron de activación: cron/activar_tickets.php (Programado -> Nuevo un día antes)
+
 ---------------------------------------------------------------------
  PENDIENTES / PRÓXIMOS CAMBIOS
 ---------------------------------------------------------------------

@@ -36,6 +36,13 @@ try {
         </li>
         
         <li>
+            <a href="calendario.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'calendario.php' ? 'active' : ''; ?>">
+                <img src="imagen/Settings.png" alt="Calendario" class="menu-icon">
+                <span>Calendario</span>
+            </a>
+        </li>
+        
+        <li>
             <a href="tickets_asignados.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'tickets_asignados.php' ? 'active' : ''; ?>">
                 <img src="imagen/MTasignados.png" alt="Tickets Asignados" class="menu-icon">
                 <span>Mis Tickets Asignados</span>

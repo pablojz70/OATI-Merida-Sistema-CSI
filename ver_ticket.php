@@ -1263,17 +1263,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accion']) && $_POST['a
                         </a>
                     <?php endif; ?>
                     
-<!-- Botón PROCESAR (admin o técnico asignado, solo si no está cerrado) -->
+<!-- Botón PROCESAR (admin o técnico asignado, solo si no está cerrado ni programado) -->
                      <?php 
                      $ticketCerrado = strpos($ticket['estado'], 'Cerrado') !== false;
-                     if ($puede_editar && !$ticketCerrado): ?>
+                     $ticketProgramado = ($ticket['estado'] == 'Programado');
+                     if ($puede_editar && !$ticketCerrado && !$ticketProgramado): ?>
                         <a href="procesar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action procesar" title="Procesar ticket">
                             <i class="fas fa-tools"></i>
                         </a>
                     <?php endif; ?>
                     
-<!-- Botón CERRAR (solo si no está cerrado) -->
-                     <?php if ($puede_editar && !$ticketCerrado): ?>
+<!-- Botón CERRAR (solo si no está cerrado ni programado) -->
+                     <?php if ($puede_editar && !$ticketCerrado && !$ticketProgramado): ?>
                         <a href="cerrar_ticket.php?id=<?php echo $ticket_id; ?>" class="btn-ticket-action close" title="Cerrar ticket">
                             <i class="fas fa-check"></i>
                         </a>

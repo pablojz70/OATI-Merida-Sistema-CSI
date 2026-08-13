@@ -164,6 +164,73 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $numero_bien = trim($_POST['numero_bien'] ?? '');
         $serial = trim($_POST['serial'] ?? '');
         
+        // PROGRAMAR EVENTO: crear nuevo ticket "Programado" y cerrar el actual
+        $programar_evento = isset($_POST['programar_evento']);
+        $fecha_evento = $_POST['fecha_evento'] ?? '';
+        $tipo_evento = $_POST['tipo_evento'] ?? '';
+        
+        if ($programar_evento && in_array($privilegio, ['admin', 'oati', 'infraestructura'])) {
+            if (empty($fecha_evento)) {
+                $error = "Debe ingresar la fecha y hora del evento para programar";
+            } elseif (!in_array($tipo_evento, ['audiencia', 'evento', 'mantenimiento'])) {
+                $error = "Debe seleccionar el tipo de evento";
+            } else {
+                // Generar número de ticket único
+                $prefijo = 'CSI';
+                $fecha = date('Ymd');
+                $nuevo_numero = $prefijo . $fecha . sprintf('%05d', rand(10000, 99999));
+                $check = $conn->prepare("SELECT COUNT(*) FROM Tickets WHERE numero_ticket = ?");
+                $check->execute([$nuevo_numero]);
+                if ($check->fetchColumn() > 0) {
+                    $nuevo_numero = $prefijo . $fecha . sprintf('%05d', rand(10000, 99999));
+                }
+                
+                // Crear el nuevo ticket Programado copiando datos del actual
+                $sql_nuevo = "INSERT INTO Tickets (
+                    numero_ticket, usuario_id, dependencia_id, lugar_area, area_id, servicio_id,
+                    asunto, descripcion, prioridad, estado, fecha_creacion, area_tipo,
+                    numero_bien, serial, fecha_evento, tipo_evento
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Programado', NOW(), ?, ?, ?, ?, ?)";
+                $stmt_nuevo = $conn->prepare($sql_nuevo);
+                $stmt_nuevo->execute([
+                    $nuevo_numero,
+                    $ticket['usuario_id'],
+                    $ticket['dependencia_id'],
+                    $ticket['lugar_area'],
+                    $ticket['area_id'],
+                    $ticket['servicio_id'],
+                    $ticket['asunto'],
+                    $ticket['descripcion'],
+                    $ticket['prioridad'],
+                    $ticket['area_tipo'],
+                    $numero_bien ?: null,
+                    $serial ?: null,
+                    $fecha_evento,
+                    $tipo_evento
+                ]);
+                $nuevo_id = $conn->lastInsertId();
+                
+                // Cerrar el ticket actual como "Cerrado Exitosamente"
+                $solucion_cierre = "Ticket agendado. Se creó el ticket programado: $nuevo_numero"
+                    . " - Evento: $fecha_evento - Tipo: $tipo_evento";
+                $stmt_cerrar = $conn->prepare("UPDATE Tickets SET estado = 'Cerrado Exitosamente', solucion = ?, fecha_cierre = NOW() WHERE id = ?");
+                $stmt_cerrar->execute([$solucion_cierre, $ticket_id]);
+                
+                // Registrar en HistorialTickets
+                try {
+                    $stmt_hist = $conn->prepare("INSERT INTO HistorialTickets (ticket_id, usuario_id, accion, descripcion, fecha) VALUES (?, ?, 'programado', ?, NOW())");
+                    $stmt_hist->execute([$nuevo_id, $id_usuario, "Ticket programado para $fecha_evento (tipo: $tipo_evento). Origen: ticket $ticket_id"]);
+                    $stmt_hist2 = $conn->prepare("INSERT INTO HistorialTickets (ticket_id, usuario_id, accion, descripcion, fecha) VALUES (?, ?, 'cierre', ?, NOW())");
+                    $stmt_hist2->execute([$ticket_id, $id_usuario, "Ticket agendado. Se creó el ticket programado: $nuevo_numero"]);
+                } catch (Exception $e) {}
+                
+                $conn->commit();
+                $_SESSION['mensaje_exito'] = "✅ Ticket agendado. Se creó el ticket programado <strong>$nuevo_numero</strong>";
+                header("Location: ver_ticket.php?id=$nuevo_id");
+                exit();
+            }
+        }
+        
         // Validaciones básicas
         if (($nuevo_estado == 'Cerrado Exitosamente' || $nuevo_estado == 'Cerrado No Exitoso') && empty($solucion)) {
             $error = "Debe proporcionar una solución para cerrar el ticket";
@@ -748,6 +815,33 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
                             </div>
                         </div>
                         
+                        <!-- PROGRAMAR EVENTO (solo admin/OATI/Infra) -->
+                        <?php if (in_array($privilegio, ['admin', 'oati', 'infraestructura']) && strpos($ticket['estado'], 'Cerrado') === false): ?>
+                        <div class="form-group" style="border: 1px solid #3498db; border-radius: 8px; padding: 12px; background: #f8fbff;">
+                            <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" name="programar_evento" id="programar_evento" value="1" onchange="toggleProgramar()">
+                                <span><i class="fas fa-calendar-check"></i> Programar Evento (crea un nuevo ticket programado)</span>
+                            </label>
+                            <div id="programar_detalle" style="display: none; margin-top: 10px;">
+                                <div style="margin-bottom: 10px;">
+                                    <label for="fecha_evento">Fecha y hora del evento:</label>
+                                    <input type="datetime-local" name="fecha_evento" id="fecha_evento" class="form-control">
+                                </div>
+                                <div style="margin-bottom: 10px;">
+                                    <label for="tipo_evento">Tipo de evento:</label>
+                                    <select name="tipo_evento" id="tipo_evento" class="form-control">
+                                        <option value="audiencia">🔴 Audiencia Telemática</option>
+                                        <option value="evento">🟢 Evento</option>
+                                        <option value="mantenimiento">🔵 Mantenimiento Preventivo</option>
+                                    </select>
+                                </div>
+                                <small style="font-size: 10px; color: #666;">
+                                    Al programar se cierra este ticket como "Cerrado Exitosamente" y se crea un nuevo ticket "Programado" con la fecha del evento.
+                                </small>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
                         <!-- SOLUCIÓN (requerida solo para cerrar) -->
                         <div class="form-group">
                             <label class="form-label">Solución Aplicada:</label>
@@ -1002,6 +1096,13 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
             console.error('Error:', error);
             alert('Error al buscar en INTRADAR');
         });
+    }
+
+    // Mostrar/ocultar detalle de programación de evento
+    function toggleProgramar() {
+        var chk = document.getElementById('programar_evento');
+        var detalle = document.getElementById('programar_detalle');
+        if (detalle) detalle.style.display = chk.checked ? 'block' : 'none';
     }
     </script>
 </body>

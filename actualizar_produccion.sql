@@ -51,3 +51,8 @@ INSERT INTO Departamentos (nombre, area_tipo) VALUES
 ('Oficina CJP', 'infraestructura'),
 ('Oficina El Vigia', 'infraestructura'),
 ('Oficina Tovar', 'infraestructura');
+
+-- 5. Módulo Calendario: tickets programados
+ALTER TABLE Tickets ADD COLUMN fecha_evento DATETIME NULL;
+ALTER TABLE Tickets ADD COLUMN tipo_evento ENUM('audiencia','evento','mantenimiento') NULL;
+ALTER TABLE Tickets MODIFY estado ENUM('Nuevo','Asignado','En Proceso','Programado','Cerrado Exitosamente','Cerrado No Exitoso') DEFAULT 'Nuevo';

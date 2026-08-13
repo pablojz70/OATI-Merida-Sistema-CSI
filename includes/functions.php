@@ -27,6 +27,7 @@ function getAdminStats($conn) {
         (SELECT COUNT(*) FROM Tickets WHERE estado = 'Nuevo') as tickets_nuevos,
         (SELECT COUNT(*) FROM Tickets WHERE estado = 'Asignado') as tickets_asignados,
         (SELECT COUNT(*) FROM Tickets WHERE estado = 'En Proceso') as tickets_en_proceso,
+        (SELECT COUNT(*) FROM Tickets WHERE estado = 'Programado') as tickets_programados,
         (SELECT COUNT(*) FROM Tickets WHERE estado = 'Cerrado Exitosamente') as tickets_cerrados";
     
     $stmt = $conn->query($query);

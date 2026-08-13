@@ -1111,6 +1111,7 @@ $total_activos = $activos_data['total_activos'] ?? 0;
                                 <option value="Nuevo" <?php echo $filtros['estado'] == 'Nuevo' ? 'selected' : ''; ?>>Nuevo</option>
                                 <option value="Asignado" <?php echo $filtros['estado'] == 'Asignado' ? 'selected' : ''; ?>>Asignado</option>
                                 <option value="En Proceso" <?php echo $filtros['estado'] == 'En Proceso' ? 'selected' : ''; ?>>En Proceso</option>
+                                <option value="Programado" <?php echo $filtros['estado'] == 'Programado' ? 'selected' : ''; ?>>Programado</option>
                                 <option value="Cerrado Exitosamente" <?php echo $filtros['estado'] == 'Cerrado Exitosamente' ? 'selected' : ''; ?>>Cerrado Exitoso</option>
                                 <option value="Cerrado No Exitoso" <?php echo $filtros['estado'] == 'Cerrado No Exitoso' ? 'selected' : ''; ?>>Cerrado No Exitoso</option>
                                 <option value="todos" <?php echo $filtros['estado'] == 'todos' ? 'selected' : ''; ?>>TODOS (incluye cerrados)</option>
