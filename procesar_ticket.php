@@ -737,14 +737,6 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
                             <input type="hidden" name="estado" value="En Proceso">
                         </div>
                         
-                        <!-- DESCRIPCIÓN DEL TICKET -->
-                        <div class="form-group" style="border:1px solid #ddd; border-radius:6px; padding:10px; background:#f9f9f9; margin-bottom:20px;">
-                            <label class="form-label" style="color:#1a2980;"><i class="fas fa-align-left"></i> Descripción del Ticket:</label>
-                            <div style="font-size:12px; color:#333; line-height:1.5; margin-top:4px; max-height:150px; overflow-y:auto; white-space:pre-wrap;">
-                                <?php echo htmlspecialchars($ticket['descripcion'] ?? 'Sin descripción'); ?>
-                            </div>
-                        </div>
-                        
                         <!-- PRIORIDAD -->
                         <div class="form-group">
                             <label class="form-label">Prioridad:</label>
@@ -897,6 +889,13 @@ if(isset($_FILES['archivos']) && !empty($_FILES['archivos']['name'][0])) {
                     <div class="info-line">
                         <span class="info-label">Asunto:</span>
                         <span class="info-value"><?php echo htmlspecialchars($ticket['asunto']); ?></span>
+                    </div>
+                    
+                    <div class="info-line" style="align-items:flex-start;">
+                        <span class="info-label" style="min-width:70px;">Descripción:</span>
+                        <span class="info-value" style="max-height:120px; overflow-y:auto; white-space:pre-wrap; font-weight:normal;">
+                            <?php echo htmlspecialchars($ticket['descripcion'] ?? 'Sin descripción'); ?>
+                        </span>
                     </div>
                     
                     <div class="info-line">
